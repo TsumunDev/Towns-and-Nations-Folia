@@ -64,7 +64,7 @@ public class RemoveRelationMenu extends IteratorGUI {
     List<GuiItem> guiItems = new ArrayList<>();
 
     for (String otherTownUUID : relationListID) {
-      TerritoryData otherTerritory = TerritoryUtil.getTerritoryAsync(otherTownUUID).join();
+      TerritoryData otherTerritory = TerritoryUtil.getTerritory(otherTownUUID);
       ItemStack townIcon =
           otherTerritory.getIconWithInformationAndRelation(territoryData, tanPlayer.getLang());
 

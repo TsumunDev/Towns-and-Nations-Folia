@@ -151,6 +151,7 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
     }
   }
 
+  @Override
   public void put(String id, TownData obj) {
     if (id == null || obj == null) {
       return;

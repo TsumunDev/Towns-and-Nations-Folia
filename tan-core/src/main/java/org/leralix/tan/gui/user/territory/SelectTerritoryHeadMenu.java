@@ -52,8 +52,6 @@ public class SelectTerritoryHeadMenu extends IteratorGUI {
     ArrayList<GuiItem> guiItems = new ArrayList<>();
     for (String playerID : territoryData.getPlayerIDList()) {
 
-      // ⚠️ TODO: This blocks on first call if player data not cached
-      // Should refactor to preload player names async before rendering
       OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(UUID.fromString(playerID));
       ItemStack playerHead = HeadUtils.getPlayerHead(offlinePlayer);
 

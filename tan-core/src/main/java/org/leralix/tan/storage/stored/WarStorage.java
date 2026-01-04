@@ -78,14 +78,14 @@ public class WarStorage extends DatabaseStorage<War> {
   }
 
   public void territoryDeleted(TerritoryData territoryData) {
-    for (War plannedAttack : getAllSync().values()) {
+    for (War plannedAttack : getAll().values()) {
       if (plannedAttack.isMainAttacker(territoryData)
           || plannedAttack.isMainDefender(territoryData)) plannedAttack.endWar();
     }
   }
 
   public List<War> getWarsOfTerritory(TerritoryData territoryData) {
-    return getAllSync().values().stream()
+    return getAll().values().stream()
         .filter(war -> war.isMainAttacker(territoryData) || war.isMainDefender(territoryData))
         .toList();
   }

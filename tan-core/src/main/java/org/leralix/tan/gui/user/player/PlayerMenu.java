@@ -18,7 +18,7 @@ import org.leralix.tan.utils.deprecated.GuiUtil;
 public class PlayerMenu extends BasicGui {
 
   private PlayerMenu(Player player, ITanPlayer tanPlayer) {
-    super(player, tanPlayer, Lang.HEADER_PLAYER_PROFILE.get(tanPlayer.getLang()), "player_menu", 3);
+    super(player, tanPlayer, Lang.HEADER_PLAYER_PROFILE.get(tanPlayer.getLang()), 3);
   }
 
   public static void open(Player player) {

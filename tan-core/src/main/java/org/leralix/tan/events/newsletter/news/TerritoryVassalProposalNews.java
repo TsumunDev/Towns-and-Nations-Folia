@@ -110,7 +110,7 @@ public class TerritoryVassalProposalNews extends Newsletter {
   public boolean shouldShowToPlayer(Player player) {
     TerritoryData territoryData = TerritoryUtil.getTerritory(receivingTerritoryID);
     if (territoryData == null) return false;
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().get(player).join();
+    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
     if (!territoryData.isPlayerIn(tanPlayer)) return false;
     return territoryData.doesPlayerHavePermission(tanPlayer, RolePermission.TOWN_ADMINISTRATOR);
   }

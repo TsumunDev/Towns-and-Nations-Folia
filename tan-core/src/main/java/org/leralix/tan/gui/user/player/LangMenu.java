@@ -21,7 +21,7 @@ import org.leralix.tan.utils.text.TanChatUtils;
 public class LangMenu extends IteratorGUI {
 
   private LangMenu(Player player, ITanPlayer tanPlayer) {
-    super(player, tanPlayer, Lang.HEADER_SELECT_LANGUAGE.get(tanPlayer.getLang()), "lang_menu", 3);
+    super(player, tanPlayer, Lang.HEADER_SELECT_LANGUAGE.get(tanPlayer.getLang()), 3);
   }
 
   public static void open(Player player) {

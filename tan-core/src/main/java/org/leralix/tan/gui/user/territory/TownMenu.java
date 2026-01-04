@@ -7,7 +7,6 @@ import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.territory.TownData;
 import org.leralix.tan.gui.cosmetic.IconKey;
 import org.leralix.tan.gui.cosmetic.IconManager;
-import org.leralix.tan.gui.cosmetic.LayoutManager;
 import org.leralix.tan.gui.user.MainMenu;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
@@ -23,7 +22,6 @@ public class TownMenu extends TerritoryMenu {
         player,
         tanPlayer,
         Lang.HEADER_TOWN_MENU.get(tanPlayer.getLang(), townData.getName()),
-        "town_menu",
         townData);
     this.townData = townData;
   }
@@ -31,12 +29,6 @@ public class TownMenu extends TerritoryMenu {
   public static void open(Player player, TownData townData) {
     PlayerDataStorage.getInstance()
         .get(player)
-        .thenCompose(
-            tanPlayer -> {
-              // Preload leader name asynchronously to avoid blocking in getTerritoryInfo()
-              return townData.getLeaderName()
-                  .thenApply(leaderName -> tanPlayer); // Ignore result, just trigger cache
-            })
         .thenAccept(
             tanPlayer -> {
               new TownMenu(player, tanPlayer, townData).open();
@@ -45,28 +37,24 @@ public class TownMenu extends TerritoryMenu {
 
   @Override
   public void open() {
-    LayoutManager layout = LayoutManager.getInstance();
-    
-    gui.setItem(layout.getSlotOrDefault("town_menu", "territory_info", 4), getTerritoryInfo());
-    gui.getFiller().fillTop(GuiUtil.getUnnamedItem(
-        layout.getFillerOrDefault("town_menu", Material.BLUE_STAINED_GLASS_PANE)));
+    gui.setItem(1, 5, getTerritoryInfo());
+    gui.getFiller().fillTop(GuiUtil.getUnnamedItem(Material.BLUE_STAINED_GLASS_PANE));
 
-    gui.setItem(layout.getSlotOrDefault("town_menu", "treasury", 10), getTownTreasuryButton());
-    gui.setItem(layout.getSlotOrDefault("town_menu", "members", 11), getMemberButton());
-    gui.setItem(layout.getSlotOrDefault("town_menu", "land", 12), getLandButton());
-    gui.setItem(layout.getSlotOrDefault("town_menu", "browse", 13), getBrowseButton());
-    gui.setItem(layout.getSlotOrDefault("town_menu", "diplomacy", 14), getDiplomacyButton());
-    gui.setItem(layout.getSlotOrDefault("town_menu", "level", 15), getLevelButton());
-    gui.setItem(layout.getSlotOrDefault("town_menu", "settings", 16), getSettingsButton());
+    gui.setItem(2, 2, getTownTreasuryButton());
+    gui.setItem(2, 3, getMemberButton());
+    gui.setItem(2, 4, getLandButton());
+    gui.setItem(2, 5, getBrowseButton());
+    gui.setItem(2, 6, getDiplomacyButton());
+    gui.setItem(2, 7, getLevelButton());
+    gui.setItem(2, 8, getSettingsButton());
 
-    gui.setItem(layout.getSlotOrDefault("town_menu", "building", 19), getBuildingButton());
-    gui.setItem(layout.getSlotOrDefault("town_menu", "attack", 20), getAttackButton());
-    gui.setItem(layout.getSlotOrDefault("town_menu", "hierarchy", 21), getHierarchyButton());
+    gui.setItem(3, 2, getBuildingButton());
+    gui.setItem(3, 3, getAttackButton());
+    gui.setItem(3, 4, getHierarchyButton());
 
-    gui.setItem(layout.getSlotOrDefault("town_menu", "landmarks", 25), getLandmarksButton());
+    gui.setItem(3, 8, getLandmarksButton());
 
-    gui.setItem(layout.getSlotOrDefault("town_menu", "back", 27), 
-        GuiUtil.createBackArrow(player, MainMenu::open));
+    gui.setItem(4, 1, GuiUtil.createBackArrow(player, MainMenu::open));
 
     gui.open(player);
   }

@@ -30,7 +30,7 @@ public class BuildingMenu extends IteratorGUI {
 
   public BuildingMenu(
       Player player, ITanPlayer tanPlayer, TerritoryData territoryData, BasicGui previousMenu) {
-    super(player, tanPlayer, Lang.HEADER_BUILDING_MENU.get(player), "building_menu", 4);
+    super(player, tanPlayer, Lang.HEADER_BUILDING_MENU.get(player), 4);
     this.territoryData = territoryData;
     this.previousMenu = previousMenu;
     // open() doit être appelé explicitement après la construction pour respecter le modèle

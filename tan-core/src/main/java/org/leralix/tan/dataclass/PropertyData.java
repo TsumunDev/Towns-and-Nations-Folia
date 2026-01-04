@@ -1,7 +1,5 @@
 package org.leralix.tan.dataclass;
 
-import java.util.concurrent.CompletableFuture;
-
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -140,10 +138,6 @@ public class PropertyData extends Building {
     return TownDataStorage.getInstance().getSync(getOwningStructureID());
   }
 
-  public CompletableFuture<TownData> getTownAsync() {
-    return TownDataStorage.getInstance().get(getOwningStructureID());
-  }
-
   public String getPropertyID() {
     String[] parts = ID.split("_");
     return parts[1];
@@ -178,13 +172,6 @@ public class PropertyData extends Building {
 
   public ITanPlayer getRenter() {
     return PlayerDataStorage.getInstance().getSync(rentingPlayerID);
-  }
-
-  public CompletableFuture<ITanPlayer> getRenterAsync() {
-    if (rentingPlayerID == null) {
-      return CompletableFuture.completedFuture(null);
-    }
-    return PlayerDataStorage.getInstance().get(rentingPlayerID);
   }
 
   public String getRenterID() {
@@ -452,22 +439,15 @@ public class PropertyData extends Building {
     town.removeProperty(this);
 
     if (getOwner() instanceof PlayerOwned playerOwnedClass) {
-      // Async load owner and notify
-      PlayerDataStorage.getInstance()
-          .get(playerOwnedClass.getPlayerID())
-          .thenAccept(playerOwner -> {
-            playerOwner.removeProperty(this);
-            Player player = Bukkit.getPlayer(UUID.fromString(playerOwnedClass.getPlayerID()));
-            if (player != null) {
-              TanChatUtils.message(
-                  player, Lang.PROPERTY_DELETED.get(playerOwner.getLang()), SoundEnum.MINOR_GOOD);
-            }
-          })
-          .exceptionally(throwable -> {
-            TownsAndNations.getPlugin().getLogger().warning(
-                "Failed to notify property owner of deletion: " + throwable.getMessage());
-            return null;
-          });
+      ITanPlayer playerOwner =
+          PlayerDataStorage.getInstance().getSync(playerOwnedClass.getPlayerID());
+      playerOwner.removeProperty(this);
+
+      Player player = Bukkit.getPlayer(UUID.fromString(playerOwnedClass.getPlayerID()));
+      if (player != null) {
+        TanChatUtils.message(
+            player, Lang.PROPERTY_DELETED.get(playerOwner.getLang()), SoundEnum.MINOR_GOOD);
+      }
     }
   }
 
@@ -487,15 +467,7 @@ public class PropertyData extends Building {
   }
 
   public void buyProperty(Player buyer) {
-    ITanPlayer tanBuyer = PlayerDataStorage.getInstance().getSync(buyer);
-    buyProperty(tanBuyer);
-  }
-
-  public void buyProperty(ITanPlayer tanBuyer) {
-    Player buyer = tanBuyer.getPlayer();
-    if (buyer == null) return;
-    
-    LangType langType = tanBuyer.getLang();
+    LangType langType = PlayerDataStorage.getInstance().getSync(buyer).getLang();
 
     double playerBalance = EconomyUtil.getBalance(buyer);
     double cost = getSalePrice();
@@ -522,14 +494,10 @@ public class PropertyData extends Building {
             SoundEnum.GOOD);
       }
 
-      // Async load and remove property from ex-owner
-      PlayerDataStorage.getInstance()
-          .get(exOwnerID.toString())
-          .thenAccept(exOwnerData -> {
-            if (exOwnerData != null) {
-              exOwnerData.removeProperty(this);
-            }
-          });
+      ITanPlayer exOwnerData = PlayerDataStorage.getInstance().getSync(exOwnerID);
+      if (exOwnerData != null) {
+        exOwnerData.removeProperty(this);
+      }
     }
 
     TanChatUtils.message(
@@ -547,7 +515,9 @@ public class PropertyData extends Building {
     getOwner().addToBalance(getBaseSalePrice());
     town.addToBalance(townCut);
 
-    tanBuyer.addProperty(this);
+    ITanPlayer newOwnerData =
+        PlayerDataStorage.getInstance().getSync(buyer.getUniqueId().toString());
+    newOwnerData.addProperty(this);
     this.owner = new PlayerOwned(buyer.getUniqueId().toString());
 
     this.isForSale = false;
@@ -571,23 +541,10 @@ public class PropertyData extends Building {
 
   public void expelRenter(boolean rentBack) {
     if (!isRented()) return;
-    
-    String renterId = this.rentingPlayerID;
+    ITanPlayer renter = PlayerDataStorage.getInstance().getSync(rentingPlayerID);
+    renter.removeProperty(this);
     this.rentingPlayerID = null;
     if (rentBack) isForRent = true;
-    
-    // Async remove property from renter
-    PlayerDataStorage.getInstance()
-        .get(renterId)
-        .thenAccept(renter -> {
-          renter.removeProperty(this);
-        })
-        .exceptionally(throwable -> {
-          TownsAndNations.getPlugin().getLogger().warning(
-              "Failed to expel renter: " + throwable.getMessage());
-          return null;
-        });
-    
     org.leralix.tan.utils.FoliaScheduler.runTask(TownsAndNations.getPlugin(), this::updateSign);
     getPermissionManager().setAll(RelationPermission.SELECTED_ONLY);
   }
@@ -661,13 +618,8 @@ public class PropertyData extends Building {
   @Override
   public GuiItem getGuiItem(
       IconManager iconManager, Player player, BasicGui basicGui, LangType langType) {
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    return getGuiItem(iconManager, tanPlayer, basicGui, langType);
-  }
 
-  public GuiItem getGuiItem(
-      IconManager iconManager, ITanPlayer tanPlayer, BasicGui basicGui, LangType langType) {
-    Player player = tanPlayer.getPlayer();
+    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
     boolean canInteract = getOwner().canAccess(tanPlayer);
 
     return iconManager

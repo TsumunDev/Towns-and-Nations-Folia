@@ -85,7 +85,7 @@ public class PlayerProfileCache {
 
     // Fetch async
     LOGGER.debug("Profile cache MISS for {} - Fetching from Mojang API", player.getName());
-    return org.leralix.tan.async.VirtualThreadExecutor.supplyAsync(
+    return CompletableFuture.supplyAsync(
         () -> {
           try {
             PlayerProfile profile = player.getPlayerProfile();

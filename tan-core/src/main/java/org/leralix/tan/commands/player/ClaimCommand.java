@@ -3,7 +3,6 @@ package org.leralix.tan.commands.player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
 import org.leralix.lib.commands.PlayerSubCommand;
@@ -49,6 +48,7 @@ public class ClaimCommand extends PlayerSubCommand {
 
   @Override
   public void perform(Player player, String[] args) {
+
     LangType langType = LangType.of(player);
 
     // Validate argument count
@@ -56,24 +56,18 @@ public class ClaimCommand extends PlayerSubCommand {
       return;
     }
 
-<<<<<<< Updated upstream
     // Determine territory type (town or region)
     TerritoryData territoryData;
-=======
-    // Async pattern: conditional territory loading based on type
-    CompletableFuture<? extends TerritoryData> territoryFuture;
->>>>>>> Stashed changes
 
     if (args[1].equals("town")) {
-      territoryFuture = TownDataStorage.getInstance().get(player);
+      territoryData = TownDataStorage.getInstance().getSync(player);
     } else if (args[1].equals("region")) {
-      territoryFuture = RegionDataStorage.getInstance().get(player);
+      territoryData = RegionDataStorage.getInstance().getSync(player);
     } else {
       TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(getSyntax()).getDefault());
       return;
     }
 
-<<<<<<< Updated upstream
     // Check if territory exists
     if (territoryData == null) {
       if (args[1].equals("town")) {
@@ -89,31 +83,11 @@ public class ClaimCommand extends PlayerSubCommand {
       // Parse coordinates with error handling
       Optional<Integer> xOpt = CommandExceptionHandler.parseInt(player, args[2], "x coordinate");
       Optional<Integer> zOpt = CommandExceptionHandler.parseInt(player, args[3], "z coordinate");
-=======
-    territoryFuture
-        .thenAccept(
-            territoryData -> {
-              if (territoryData == null) {
-                if (args[1].equals("town")) {
-                  TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get().getDefault());
-                } else {
-                  TanChatUtils.message(player, Lang.TOWN_NO_REGION.get().getDefault());
-                }
-                return;
-              }
 
-              if (args.length == 4) {
-                Optional<Integer> xOpt =
-                    CommandExceptionHandler.parseInt(player, args[2], "x coordinate");
-                Optional<Integer> zOpt =
-                    CommandExceptionHandler.parseInt(player, args[3], "z coordinate");
->>>>>>> Stashed changes
+      if (xOpt.isEmpty() || zOpt.isEmpty()) {
+        return;
+      }
 
-                if (xOpt.isEmpty() || zOpt.isEmpty()) {
-                  return;
-                }
-
-<<<<<<< Updated upstream
       try {
         Chunk chunk = player.getWorld().getChunkAt(xOpt.get(), zOpt.get());
         executeClaimChunk(territoryData, player, chunk);
@@ -131,33 +105,6 @@ public class ClaimCommand extends PlayerSubCommand {
         CommandExceptionHandler.logCommandExecution(player, "claim", args);
       }
     }
-=======
-                try {
-                  Chunk chunk = player.getWorld().getChunkAt(xOpt.get(), zOpt.get());
-                  executeClaimChunk(territoryData, player, chunk);
-                  MapCommand.openMap(player, new MapSettings(args[0], args[1]));
-                } catch (TerritoryException e) {
-                  TanChatUtils.message(player, Lang.SYNTAX_ERROR.get(langType));
-                  CommandExceptionHandler.logCommandExecution(player, "claim", args);
-                }
-              } else {
-                try {
-                  executeClaimChunk(territoryData, player);
-                } catch (TerritoryException e) {
-                  TanChatUtils.message(player, Lang.SYNTAX_ERROR.get(langType));
-                  CommandExceptionHandler.logCommandExecution(player, "claim", args);
-                }
-              }
-            })
-        .exceptionally(
-            throwable -> {
-              org.leralix.tan.TownsAndNations.getPlugin()
-                  .getLogger()
-                  .severe("ClaimCommand failed: " + throwable.getMessage());
-              player.sendMessage("§cError processing claim command");
-              return null;
-            });
->>>>>>> Stashed changes
   }
 
   /**

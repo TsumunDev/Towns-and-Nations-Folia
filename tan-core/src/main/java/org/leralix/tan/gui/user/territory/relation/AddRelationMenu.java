@@ -59,13 +59,12 @@ public class AddRelationMenu extends IteratorGUI {
             tanPlayer -> {
               // Load all online players data in parallel
               List<String> playerIDs = new ArrayList<>();
-              // ✅ FIX: Use getAllAsync().join() - safe in thenCompose async context
               playerIDs.addAll(
-                  TownDataStorage.getInstance().getAllAsync().join().values().stream()
+                  TownDataStorage.getInstance().getAllSync().values().stream()
                       .flatMap(town -> town.getPlayerIDList().stream())
                       .toList());
               playerIDs.addAll(
-                  RegionDataStorage.getInstance().getAllAsync().join().values().stream()
+                  RegionDataStorage.getInstance().getAllSync().values().stream()
                       .flatMap(region -> region.getPlayerIDList().stream())
                       .toList());
 
@@ -114,16 +113,14 @@ public class AddRelationMenu extends IteratorGUI {
     List<GuiItem> guiItems = new ArrayList<>();
 
     List<String> territories = new ArrayList<>();
-    // ⚠️ TODO: Refactor with AsyncGuiHelper for better performance
-    // For now using getAllAsync().join() as workaround
-    territories.addAll(TownDataStorage.getInstance().getAllAsync().join().keySet());
-    territories.addAll(RegionDataStorage.getInstance().getAllAsync().join().keySet());
+    territories.addAll(TownDataStorage.getInstance().getAllSync().keySet());
+    territories.addAll(RegionDataStorage.getInstance().getAllSync().keySet());
 
     territories.removeAll(relationListID); // Territory already have this relation
     territories.remove(territoryData.getID()); // Remove itself
 
     for (String otherTownUUID : territories) {
-      TerritoryData otherTerritory = TerritoryUtil.getTerritoryAsync(otherTownUUID).join();
+      TerritoryData otherTerritory = TerritoryUtil.getTerritory(otherTownUUID);
       ItemStack icon =
           otherTerritory.getIconWithInformationAndRelation(territoryData, tanPlayer.getLang());
 

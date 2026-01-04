@@ -51,21 +51,6 @@ public class TownClaimedChunk extends TerritoryChunk {
   protected boolean canPlayerDoInternal(
       Player player, ChunkPermissionType permissionType, Location location) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    return canPlayerDoInternal(tanPlayer, permissionType, location);
-  }
-
-  /**
-   * Check if player can perform action in this chunk (async-optimized version).
-   *
-   * @param tanPlayer Pre-loaded player data (avoids blocking getSync call)
-   * @param permissionType Type of permission to check (BUILD, INTERACT, etc.)
-   * @param location Block location for property checks
-   * @return true if player is allowed, false otherwise
-   */
-  protected boolean canPlayerDoInternal(
-      ITanPlayer tanPlayer, ChunkPermissionType permissionType, Location location) {
-    Player player = tanPlayer.getPlayer();
-    if (player == null) return false;
 
     // Location is in a property and players owns or rent it
     TownData ownerTown = getTown();
@@ -93,18 +78,6 @@ public class TownClaimedChunk extends TerritoryChunk {
 
   public void unclaimChunk(Player player) {
     ITanPlayer playerStat = PlayerDataStorage.getInstance().getSync(player);
-    unclaimChunk(playerStat);
-  }
-
-  /**
-   * Unclaim this chunk (async-optimized version).
-   *
-   * @param playerStat Pre-loaded player data
-   */
-  public void unclaimChunk(ITanPlayer playerStat) {
-    Player player = playerStat.getPlayer();
-    if (player == null) return;
-
     LangType langType = playerStat.getLang();
     TownData playerTown = playerStat.getTownSync();
 
@@ -150,21 +123,9 @@ public class TownClaimedChunk extends TerritoryChunk {
   }
 
   public void playerEnterClaimedArea(Player player, boolean displayTerritoryColor) {
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    playerEnterClaimedArea(tanPlayer, displayTerritoryColor);
-  }
-
-  /**
-   * Handle player entering claimed chunk (async-optimized version).
-   *
-   * @param tanPlayer Pre-loaded player data
-   * @param displayTerritoryColor Whether to show territory color in title
-   */
-  public void playerEnterClaimedArea(ITanPlayer tanPlayer, boolean displayTerritoryColor) {
-    Player player = tanPlayer.getPlayer();
-    if (player == null) return;
-
     TownData townTo = getTown();
+
+    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
 
     // BUGFIX: Convert Adventure Component to legacy text properly
     String coloredName =
@@ -172,7 +133,7 @@ public class TownClaimedChunk extends TerritoryChunk {
             ? LegacyComponentSerializer.legacySection().serialize(townTo.getCustomColoredName())
             : townTo.getBaseColoredName();
 
-    String message = Lang.PLAYER_ENTER_TERRITORY_CHUNK.get(player, coloredName);
+    String message = Lang.PLAYER_ENTER_TERRITORY_CHUNK.get(tanPlayer.getPlayer(), coloredName);
 
     // Use Adventure API for title
     player.showTitle(

@@ -35,17 +35,7 @@ public class PlayerOwned extends AbstractOwner {
 
   @Override
   public void addToBalance(double amount) {
-    PlayerDataStorage.getInstance()
-        .get(playerID)
-        .thenAccept(tanPlayer -> {
-          if (tanPlayer != null) {
-            EconomyUtil.addFromBalance(tanPlayer, amount);
-          }
-        })
-        .exceptionally(throwable -> {
-          org.leralix.tan.TownsAndNations.getPlugin().getLogger().warning(
-              "Failed to add balance to player " + playerID + ": " + throwable.getMessage());
-          return null;
-        });
+    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
+    EconomyUtil.addFromBalance(tanPlayer, amount);
   }
 }

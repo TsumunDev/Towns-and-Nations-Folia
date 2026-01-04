@@ -17,14 +17,6 @@ public abstract class IteratorGUI extends BasicGui {
     this.page = 0;
   }
 
-  /**
-   * Constructor that uses LayoutManager to get rows from config
-   */
-  protected IteratorGUI(Player player, ITanPlayer tanPlayer, String title, String menuKey, int defaultRows) {
-    super(player, tanPlayer, title, menuKey, defaultRows);
-    this.page = 0;
-  }
-
   protected void iterator(List<GuiItem> itemList, Consumer<Player> onLeave) {
     iterator(itemList, onLeave, Material.GRAY_STAINED_GLASS_PANE);
   }

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import org.bukkit.inventory.ItemStack;
 import org.leralix.tan.dataclass.territory.cosmetic.CustomIcon;
 import org.leralix.tan.enums.RankEnum;
@@ -95,18 +94,6 @@ public class RankData {
       playerList.add(PlayerDataStorage.getInstance().getSync(playerID));
     }
     return playerList;
-  }
-
-  public CompletableFuture<List<ITanPlayer>> getPlayersAsync() {
-    List<CompletableFuture<ITanPlayer>> futures = this.players.stream()
-        .map(playerID -> PlayerDataStorage.getInstance().get(playerID))
-        .toList();
-    
-    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-        .thenApply(v -> futures.stream()
-            .map(CompletableFuture::join)
-            .filter(player -> player != null)
-            .toList());
   }
 
   public boolean isPayingTaxes() {

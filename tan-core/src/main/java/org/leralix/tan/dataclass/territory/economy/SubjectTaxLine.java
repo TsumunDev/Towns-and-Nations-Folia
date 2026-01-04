@@ -31,7 +31,7 @@ public class SubjectTaxLine extends ProfitLine {
     super(regionData);
     double tax = regionData.getTax();
     for (TerritoryData townData : regionData.getVassals()) {
-      if (townData.getBalance() >= tax) actualTaxes += tax;
+      if (townData.getBalance() > tax) actualTaxes += tax;
       else missingTaxes += tax;
     }
   }

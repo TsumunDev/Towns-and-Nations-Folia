@@ -22,7 +22,7 @@ import org.leralix.tan.utils.text.TanChatUtils;
 public class ApplyToTownMenu extends IteratorGUI {
 
   private ApplyToTownMenu(Player player, ITanPlayer tanPlayer) {
-    super(player, tanPlayer, Lang.HEADER_TOWN_LIST.get(tanPlayer.getLang()), "apply_to_town_menu", 6);
+    super(player, tanPlayer, Lang.HEADER_TOWN_LIST.get(tanPlayer.getLang()), 6);
   }
 
   public static void open(Player player) {

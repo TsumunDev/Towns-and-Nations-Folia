@@ -1,7 +1,5 @@
 package org.leralix.tan.commands.player;
 
-import org.leralix.tan.TownsAndNations;
-
 import java.util.List;
 import java.util.Optional;
 import org.bukkit.Bukkit;
@@ -51,14 +49,9 @@ public class PayCommand extends PlayerSubCommand {
 
   @Override
   public void perform(Player player, String[] args) {
-    // Async pattern: load player data without blocking
-    PlayerDataStorage.getInstance()
-        .get(player)
-        .thenAccept(
-            tanPlayer -> {
-              LangType langType = tanPlayer.getLang();
+    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
+    LangType langType = tanPlayer.getLang();
 
-<<<<<<< Updated upstream
     // Validate argument count
     if (!CommandExceptionHandler.validateArgCount(player, args, 3, getSyntax())) {
       return;
@@ -98,53 +91,13 @@ public class PayCommand extends PlayerSubCommand {
     if (amountOpt.isEmpty()) {
       return;
     }
-=======
-              if (!CommandExceptionHandler.validateArgCount(player, args, 3, getSyntax())) {
-                return;
-              }
 
-              Player receiver = Bukkit.getServer().getPlayer(args[1]);
-              if (receiver == null) {
-                TanChatUtils.message(player, Lang.PLAYER_NOT_FOUND.get(langType));
-                return;
-              }
-              if (receiver.getUniqueId().equals(player.getUniqueId())) {
-                TanChatUtils.message(player, Lang.PAY_SELF_ERROR.get(langType));
-                return;
-              }
+    int amount = amountOpt.get();
+    if (amount < 1) {
+      TanChatUtils.message(player, Lang.PAY_MINIMUM_REQUIRED.get(langType));
+      return;
+    }
 
-              try {
-                Location senderLocation = player.getLocation();
-                Location receiverLocation = receiver.getLocation();
-                if (senderLocation.getWorld() != receiverLocation.getWorld()) {
-                  TanChatUtils.message(player, Lang.INTERACTION_TOO_FAR_ERROR.get(langType));
-                  return;
-                }
-                double maxPayDistance = TownsAndNations.getPlugin().getConfig().getDouble("maxPayDistance", 50.0);
-                if (senderLocation.distance(receiverLocation) > maxPayDistance) {
-                  TanChatUtils.message(player, Lang.INTERACTION_TOO_FAR_ERROR.get(langType));
-                  return;
-                }
-              } catch (Exception e) {
-                TanChatUtils.message(player, Lang.SYNTAX_ERROR.get(langType));
-                CommandExceptionHandler.logCommandExecution(player, "pay", args);
-                return;
-              }
-
-              Optional<Integer> amountOpt =
-                  CommandExceptionHandler.parseInt(player, args[2], "amount");
-              if (amountOpt.isEmpty()) {
-                return;
-              }
->>>>>>> Stashed changes
-
-              int amount = amountOpt.get();
-              if (amount < 1) {
-                TanChatUtils.message(player, Lang.PAY_MINIMUM_REQUIRED.get(langType));
-                return;
-              }
-
-<<<<<<< Updated upstream
     // Validate balance
     if (EconomyUtil.getBalance(player) < amount) {
       TanChatUtils.message(
@@ -162,29 +115,6 @@ public class PayCommand extends PlayerSubCommand {
       TanChatUtils.message(player, Lang.PLAYER_NOT_ENOUGH_MONEY.get(langType));
       CommandExceptionHandler.logCommandExecution(player, "pay", args);
     }
-=======
-              if (EconomyUtil.getBalance(player) < amount) {
-                TanChatUtils.message(
-                    player,
-                    Lang.PLAYER_NOT_ENOUGH_MONEY_EXTENDED.get(
-                        langType, Double.toString(amount - EconomyUtil.getBalance(player))));
-                return;
-              }
-
-              try {
-                executePayment(player, receiver, amount, langType);
-              } catch (EconomyException e) {
-                TanChatUtils.message(player, Lang.PLAYER_NOT_ENOUGH_MONEY.get(langType));
-                CommandExceptionHandler.logCommandExecution(player, "pay", args);
-              }
-            })
-        .exceptionally(
-            throwable -> {
-              TownsAndNations.getPlugin().getLogger().severe("PayCommand failed: " + throwable.getMessage());
-              player.sendMessage("§cError processing payment command");
-              return null;
-            });
->>>>>>> Stashed changes
   }
 
   /**

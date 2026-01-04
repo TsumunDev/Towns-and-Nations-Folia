@@ -1,10 +1,7 @@
 package org.leralix.tan.commands.player;
 
-import org.leralix.tan.TownsAndNations;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.leralix.lib.commands.PlayerSubCommand;
@@ -55,59 +52,33 @@ public class JoinTownCommand extends PlayerSubCommand {
       return;
     }
 
-    // Async pattern: load player data without blocking
-    PlayerDataStorage.getInstance()
-        .get(player)
-        .thenCompose(
-            tanPlayer -> {
-              LangType lang = tanPlayer.getLang();
+    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
+    LangType lang = tanPlayer.getLang();
 
-              if (!player.hasPermission("tan.base.town.join")) {
-                TanChatUtils.message(
-                    player, Lang.PLAYER_NO_PERMISSION.get(lang), SoundEnum.NOT_ALLOWED);
-                return CompletableFuture.completedFuture(null);
-              }
+    if (!player.hasPermission("tan.base.town.join")) {
+      TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(lang), SoundEnum.NOT_ALLOWED);
+      return;
+    }
 
-              String townID = args[1];
+    String townID = args[1];
 
-              if (!TownInviteDataStorage.isInvited(player.getUniqueId().toString(), townID)) {
-                TanChatUtils.message(player, Lang.TOWN_INVITATION_NO_INVITATION.get(lang));
-                return CompletableFuture.completedFuture(null);
-              }
+    if (!TownInviteDataStorage.isInvited(player.getUniqueId().toString(), townID)) {
+      TanChatUtils.message(player, Lang.TOWN_INVITATION_NO_INVITATION.get(lang));
+      return;
+    }
 
-<<<<<<< Updated upstream
     TownData townData = TownDataStorage.getInstance().getSync(townID);
     if (townData == null) {
       TanChatUtils.message(
           player, Lang.TOWN_NOT_FOUND.get(lang)); // Assuming a new Lang entry for town not found
       return;
     }
-=======
-              // Chain second async call for town data
-              return TownDataStorage.getInstance()
-                  .get(townID)
-                  .thenApply(
-                      townData -> {
-                        if (townData == null) {
-                          TanChatUtils.message(player, Lang.TOWN_NOT_FOUND.get(lang));
-                          return null;
-                        }
->>>>>>> Stashed changes
 
-                        if (townData.isFull()) {
-                          TanChatUtils.message(player, Lang.INVITATION_TOWN_FULL.get(lang));
-                          return null;
-                        }
+    if (townData.isFull()) {
+      TanChatUtils.message(player, Lang.INVITATION_TOWN_FULL.get(lang));
+      return;
+    }
 
-                        townData.addPlayer(tanPlayer);
-                        return townData;
-                      });
-            })
-        .exceptionally(
-            throwable -> {
-              TownsAndNations.getPlugin().getLogger().severe("JoinTownCommand failed: " + throwable.getMessage());
-              player.sendMessage("§cError processing jointown command");
-              return null;
-            });
+    townData.addPlayer(tanPlayer);
   }
 }

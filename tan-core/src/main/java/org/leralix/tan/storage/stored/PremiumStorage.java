@@ -73,7 +73,7 @@ public class PremiumStorage extends DatabaseStorage<Boolean> {
     }
 
     boolean premium = fetchPremium(playerName);
-    putSync(key, premium);
+    put(key, premium);
     return premium;
   }
 

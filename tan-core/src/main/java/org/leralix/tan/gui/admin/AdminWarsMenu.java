@@ -20,7 +20,7 @@ public class AdminWarsMenu extends IteratorGUI {
   private boolean isLoaded = false;
 
   private AdminWarsMenu(Player player, ITanPlayer tanPlayer) {
-    super(player, tanPlayer, "Admin - Wars List", "admin_wars_menu", 6);
+    super(player, tanPlayer, "Admin - Wars List", 6);
   }
 
   public static void open(Player player) {
@@ -67,10 +67,7 @@ public class AdminWarsMenu extends IteratorGUI {
   }
 
   private List<GuiItem> getAllWars() {
-    // ✅ FIX: Use getAllAsync() instead of blocking getAllSync()
-    // Wait, getAllWars() is called inside AsyncGuiHelper.loadAsync() which runs in async thread
-    // So we can use join() here since we're already in async context
-    List<War> wars = new ArrayList<>(WarStorage.getInstance().getAllAsync().join().values());
+    List<War> wars = new ArrayList<>(WarStorage.getInstance().getAllSync().values());
 
     List<GuiItem> guiItems = new ArrayList<>();
     for (War war : wars) {

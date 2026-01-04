@@ -63,7 +63,7 @@ public abstract class TransactionHistory implements Comparable<TransactionHistor
   }
 
   protected TerritoryData getTerritoryData() {
-    return TerritoryUtil.getTerritoryAsync(getTerritoryDataID()).join();
+    return TerritoryUtil.getTerritory(getTerritoryDataID());
   }
 
   public abstract String addLoreLine();

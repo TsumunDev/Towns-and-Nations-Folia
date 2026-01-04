@@ -65,14 +65,6 @@ public class ReloadCommand extends SubCommand {
       NumberUtil.init();
       EnabledPermissions.getInstance().init();
 
-      // Reload GUI layouts
-      try {
-        org.leralix.tan.gui.cosmetic.LayoutManager.reload();
-        commandSender.sendMessage("§6COCO§eNATION §f§l» §a✓ Layouts rechargés avec succès !");
-      } catch (Exception e) {
-        commandSender.sendMessage("§6COCO§eNATION §f§l» §c✖ Erreur lors du rechargement des layouts: " + e.getMessage());
-      }
-
       TanChatUtils.message(commandSender, Lang.RELOAD_SUCCESS);
       TanChatUtils.message(commandSender, Lang.LANGUAGE_SUCCESSFULLY_LOADED);
     } else {

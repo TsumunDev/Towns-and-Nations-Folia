@@ -5,6 +5,7 @@ import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -99,14 +100,10 @@ public class RegionData extends TerritoryData {
 
   @Override
   public Collection<ITanPlayer> getITanPlayerList() {
-    List<ITanPlayer> players = new ArrayList<>();
-    for (String playerID : getPlayerIDList()) {
-      ITanPlayer player = PlayerDataStorage.getInstance().getSync(playerID);
-      if (player != null) {
-        players.add(player);
-      }
-    }
-    return players;
+    // PERFORMANCE FIX: Use batch loading instead of N+1 queries
+    Map<String, ITanPlayer> playerMap =
+        PlayerDataStorage.getInstance().getBatchSync(getPlayerIDList());
+    return new ArrayList<>(playerMap.values());
   }
 
   @Override

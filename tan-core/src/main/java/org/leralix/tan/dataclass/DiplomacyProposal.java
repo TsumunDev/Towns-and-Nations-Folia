@@ -25,8 +25,8 @@ public class DiplomacyProposal {
 
   public GuiItem createGuiItem(OpenDiplomacyProposalsMenu menu, LangType langType) {
 
-    TerritoryData receivingTerritory = TerritoryUtil.getTerritoryAsync(receivingTerritoryID).join();
-    TerritoryData askingTerritory = TerritoryUtil.getTerritoryAsync(askingTerritoryID).join();
+    TerritoryData receivingTerritory = TerritoryUtil.getTerritory(receivingTerritoryID);
+    TerritoryData askingTerritory = TerritoryUtil.getTerritory(askingTerritoryID);
 
     if (receivingTerritory == null) {
       return null;

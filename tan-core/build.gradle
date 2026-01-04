@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'org.jetbrains.kotlin.jvm' version "${kotlinVersion}"
     id "com.gradleup.shadow" version "8.3.6"
     id 'jacoco'
 }
@@ -7,6 +8,21 @@ plugins {
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
+}
+
+// Kotlin configuration
+kotlin {
+    jvmToolchain(21)
+}
+
+// Ensure Kotlin compiles before Java
+tasks.named('compileJava') {
+    dependsOn tasks.named('compileKotlin')
+}
+
+// Add Kotlin classes to Java classpath
+tasks.named('compileJava') {
+    classpath += files(tasks.named('compileKotlin').get().destinationDirectory)
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -92,6 +108,11 @@ sourceSets {
 
 dependencies {
     implementation project(':tan-api')
+
+    // Kotlin standard library and coroutines
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${coroutinesVersion}"
 
     compileOnly 'org.slf4j:slf4j-api:2.0.17'
     implementation 'ch.qos.logback:logback-classic:1.5.20'

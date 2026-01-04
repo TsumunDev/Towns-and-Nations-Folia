@@ -23,7 +23,7 @@ public class NewsletterMenu extends IteratorGUI {
   private boolean isLoaded = false;
 
   private NewsletterMenu(Player player, ITanPlayer tanPlayer) {
-    super(player, tanPlayer, Lang.HEADER_NEWSLETTER.get(tanPlayer.getLang()), "newsletter_menu", 6);
+    super(player, tanPlayer, Lang.HEADER_NEWSLETTER.get(tanPlayer.getLang()), 6);
     this.scope = NewsletterScope.SHOW_ONLY_UNREAD;
   }
 

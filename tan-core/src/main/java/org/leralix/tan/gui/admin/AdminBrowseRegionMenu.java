@@ -12,15 +12,11 @@ import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.RegionDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
-import org.leralix.tan.utils.gui.AsyncGuiHelper;
 
 public class AdminBrowseRegionMenu extends IteratorGUI {
 
-  private List<GuiItem> cachedRegions = new ArrayList<>();
-  private boolean isLoaded = false;
-
   private AdminBrowseRegionMenu(Player player, ITanPlayer tanPlayer) {
-    super(player, tanPlayer, "Admin - Regions List", "admin_browse_regions_menu", 6);
+    super(player, tanPlayer, "Admin - Regions List", 6);
   }
 
   public static void open(Player player) {
@@ -36,7 +32,7 @@ public class AdminBrowseRegionMenu extends IteratorGUI {
   public void open() {
     GuiUtil.createIterator(
         gui,
-        cachedRegions,
+        getRegions(),
         page,
         player,
         p -> AdminMainMenu.open(player),
@@ -44,32 +40,11 @@ public class AdminBrowseRegionMenu extends IteratorGUI {
         p -> previousPage());
 
     gui.open(player);
-
-    if (!isLoaded) {
-      AsyncGuiHelper.loadAsync(
-          player,
-          this::getRegions,
-          items -> {
-            cachedRegions = items;
-            isLoaded = true;
-            GuiUtil.createIterator(
-                gui,
-                items,
-                page,
-                player,
-                p -> AdminMainMenu.open(player),
-                p -> nextPage(),
-                p -> previousPage());
-            gui.update();
-          });
-    }
   }
 
   private List<GuiItem> getRegions() {
-    // ✅ FIX: Use getAllAsync().join() instead of getAllSync()
-    // Safe because we're in AsyncGuiHelper.loadAsync() context
     List<RegionData> regionList =
-        new ArrayList<>(RegionDataStorage.getInstance().getAllAsync().join().values());
+        new ArrayList<>(RegionDataStorage.getInstance().getAllSync().values());
 
     ArrayList<GuiItem> regionGuiItems = new ArrayList<>();
 

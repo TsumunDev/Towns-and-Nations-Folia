@@ -69,7 +69,7 @@ public class RelationData {
 
       for (String otherTerritory : territories) {
 
-        TerritoryData otherTerritoryData = TerritoryUtil.getTerritoryAsync(otherTerritory).join();
+        TerritoryData otherTerritoryData = TerritoryUtil.getTerritory(otherTerritory);
         if (otherTerritoryData == null) continue;
 
         otherTerritoryData.getRelations().removeAllRelationWith(territoryData.getID());

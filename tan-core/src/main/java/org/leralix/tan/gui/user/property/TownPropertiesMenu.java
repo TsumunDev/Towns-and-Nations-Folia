@@ -22,7 +22,7 @@ public class TownPropertiesMenu extends IteratorGUI {
   private final TownData townData;
 
   private TownPropertiesMenu(Player player, ITanPlayer tanPlayer, TownData townData) {
-    super(player, tanPlayer, Lang.HEADER_PLAYER_PROPERTIES.get(tanPlayer.getLang()), "town_properties_menu", 3);
+    super(player, tanPlayer, Lang.HEADER_PLAYER_PROPERTIES.get(tanPlayer.getLang()), 3);
     this.townData = townData;
   }
 

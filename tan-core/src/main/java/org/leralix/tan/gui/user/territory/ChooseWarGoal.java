@@ -27,7 +27,7 @@ public class ChooseWarGoal extends BasicGui {
 
   private ChooseWarGoal(
       Player player, ITanPlayer tanPlayer, TerritoryData territoryData, War war, WarRole warRole) {
-    super(player, tanPlayer, Lang.HEADER_SELECT_WARGOAL.get(tanPlayer.getLang()), "choose_war_goal_menu", 3);
+    super(player, tanPlayer, Lang.HEADER_SELECT_WARGOAL.get(tanPlayer.getLang()), 3);
     this.territoryData = territoryData;
     this.war = war;
     this.warRole = warRole;

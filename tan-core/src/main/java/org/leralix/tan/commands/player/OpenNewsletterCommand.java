@@ -39,15 +39,11 @@ public class OpenNewsletterCommand extends PlayerSubCommand {
 
   @Override
   public void perform(Player player, String[] args) {
+
     if (args.length != 1) {
-      // Async pattern: load player data without blocking
-      PlayerDataStorage.getInstance()
-          .get(player)
-          .thenAccept(
-              tanPlayer -> {
-                LangType langType = tanPlayer.getLang();
-                TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
-              });
+      ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
+      LangType langType = tanPlayer.getLang();
+      TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
       return;
     }
     NewsletterMenu.open(player);

@@ -42,21 +42,6 @@ public class RegionClaimedChunk extends TerritoryChunk {
   protected boolean canPlayerDoInternal(
       Player player, ChunkPermissionType permissionType, Location location) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    return canPlayerDoInternal(tanPlayer, permissionType, location);
-  }
-
-  /**
-   * Check if player can perform action in region chunk (async-optimized version).
-   *
-   * @param tanPlayer Pre-loaded player data
-   * @param permissionType Type of permission to check
-   * @param location Block location
-   * @return true if player is allowed, false otherwise
-   */
-  protected boolean canPlayerDoInternal(
-      ITanPlayer tanPlayer, ChunkPermissionType permissionType, Location location) {
-    Player player = tanPlayer.getPlayer();
-    if (player == null) return false;
 
     RegionData ownerRegion = getRegion();
 
@@ -80,18 +65,6 @@ public class RegionClaimedChunk extends TerritoryChunk {
   public void unclaimChunk(Player player) {
     ITanPlayer playerStat =
         PlayerDataStorage.getInstance().getSync(player.getUniqueId().toString());
-    unclaimChunk(playerStat);
-  }
-
-  /**
-   * Unclaim region chunk (async-optimized version).
-   *
-   * @param playerStat Pre-loaded player data
-   */
-  public void unclaimChunk(ITanPlayer playerStat) {
-    Player player = playerStat.getPlayer();
-    if (player == null) return;
-
     if (!playerStat.hasTown()) {
       TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(player));
       return;

@@ -27,8 +27,8 @@ public abstract class TerritoryMenu extends BasicGui {
   protected final TerritoryData territoryData;
 
   protected TerritoryMenu(
-      Player player, ITanPlayer tanPlayer, String name, String menuKey, TerritoryData territoryData) {
-    super(player, tanPlayer, name, menuKey, 4);
+      Player player, ITanPlayer tanPlayer, String name, TerritoryData territoryData) {
+    super(player, tanPlayer, name, 4);
     this.territoryData = territoryData;
   }
 

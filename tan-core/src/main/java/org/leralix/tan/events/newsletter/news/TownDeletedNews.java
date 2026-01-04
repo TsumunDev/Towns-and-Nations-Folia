@@ -45,7 +45,7 @@ public class TownDeletedNews extends Newsletter {
 
   @Override
   public GuiItem createGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().get(playerID).join();
+    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
     if (tanPlayer == null) return null;
 
     ItemStack itemStack =

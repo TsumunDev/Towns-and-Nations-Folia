@@ -3,10 +3,7 @@ package org.leralix.tan.dataclass.territory.economy;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -38,35 +35,15 @@ public class PlayerTaxLine extends ProfitLine {
   public PlayerTaxLine(TownData townData) {
     super(townData);
     double flatTax = townData.getTax();
-    
-    // Batch-load all players asynchronously
-    List<CompletableFuture<Void>> taxCalculations = new ArrayList<>();
     for (String playerID : townData.getPlayerIDList()) {
-      CompletableFuture<Void> calculation = PlayerDataStorage.getInstance()
-          .get(playerID)
-          .thenAccept(othertanPlayer -> {
-            OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(UUID.fromString(playerID));
-            if (!othertanPlayer.getTownRank().isPayingTaxes()) {
-              return;
-            }
-            synchronized (this) {  // Synchronized for thread-safe accumulation
-              if (EconomyUtil.getBalance(otherPlayer) < flatTax) {
-                missingTaxes += flatTax;
-              } else {
-                actualTaxes += flatTax;
-              }
-            }
-          })
-          .exceptionally(throwable -> {
-            org.leralix.tan.TownsAndNations.getPlugin().getLogger().warning(
-                "Failed to calculate tax for player " + playerID + ": " + throwable.getMessage());
-            return null;
-          });
-      taxCalculations.add(calculation);
+      ITanPlayer othertanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
+      OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(UUID.fromString(playerID));
+      if (!othertanPlayer.getTownRank().isPayingTaxes()) {
+        continue;
+      }
+      if (EconomyUtil.getBalance(otherPlayer) < flatTax) missingTaxes += flatTax;
+      else actualTaxes += flatTax;
     }
-    
-    // Wait for all calculations to complete
-    CompletableFuture.allOf(taxCalculations.toArray(new CompletableFuture[0])).join();
   }
 
   @Override
@@ -84,12 +61,8 @@ public class PlayerTaxLine extends ProfitLine {
 
   @Override
   public void addItems(Gui gui, Player player, LangType lang) {
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    addItems(gui, tanPlayer, lang);
-  }
 
-  public void addItems(Gui gui, ITanPlayer tanPlayer, LangType lang) {
-    Player player = tanPlayer.getPlayer();
+    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
 
     ItemStack lowerTax =
         HeadUtils.makeSkullB64(

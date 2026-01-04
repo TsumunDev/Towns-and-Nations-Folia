@@ -1,9 +1,16 @@
 plugins {
     id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '2.1.0' apply false
 }
 
 group = 'org.leralix.tan'
 version = '2.0.0'
+
+// Kotlin versions for subprojects
+ext {
+    kotlinVersion = '2.1.0'
+    coroutinesVersion = '1.9.0'
+}
 
 allprojects {
     apply plugin: 'java'
@@ -53,10 +60,9 @@ subprojects {
     version = rootProject.version
 }
 
-task build {
-    dependsOn ':tan-core:shadowJar'
-}
+// Configure root build task to depend on shadowJar
+build.dependsOn ':tan-core:shadowJar'
 
-task clean {
+task cleanAll {
     dependsOn subprojects*.clean
 }

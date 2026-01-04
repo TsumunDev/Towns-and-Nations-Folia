@@ -53,7 +53,7 @@ public class War {
   }
 
   public TerritoryData getMainDefender() {
-    return TerritoryUtil.getTerritoryAsync(mainDefenderID).join();
+    return TerritoryUtil.getTerritory(mainDefenderID);
   }
 
   public String getMainAttackerID() {
@@ -61,7 +61,7 @@ public class War {
   }
 
   public TerritoryData getMainAttacker() {
-    return TerritoryUtil.getTerritoryAsync(mainAttackerID).join();
+    return TerritoryUtil.getTerritory(mainAttackerID);
   }
 
   public boolean isMainAttacker(TerritoryData territoryData) {

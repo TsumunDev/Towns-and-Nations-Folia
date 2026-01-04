@@ -35,12 +35,6 @@ public class RegionSettingsMenu extends SettingsMenus {
   public static void open(Player player, RegionData regionData) {
     PlayerDataStorage.getInstance()
         .get(player)
-        .thenCompose(
-            tanPlayer -> {
-              // Preload leader name asynchronously to avoid blocking in getTerritoryInfo()
-              return regionData.getLeaderName()
-                  .thenApply(leaderName -> tanPlayer); // Ignore result, just trigger cache
-            })
         .thenAccept(
             tanPlayer -> {
               new RegionSettingsMenu(player, tanPlayer, regionData).open();

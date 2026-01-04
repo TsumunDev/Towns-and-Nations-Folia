@@ -12,15 +12,11 @@ import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
-import org.leralix.tan.utils.gui.AsyncGuiHelper;
 
 public class AdminBrowseTownMenu extends IteratorGUI {
 
-  private List<GuiItem> cachedTowns = new ArrayList<>();
-  private boolean isLoaded = false;
-
   private AdminBrowseTownMenu(Player player, ITanPlayer tanPlayer) {
-    super(player, tanPlayer, "Admin - Towns List", "admin_browse_towns_menu", 6);
+    super(player, tanPlayer, "Admin - Towns List", 6);
   }
 
   public static void open(Player player) {
@@ -36,7 +32,7 @@ public class AdminBrowseTownMenu extends IteratorGUI {
   public void open() {
     GuiUtil.createIterator(
         gui,
-        cachedTowns,
+        getTowns(),
         page,
         player,
         p -> AdminMainMenu.open(player),
@@ -44,31 +40,10 @@ public class AdminBrowseTownMenu extends IteratorGUI {
         p -> previousPage());
 
     gui.open(player);
-
-    if (!isLoaded) {
-      AsyncGuiHelper.loadAsync(
-          player,
-          this::getTowns,
-          items -> {
-            cachedTowns = items;
-            isLoaded = true;
-            GuiUtil.createIterator(
-                gui,
-                items,
-                page,
-                player,
-                p -> AdminMainMenu.open(player),
-                p -> nextPage(),
-                p -> previousPage());
-            gui.update();
-          });
-    }
   }
 
   private List<GuiItem> getTowns() {
-    // ✅ FIX: Use getAllAsync().join() instead of getAllSync()
-    // Safe because we're in AsyncGuiHelper.loadAsync() context
-    List<TownData> townList = new ArrayList<>(TownDataStorage.getInstance().getAllAsync().join().values());
+    List<TownData> townList = new ArrayList<>(TownDataStorage.getInstance().getAllSync().values());
 
     ArrayList<GuiItem> townGuiItems = new ArrayList<>();
 

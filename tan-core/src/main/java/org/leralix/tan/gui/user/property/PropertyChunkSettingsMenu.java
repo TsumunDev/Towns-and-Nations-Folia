@@ -22,7 +22,7 @@ public class PropertyChunkSettingsMenu extends IteratorGUI {
 
   private PropertyChunkSettingsMenu(
       Player player, ITanPlayer tanPlayer, PropertyData propertyData, BasicGui returnGui) {
-    super(player, tanPlayer, Lang.HEADER_CHUNK_PERMISSION.get(tanPlayer.getLang()), "property_chunk_settings_menu", 4);
+    super(player, tanPlayer, Lang.HEADER_CHUNK_PERMISSION.get(tanPlayer.getLang()), 4);
     this.propertyData = propertyData;
     this.returnMenu = returnGui;
   }

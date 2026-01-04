@@ -123,7 +123,7 @@ public class PlannedAttack {
   public Collection<TerritoryData> getDefendingTerritories() {
     Collection<TerritoryData> defenders = new ArrayList<>();
     for (String defenderID : defendersID) {
-      defenders.add(TerritoryUtil.getTerritoryAsync(defenderID).join());
+      defenders.add(TerritoryUtil.getTerritory(defenderID));
     }
     return defenders;
   }
@@ -131,7 +131,7 @@ public class PlannedAttack {
   public Collection<TerritoryData> getAttackingTerritories() {
     Collection<TerritoryData> attackers = new ArrayList<>();
     for (String attackerID : attackersID) {
-      attackers.add(TerritoryUtil.getTerritoryAsync(attackerID).join());
+      attackers.add(TerritoryUtil.getTerritory(attackerID));
     }
     return attackers;
   }

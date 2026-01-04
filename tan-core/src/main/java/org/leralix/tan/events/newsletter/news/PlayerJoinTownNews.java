@@ -1,7 +1,5 @@
 package org.leralix.tan.events.newsletter.news;
 
-import java.util.concurrent.CompletableFuture;
-
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
@@ -69,44 +67,10 @@ public class PlayerJoinTownNews extends Newsletter {
 
   @Override
   public GuiItem createGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
-<<<<<<< Updated upstream
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
     if (tanPlayer == null) return null;
     TownData townData = TownDataStorage.getInstance().getSync(townID);
     if (townData == null) return null;
-=======
-    PlayerDataStorage.getInstance()
-        .get(playerID)
-        .thenAccept(
-            tanPlayer -> {
-              if (tanPlayer == null) return;
-              TownDataStorage.getInstance()
-                  .get(townID)
-                  .thenAccept(
-                      townData -> {
-                        if (townData == null) return;
-                      });
-            });
-    
-    // Async load both player and town data
-    CompletableFuture<ITanPlayer> playerFuture = PlayerDataStorage.getInstance().get(playerID);
-    CompletableFuture<TownData> townFuture = TownDataStorage.getInstance().get(townID);
-    
-    try {
-      ITanPlayer tanPlayer = playerFuture.join();
-      if (tanPlayer == null) return null;
-      
-      TownData townData = townFuture.join();
-      if (townData == null) return null;
-      
-      return createGuiItemWithData(player, lang, onClick, tanPlayer, townData);
-    } catch (Exception e) {
-      return null;
-    }
-  }
-
-  private GuiItem createGuiItemWithData(Player player, LangType lang, Consumer<Player> onClick, ITanPlayer tanPlayer, TownData townData) {
->>>>>>> Stashed changes
 
     // BUGFIX: Convert Adventure Component to legacy text properly
     ItemStack itemStack =
