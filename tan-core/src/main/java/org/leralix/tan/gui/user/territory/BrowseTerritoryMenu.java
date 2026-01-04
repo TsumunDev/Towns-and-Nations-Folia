@@ -29,7 +29,7 @@ public class BrowseTerritoryMenu extends IteratorGUI {
       TerritoryData territoryData,
       BrowseScope scope,
       Consumer<Player> exitMenu) {
-    super(player, tanPlayer, Lang.HEADER_TERRITORY_LIST.get(player), 6);
+    super(player, tanPlayer, Lang.HEADER_TERRITORY_LIST.get(player), "browse_territory_menu", 6);
     this.territoryData = territoryData;
     this.scope = scope;
     this.exitMenu = exitMenu;

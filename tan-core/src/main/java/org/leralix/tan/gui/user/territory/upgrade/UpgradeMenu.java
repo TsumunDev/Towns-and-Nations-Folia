@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.leralix.lib.data.SoundEnum;
 import org.leralix.lib.utils.config.ConfigTag;
 import org.leralix.lib.utils.config.ConfigUtil;
+import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.gui.BasicGui;
@@ -189,9 +190,31 @@ public class UpgradeMenu extends BasicGui {
         .setClickToAcceptMessage(Lang.GUI_GENERIC_CLICK_TO_PROCEED)
         .setAction(
             action -> {
+<<<<<<< Updated upstream
               territoryData.getNewLevel().levelUpMain();
               TanChatUtils.message(player, Lang.BASIC_LEVEL_UP.get(langType), SoundEnum.LEVEL_UP);
               open();
+=======
+              // Execute upgrade in ACID transaction
+              territoryData.upgradeTownLevel()
+                  .thenRun(() -> {
+                    // Success: notify player and refresh UI
+                    TanChatUtils.message(player, Lang.BASIC_LEVEL_UP.get(langType), SoundEnum.LEVEL_UP);
+                    open();
+                  })
+                  .exceptionally(throwable -> {
+                    // Failure: transaction rolled back automatically
+                    TanChatUtils.message(
+                        player, 
+                        "§cUpgrade failed: " + throwable.getMessage(), 
+                        SoundEnum.BAD);
+                    TownsAndNations.getPlugin()
+                        .getLogger()
+                        .severe("[TaN-Upgrade] Failed to upgrade town: " + throwable.getMessage());
+                    open(); // Refresh UI to show unchanged state
+                    return null;
+                  });
+>>>>>>> Stashed changes
             })
         .asGuiItem(player, langType);
   }

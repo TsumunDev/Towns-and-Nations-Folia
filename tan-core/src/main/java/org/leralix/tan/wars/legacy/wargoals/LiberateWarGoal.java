@@ -54,6 +54,6 @@ public class LiberateWarGoal extends WarGoal {
   }
 
   public TerritoryData getTerritoryToLiberate() {
-    return TerritoryUtil.getTerritory(territoryToLiberateID);
+    return TerritoryUtil.getTerritoryAsync(territoryToLiberateID).join();
   }
 }

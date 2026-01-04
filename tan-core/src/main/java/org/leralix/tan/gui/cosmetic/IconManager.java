@@ -53,6 +53,25 @@ public class IconManager {
     if (value.startsWith("http")) {
       return new UrlHeadIconType(value);
     }
+    if (value.startsWith("nexo:")) {
+      // Nexo custom item: nexo:item_id or nexo:item_id:FALLBACK_MATERIAL
+      String[] args = value.split(":");
+      String nexoItemId = args[1];
+      
+      if (args.length >= 3) {
+        // Custom fallback material specified
+        try {
+          Material fallbackMaterial = Material.valueOf(args[2]);
+          return new NexoIconType(nexoItemId, fallbackMaterial);
+        } catch (IllegalArgumentException e) {
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .log(Level.WARNING, "Invalid fallback material for Nexo icon: {0}", args[2]);
+        }
+      }
+      
+      return new NexoIconType(nexoItemId);
+    }
     if (value.startsWith("minecraft:")) {
 
       String[] args = value.split(":");

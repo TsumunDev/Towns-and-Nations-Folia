@@ -39,12 +39,12 @@ public class FortData extends Fort {
 
   @Override
   public TerritoryData getOwner() {
-    return TerritoryUtil.getTerritory(ownerID);
+    return TerritoryUtil.getTerritoryAsync(ownerID).join();
   }
 
   @Override
   public TerritoryData getOccupier() {
-    return TerritoryUtil.getTerritory(occupierID);
+    return TerritoryUtil.getTerritoryAsync(occupierID).join();
   }
 
   @Override

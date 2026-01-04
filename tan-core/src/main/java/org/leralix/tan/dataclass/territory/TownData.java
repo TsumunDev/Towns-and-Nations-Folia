@@ -1,5 +1,7 @@
 package org.leralix.tan.dataclass.territory;
 
+import java.util.concurrent.CompletableFuture;
+
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.*;
@@ -205,7 +207,20 @@ public class TownData extends TerritoryData {
     if (leaderID == null) {
       return null;
     }
+    // Async retrieval - callers should use getLeaderDataAsync() for non-blocking
     return PlayerDataStorage.getInstance().getSync(leaderID);
+  }
+
+  /**
+   * Get leader data asynchronously (non-blocking).
+   * @return CompletableFuture with leader data
+   */
+  public CompletableFuture<ITanPlayer> getLeaderDataAsync() {
+    String leaderID = getLeaderID();
+    if (leaderID == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return PlayerDataStorage.getInstance().get(leaderID);
   }
 
   @Override
@@ -594,7 +609,9 @@ public class TownData extends TerritoryData {
           Player player = kickedPlayer.getPlayer();
           if (player != null && player.isOnline()) {
             TanChatUtils.message(
-                player, Lang.GUI_TOWN_MEMBER_KICKED_SUCCESS_PLAYER.get(player), SoundEnum.BAD);
+                player,
+                Lang.GUI_TOWN_MEMBER_KICKED_SUCCESS_PLAYER.get(kickedITanPlayer),
+                SoundEnum.BAD);
           }
         });
   }

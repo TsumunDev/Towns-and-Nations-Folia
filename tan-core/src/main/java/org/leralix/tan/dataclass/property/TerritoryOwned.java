@@ -16,13 +16,13 @@ public class TerritoryOwned extends AbstractOwner {
 
   @Override
   public String getName() {
-    TerritoryData territoryData = TerritoryUtil.getTerritory(territoryID);
+    TerritoryData territoryData = TerritoryUtil.getTerritoryAsync(territoryID).join();
     return territoryData.getColoredName();
   }
 
   @Override
   public boolean canAccess(ITanPlayer tanPlayer) {
-    TerritoryData territoryData = TerritoryUtil.getTerritory(territoryID);
+    TerritoryData territoryData = TerritoryUtil.getTerritoryAsync(territoryID).join();
     if (territoryData == null) {
       return false;
     }
@@ -34,7 +34,7 @@ public class TerritoryOwned extends AbstractOwner {
 
   @Override
   public void addToBalance(double amount) {
-    TerritoryData territoryData = TerritoryUtil.getTerritory(territoryID);
+    TerritoryData territoryData = TerritoryUtil.getTerritoryAsync(territoryID).join();
     if (territoryData == null) {
       return;
     }

@@ -142,7 +142,6 @@ public class PlayerDataStorage extends DatabaseStorage<ITanPlayer> {
     }
   }
 
-  @Override
   public void put(String id, ITanPlayer obj) {
     if (id == null || obj == null) {
       return;

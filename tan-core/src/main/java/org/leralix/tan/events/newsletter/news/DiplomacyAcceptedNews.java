@@ -156,7 +156,7 @@ public class DiplomacyAcceptedNews extends Newsletter {
     if (proposingTerritory == null) return false;
     TerritoryData receivingTerritory = TerritoryUtil.getTerritory(receivingTerritoryID);
     if (receivingTerritory == null) return false;
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
+    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().get(player).join();
     return receivingTerritory.isPlayerIn(tanPlayer) || proposingTerritory.isPlayerIn(tanPlayer);
   }
 

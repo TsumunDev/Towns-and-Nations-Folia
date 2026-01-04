@@ -58,14 +58,26 @@ public class MapCommand extends PlayerSubCommand {
       openMap(player, new MapSettings(args[1], args[2]));
       return;
     }
-    LangType langType = PlayerDataStorage.getInstance().getSync(player).getLang();
-    TanChatUtils.message(player, Lang.TOO_MANY_ARGS_ERROR.get(langType), SoundEnum.NOT_ALLOWED);
-    TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
+    // Async error message
+    PlayerDataStorage.getInstance()
+        .get(player)
+        .thenAccept(
+            tanPlayer -> {
+              LangType langType = tanPlayer.getLang();
+              TanChatUtils.message(
+                  player, Lang.TOO_MANY_ARGS_ERROR.get(langType), SoundEnum.NOT_ALLOWED);
+              TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
+            });
   }
 
   public static void openMap(Player player, MapSettings settings) {
     Chunk currentChunk = player.getLocation().getChunk();
-    LangType langType = PlayerDataStorage.getInstance().getSync(player).getLang();
+    // Async lang retrieval
+    PlayerDataStorage.getInstance()
+        .get(player)
+        .thenAccept(
+            tanPlayer -> {
+              LangType langType = tanPlayer.getLang();
     int radius = 4;
     Map<Integer, Component> text = new HashMap<>();
     Component claimType =
@@ -139,5 +151,6 @@ public class MapCommand extends PlayerSubCommand {
       player.sendMessage(newLine);
     }
     player.sendMessage("╰─────────⟢⟐⟣─────────╯");
+            });
   }
 }

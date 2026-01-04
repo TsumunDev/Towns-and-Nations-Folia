@@ -36,7 +36,7 @@ public class PlannedAttackMenu extends BasicGui {
       ITanPlayer tanPlayer,
       TerritoryData territoryData,
       PlannedAttack plannedAttack) {
-    super(player, tanPlayer, Lang.HEADER_WAR_MANAGER.get(tanPlayer.getLang()), 3);
+    super(player, tanPlayer, Lang.HEADER_WAR_MANAGER.get(tanPlayer.getLang()), "planned_attack_menu", 3);
     this.territoryData = territoryData;
     this.plannedAttack = plannedAttack;
     this.warRole = plannedAttack.getTerritoryRole(territoryData);

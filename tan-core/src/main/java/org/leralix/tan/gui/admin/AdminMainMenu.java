@@ -12,7 +12,7 @@ import org.leralix.tan.utils.deprecated.GuiUtil;
 public class AdminMainMenu extends BasicGui {
 
   private AdminMainMenu(Player player, ITanPlayer tanPlayer) {
-    super(player, tanPlayer, Lang.HEADER_ADMIN_MAIN_MENU.get(tanPlayer.getLang()), 3);
+    super(player, tanPlayer, Lang.HEADER_ADMIN_MAIN_MENU.get(tanPlayer.getLang()), "admin_main_menu", 3);
   }
 
   public static void open(Player player) {

@@ -26,7 +26,7 @@ import org.leralix.tan.utils.text.TanChatUtils;
 public class PlayerPropertiesMenu extends IteratorGUI {
 
   private PlayerPropertiesMenu(Player player, ITanPlayer tanPlayer) {
-    super(player, tanPlayer, Lang.HEADER_PLAYER_PROPERTIES.get(tanPlayer.getLang()), 3);
+    super(player, tanPlayer, Lang.HEADER_PLAYER_PROPERTIES.get(tanPlayer.getLang()), "player_properties_menu", 3);
   }
 
   public static void open(Player player) {

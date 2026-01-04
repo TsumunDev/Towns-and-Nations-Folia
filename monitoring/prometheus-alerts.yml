@@ -1,0 +1,209 @@
+# Prometheus Alert Rules - Towns & Nations
+
+groups:
+  - name: database_alerts
+    interval: 30s
+    rules:
+      - alert: DatabasePoolExhaustion
+        expr: (hikaricp_connections_active / hikaricp_connections_max) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection pool exhausted"
+          description: "Connection pool usage is {{ $value | humanizePercentage }} (>90%) for 5 minutes. Pool may be undersized for current load."
+          
+      - alert: DatabaseHighLatency
+        expr: histogram_quantile(0.95, rate(tan_database_query_duration_seconds_bucket[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Database queries are slow"
+          description: "p95 query latency is {{ $value | humanizeDuration }} (>100ms) for 5 minutes."
+          
+      - alert: DatabaseCircuitBreakerOpen
+        expr: tan_circuit_breaker_state{circuit_name="database"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database circuit breaker OPEN"
+          description: "Database circuit breaker is OPEN - all database operations are being rejected."
+          
+      - alert: DatabaseWriteQueueFull
+        expr: tan_batch_write_queue_size > (tan_batch_write_queue_max_size * 0.9)
+        for: 3m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Batch write queue nearly full"
+          description: "Write queue is {{ $value }} operations (>90% of max). Database may not be keeping up with write load."
+
+  - name: cache_alerts
+    interval: 30s
+    rules:
+      - alert: LowCacheHitRate
+        expr: (rate(tan_cache_hits_total[5m]) / (rate(tan_cache_hits_total[5m]) + rate(tan_cache_misses_total[5m]))) < 0.7
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Cache hit rate is low"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (<70%) for 10 minutes. Consider increasing cache size or TTL."
+          
+      - alert: RedisCircuitBreakerOpen
+        expr: tan_circuit_breaker_state{circuit_name="redis"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          component: redis
+        annotations:
+          summary: "Redis circuit breaker OPEN"
+          description: "Redis circuit breaker is OPEN - falling back to database only (performance degraded)."
+          
+      - alert: RedisHighLatency
+        expr: histogram_quantile(0.95, rate(tan_redis_operation_duration_seconds_bucket[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis operations are slow"
+          description: "p95 Redis latency is {{ $value | humanizeDuration }} (>50ms) for 5 minutes."
+          
+      - alert: CacheEvictionHigh
+        expr: rate(tan_cache_evictions_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: info
+          component: cache
+        annotations:
+          summary: "High cache eviction rate"
+          description: "Cache evictions: {{ $value }} per second. Cache may be undersized."
+
+  - name: performance_alerts
+    interval: 30s
+    rules:
+      - alert: SlowGUIOpen
+        expr: histogram_quantile(0.95, rate(tan_gui_open_duration_seconds_bucket[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: gui
+        annotations:
+          summary: "GUI open time is slow"
+          description: "p95 GUI open time is {{ $value | humanizeDuration }} (>50ms) for 5 minutes. Players experiencing lag."
+          
+      - alert: HighMemoryUsage
+        expr: (jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"}) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          component: jvm
+        annotations:
+          summary: "JVM heap memory usage is high"
+          description: "Heap usage is {{ $value | humanizePercentage }} (>85%) for 5 minutes. Risk of OOM."
+          
+      - alert: CriticalMemoryUsage
+        expr: (jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"}) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          component: jvm
+        annotations:
+          summary: "JVM heap memory critically high"
+          description: "Heap usage is {{ $value | humanizePercentage }} (>95%). Imminent OutOfMemoryError risk!"
+          
+      - alert: LowServerTPS
+        expr: tan_server_tps < 18
+        for: 5m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Server TPS is low"
+          description: "Server TPS is {{ $value }} (<18) for 5 minutes. Players experiencing lag."
+          
+      - alert: CriticalServerTPS
+        expr: tan_server_tps < 15
+        for: 2m
+        labels:
+          severity: critical
+          component: performance
+        annotations:
+          summary: "Server TPS critically low"
+          description: "Server TPS is {{ $value }} (<15). Severe lag detected!"
+
+  - name: application_alerts
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: rate(tan_errors_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High application error rate"
+          description: "Error rate is {{ $value }} per second (>10/sec) for 5 minutes."
+          
+      - alert: AsyncOperationFailures
+        expr: rate(tan_async_operation_failures_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: async
+        annotations:
+          summary: "Async operations failing"
+          description: "Async operation failure rate: {{ $value }} per second (>5/sec)."
+          
+      - alert: ThreadPoolSaturation
+        expr: (jvm_threads_live / jvm_threads_peak) > 0.8
+        for: 5m
+        labels:
+          severity: info
+          component: threads
+        annotations:
+          summary: "Thread pool nearing saturation"
+          description: "Thread usage is {{ $value | humanizePercentage }} (>80% of peak)."
+
+  - name: availability_alerts
+    interval: 30s
+    rules:
+      - alert: PluginDown
+        expr: up{job="towns-and-nations"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: availability
+        annotations:
+          summary: "Towns & Nations plugin down"
+          description: "Plugin is not responding to health checks."
+          
+      - alert: DatabaseConnectionLost
+        expr: hikaricp_connections_total == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "No database connections available"
+          description: "All database connections lost. Plugin cannot persist data!"
+          
+      - alert: RedisConnectionLost
+        expr: tan_redis_connected == 0
+        for: 2m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis connection lost"
+          description: "Redis is unavailable. Falling back to database-only mode (degraded performance)."
+
+# Alert routing configuration (for Alertmanager)

@@ -28,7 +28,7 @@ public class GuiUtil {
 
   public static GuiItem createBackArrow(Player player, Consumer<Player> openMenuAction) {
     ItemStack getBackArrow =
-        HeadUtils.createCustomItemStack(Material.ARROW, Lang.GUI_BACK_ARROW.get(player));
+        HeadUtils.createCustomItemStack(Material.ARROW, Lang.GUI_BACK_ARROW.get(LangType.ENGLISH));
     return ItemBuilder.from(getBackArrow)
         .asGuiItem(
             event -> {

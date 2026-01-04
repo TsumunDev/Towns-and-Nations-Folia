@@ -95,7 +95,7 @@ public class OpenRelationMenu extends IteratorGUI {
     ArrayList<GuiItem> guiItems = new ArrayList<>();
     for (String territoryID : territoryData.getRelations().getTerritoriesIDWithRelation(relation)) {
 
-      TerritoryData otherTerritory = TerritoryUtil.getTerritory(territoryID);
+      TerritoryData otherTerritory = TerritoryUtil.getTerritoryAsync(territoryID).join();
       ItemStack icon =
           otherTerritory.getIconWithInformationAndRelation(territoryData, tanPlayer.getLang());
 

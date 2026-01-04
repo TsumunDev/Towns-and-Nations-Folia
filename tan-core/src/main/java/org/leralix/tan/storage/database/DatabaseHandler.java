@@ -120,7 +120,7 @@ public abstract class DatabaseHandler {
    */
   public CompletableFuture<List<List<TransactionHistory>>> getTransactionHistoryAsync(
       TerritoryData territoryData, TransactionHistoryEnum type) {
-    return CompletableFuture.supplyAsync(() -> getTransactionHistory(territoryData, type));
+    return org.leralix.tan.async.VirtualThreadExecutor.supplyAsync(() -> getTransactionHistory(territoryData, type));
   }
 
   public void deleteOldHistory(int nbDays, TransactionHistoryEnum type) {

@@ -26,7 +26,7 @@ public class WarMenu extends BasicGui {
   private final WarRole warRole;
 
   private WarMenu(Player player, ITanPlayer tanPlayer, TerritoryData territoryData, War war) {
-    super(player, tanPlayer, "War Menu", 3);
+    super(player, tanPlayer, "War Menu", "war_menu", 3);
     this.territoryData = territoryData;
     this.war = war;
     this.warRole =

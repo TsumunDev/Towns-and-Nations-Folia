@@ -39,9 +39,9 @@ public class OpenGuiCommand extends PlayerSubCommand {
   @Override
   public void perform(Player player, String[] args) {
     if (args.length == 1) {
-
       getOpeningGui(player);
     } else if (args.length > 1) {
+<<<<<<< Updated upstream
       ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
       // CRITICAL: Player interactions must run on main thread
       org.leralix.tan.utils.FoliaScheduler.runTask(
@@ -51,6 +51,21 @@ public class OpenGuiCommand extends PlayerSubCommand {
             TanChatUtils.message(player, Lang.TOO_MANY_ARGS_ERROR.get(lang));
             TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(lang, getSyntax()));
           });
+=======
+      // Async pattern: load player data without blocking
+      PlayerDataStorage.getInstance()
+          .get(player)
+          .thenAccept(
+              tanPlayer -> {
+                org.leralix.tan.utils.FoliaScheduler.runTask(
+                    org.leralix.tan.TownsAndNations.getPlugin(),
+                    () -> {
+                      LangType lang = tanPlayer.getLang();
+                      TanChatUtils.message(player, Lang.TOO_MANY_ARGS_ERROR.get(lang));
+                      TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(lang, getSyntax()));
+                    });
+              });
+>>>>>>> Stashed changes
     }
   }
 

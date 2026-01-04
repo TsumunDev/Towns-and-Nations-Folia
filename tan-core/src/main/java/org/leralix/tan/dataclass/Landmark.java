@@ -3,6 +3,7 @@ package org.leralix.tan.dataclass;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -122,7 +123,7 @@ public class Landmark {
 
   public boolean isOwned() {
     if (ownerID == null) return false;
-    if (TerritoryUtil.getTerritory(ownerID) == null) {
+    if (TerritoryUtil.getTerritoryAsync(ownerID).join() == null) {
       removeOwnership();
       return false;
     }
@@ -133,6 +134,10 @@ public class Landmark {
     return TownDataStorage.getInstance().getSync(ownerID);
   }
 
+  private CompletableFuture<TownData> getOwnerAsync() {
+    return TownDataStorage.getInstance().get(ownerID);
+  }
+
   public ItemStack getIcon(LangType langType) {
     Material rewardMaterial = Material.valueOf(materialName);
     ItemStack icon = new ItemStack(rewardMaterial, amount);
@@ -140,9 +145,11 @@ public class Landmark {
     if (meta != null) {
       org.leralix.tan.utils.text.ComponentUtil.setDisplayName(meta, "§a" + getName());
       List<String> description = getBaseDescription(langType);
-      if (isOwned())
+      if (isOwned()) {
+        TownData owner = getOwner();  // Synchronous for now - callers should use getIconAsync
         description.add(
-            Lang.SPECIFIC_LANDMARK_ICON_DESC2_OWNER.get(langType, getOwner().getName()));
+            Lang.SPECIFIC_LANDMARK_ICON_DESC2_OWNER.get(langType, owner != null ? owner.getName() : "Unknown"));
+      }
       else description.add(Lang.SPECIFIC_LANDMARK_ICON_DESC2_NO_OWNER.get(langType));
 
       org.leralix.tan.utils.text.ComponentUtil.setLore(meta, description);

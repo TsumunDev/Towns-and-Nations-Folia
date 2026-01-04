@@ -3,6 +3,7 @@ package org.leralix.tan.commands.player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -61,22 +62,27 @@ public class InvitePlayerCommand extends PlayerSubCommand {
   }
 
   private static void invite(Player player, String playerToInvite) {
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    TownData townData = tanPlayer.getTownSync();
-    LangType langType = tanPlayer.getLang();
+    // Async pattern: chain inviter and invitee data loading
+    PlayerDataStorage.getInstance()
+        .get(player)
+        .thenCompose(
+            tanPlayer -> {
+              TownData townData = tanPlayer.getTownSync();
+              LangType langType = tanPlayer.getLang();
 
-    if (townData == null) {
-      TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(langType));
-      return;
-    }
+              if (townData == null) {
+                TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(langType));
+                return CompletableFuture.completedFuture(null);
+              }
 
-    boolean hasPermission =
-        townData.doesPlayerHavePermission(tanPlayer, RolePermission.INVITE_PLAYER);
-    if (!hasPermission) {
-      TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(langType));
-      return;
-    }
+              boolean hasPermission =
+                  townData.doesPlayerHavePermission(tanPlayer, RolePermission.INVITE_PLAYER);
+              if (!hasPermission) {
+                TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(langType));
+                return CompletableFuture.completedFuture(null);
+              }
 
+<<<<<<< Updated upstream
     // Find and validate player
     Optional<OfflinePlayer> offlinePlayerOpt =
         CommandExceptionHandler.findPlayer((CommandSender) player, playerToInvite);
@@ -90,35 +96,71 @@ public class InvitePlayerCommand extends PlayerSubCommand {
       TanChatUtils.message(player, Lang.PLAYER_NOT_FOUND.get(langType));
       return;
     }
+=======
+              Optional<OfflinePlayer> offlinePlayerOpt =
+                  CommandExceptionHandler.findPlayer((CommandSender) player, playerToInvite);
+              if (offlinePlayerOpt.isEmpty()) {
+                return CompletableFuture.completedFuture(null);
+              }
 
-    if (townData.isFull()) {
-      TanChatUtils.message(player, Lang.INVITATION_TOWN_FULL.get(langType));
-      return;
-    }
+              Player invite = offlinePlayerOpt.get().getPlayer();
+              if (invite == null) {
+                TanChatUtils.message(player, Lang.PLAYER_NOT_FOUND.get(langType));
+                return CompletableFuture.completedFuture(null);
+              }
+>>>>>>> Stashed changes
 
-    ITanPlayer inviteStat = PlayerDataStorage.getInstance().getSync(invite);
-    if (inviteStat.getTownId() != null) {
-      if (inviteStat.getTownId().equals(townData.getID())) {
-        TanChatUtils.message(
-            player, Lang.INVITATION_ERROR_PLAYER_ALREADY_IN_TOWN.get(langType, invite.getName()));
-        return;
-      }
-      TownData inviteStatTown = inviteStat.getTownSync();
-      TanChatUtils.message(
-          player,
-          Lang.INVITATION_ERROR_PLAYER_ALREADY_HAVE_TOWN.get(
-              langType, invite.getName(), inviteStatTown.getName()));
-      return;
-    }
+              if (townData.isFull()) {
+                TanChatUtils.message(player, Lang.INVITATION_TOWN_FULL.get(langType));
+                return CompletableFuture.completedFuture(null);
+              }
 
-    TownInviteDataStorage.addInvitation(invite.getUniqueId().toString(), townData.getID());
+              // Chain second async call for invitee data
+              return PlayerDataStorage.getInstance()
+                  .get(invite)
+                  .thenApply(
+                      inviteStat -> {
+                        if (inviteStat.getTownId() != null) {
+                          if (inviteStat.getTownId().equals(townData.getID())) {
+                            TanChatUtils.message(
+                                player,
+                                Lang.INVITATION_ERROR_PLAYER_ALREADY_IN_TOWN.get(
+                                    langType, invite.getName()));
+                            return null;
+                          }
+                          TownData inviteStatTown = inviteStat.getTownSync();
+                          TanChatUtils.message(
+                              player,
+                              Lang.INVITATION_ERROR_PLAYER_ALREADY_HAVE_TOWN.get(
+                                  langType, invite.getName(), inviteStatTown.getName()));
+                          return null;
+                        }
 
-    TanChatUtils.message(player, Lang.INVITATION_SENT_SUCCESS.get(langType, invite.getName()));
+                        TownInviteDataStorage.addInvitation(
+                            invite.getUniqueId().toString(), townData.getID());
 
-    LangType receiverLang = inviteStat.getLang();
-    TanChatUtils.message(
-        invite, Lang.INVITATION_RECEIVED_1.get(receiverLang, player.getName(), townData.getName()));
-    ChatUtils.sendClickableCommand(
-        invite, Lang.INVITATION_RECEIVED_2.get(receiverLang), "tan join " + townData.getID());
+                        TanChatUtils.message(
+                            player, Lang.INVITATION_SENT_SUCCESS.get(langType, invite.getName()));
+
+                        LangType receiverLang = inviteStat.getLang();
+                        TanChatUtils.message(
+                            invite,
+                            Lang.INVITATION_RECEIVED_1.get(
+                                receiverLang, player.getName(), townData.getName()));
+                        ChatUtils.sendClickableCommand(
+                            invite,
+                            Lang.INVITATION_RECEIVED_2.get(receiverLang),
+                            "tan join " + townData.getID());
+                        return inviteStat;
+                      });
+            })
+        .exceptionally(
+            throwable -> {
+              org.leralix.tan.TownsAndNations.getPlugin()
+                  .getLogger()
+                  .severe("InvitePlayerCommand failed: " + throwable.getMessage());
+              player.sendMessage("§cError processing invite command");
+              return null;
+            });
   }
 }

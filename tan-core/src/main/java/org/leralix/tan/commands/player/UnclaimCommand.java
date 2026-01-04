@@ -43,10 +43,20 @@ public class UnclaimCommand extends PlayerSubCommand {
 
   @Override
   public void perform(Player player, String[] args) {
+    // Async pattern: load player data without blocking
+    PlayerDataStorage.getInstance()
+        .get(player)
+        .thenAccept(
+            tanPlayer -> {
+              LangType langType = tanPlayer.getLang();
 
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    LangType langType = tanPlayer.getLang();
+              if (args.length != 1 && args.length != 4) {
+                TanChatUtils.message(player, Lang.SYNTAX_ERROR.get(langType));
+                TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
+                return;
+              }
 
+<<<<<<< Updated upstream
     // Validate argument count (1 or 4 arguments)
     if (args.length != 1 && args.length != 4) {
       TanChatUtils.message(player, Lang.SYNTAX_ERROR.get(langType));
@@ -56,6 +66,10 @@ public class UnclaimCommand extends PlayerSubCommand {
 
     Chunk chunk;
     try {
+=======
+              Chunk chunk;
+              try {
+>>>>>>> Stashed changes
       if (args.length == 1) {
         chunk = player.getLocation().getChunk();
       } else {
@@ -78,8 +92,9 @@ public class UnclaimCommand extends PlayerSubCommand {
 
       // Unclaim the chunk
       ClaimedChunk2 claimedChunk = NewClaimedChunkStorage.getInstance().get(chunk);
-      executeUnclaimChunk(claimedChunk, player);
+      executeUnclaimChunk(claimedChunk, tanPlayer);
 
+<<<<<<< Updated upstream
       // Open map if coordinates were provided
       if (args.length == 4) {
         MapCommand.openMap(player, new MapSettings(args[0], args[1]));
@@ -98,9 +113,22 @@ public class UnclaimCommand extends PlayerSubCommand {
    * @throws TerritoryException If the unclaim operation fails
    */
   private void executeUnclaimChunk(ClaimedChunk2 claimedChunk, Player player)
+=======
+                if (args.length == 4) {
+                  MapCommand.openMap(player, new MapSettings(args[0], args[1]));
+                }
+              } catch (TerritoryException e) {
+                TanChatUtils.message(player, Lang.SYNTAX_ERROR.get(langType));
+                CommandExceptionHandler.logCommandExecution(player, "unclaim", args);
+              }
+            });
+  }
+
+  private void executeUnclaimChunk(ClaimedChunk2 claimedChunk, ITanPlayer tanPlayer)
+>>>>>>> Stashed changes
       throws TerritoryException {
     try {
-      claimedChunk.unclaimChunk(player);
+      claimedChunk.unclaimChunk(tanPlayer.getPlayer());
     } catch (Exception e) {
       throw new TerritoryException("Chunk unclaim failed: " + e.getMessage(), e);
     }

@@ -609,6 +609,12 @@ public abstract class TerritoryData {
 
   public boolean canClaimChunkSync(Player player, Chunk chunk, boolean ignoreAdjacent) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
+    return canClaimChunkSync(tanPlayer, chunk, ignoreAdjacent);
+  }
+
+  public boolean canClaimChunkSync(ITanPlayer tanPlayer, Chunk chunk, boolean ignoreAdjacent) {
+    Player player = tanPlayer.getPlayer();
+    if (player == null) return false;
 
     if (ClaimBlacklistStorage.cannotBeClaimed(chunk)) {
       TanChatUtils.message(player, Lang.CHUNK_IS_BLACKLISTED.get(player));
@@ -710,6 +716,13 @@ public abstract class TerritoryData {
 
   public void addDonation(Player player, double amount) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
+    addDonation(tanPlayer, amount);
+  }
+
+  public void addDonation(ITanPlayer tanPlayer, double amount) {
+    Player player = tanPlayer.getPlayer();
+    if (player == null) return;
+    
     LangType langType = tanPlayer.getLang();
     double playerBalance = EconomyUtil.getBalance(player);
 
@@ -790,8 +803,15 @@ public abstract class TerritoryData {
   }
 
   public List<GuiItem> getAllSubjugationProposals(Player player, int page) {
-    ArrayList<GuiItem> proposals = new ArrayList<>();
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
+    return getAllSubjugationProposals(tanPlayer, page);
+  }
+
+  public List<GuiItem> getAllSubjugationProposals(ITanPlayer tanPlayer, int page) {
+    ArrayList<GuiItem> proposals = new ArrayList<>();
+    Player player = tanPlayer.getPlayer();
+    if (player == null) return proposals;
+    
     LangType langType = tanPlayer.getLang();
 
     for (String proposalID : getOverlordsProposals()) {
@@ -861,7 +881,8 @@ public abstract class TerritoryData {
   public abstract RankData getRank(ITanPlayer tanPlayer);
 
   public RankData getRank(Player player) {
-    return getRank(PlayerDataStorage.getInstance().getSync(player));
+    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
+    return getRank(tanPlayer);
   }
 
   public int getNumberOfRank() {
@@ -915,13 +936,7 @@ public abstract class TerritoryData {
 
   public boolean doesPlayerHavePermission(Player player, RolePermission townRolePermission) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    if (!this.isPlayerIn(tanPlayer)) {
-      return false;
-    }
-
-    if (isLeader(tanPlayer)) return true;
-
-    return getRank(tanPlayer).hasPermission(townRolePermission);
+    return doesPlayerHavePermission(tanPlayer, townRolePermission);
   }
 
   public boolean doesPlayerHavePermission(ITanPlayer tanPlayer, RolePermission townRolePermission) {
@@ -990,14 +1005,31 @@ public abstract class TerritoryData {
         continue;
       }
       removeFromBalance(costOfSalary);
+      
+      // Batch-load all players asynchronously for this rank
+      List<CompletableFuture<Void>> paymentFutures = new ArrayList<>();
       for (String playerId : playerIdList) {
-        ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerId);
-        EconomyUtil.addFromBalance(tanPlayer, rankSalary);
-        TownsAndNations.getPlugin()
-            .getDatabaseHandler()
-            .addTransactionHistory(
-                new SalaryPaymentHistory(this, String.valueOf(rank.getID()), costOfSalary));
+        CompletableFuture<Void> paymentFuture = PlayerDataStorage.getInstance()
+            .get(playerId)
+            .thenAccept(tanPlayer -> {
+              EconomyUtil.addFromBalance(tanPlayer, rankSalary);
+            })
+            .exceptionally(throwable -> {
+              TownsAndNations.getPlugin().getLogger().warning(
+                  "Failed to pay salary to player " + playerId + ": " + throwable.getMessage());
+              return null;
+            });
+        paymentFutures.add(paymentFuture);
       }
+      
+      // Wait for all payments to complete, then record transaction
+      CompletableFuture.allOf(paymentFutures.toArray(new CompletableFuture[0]))
+          .thenRun(() -> {
+            TownsAndNations.getPlugin()
+                .getDatabaseHandler()
+                .addTransactionHistory(
+                    new SalaryPaymentHistory(this, String.valueOf(rank.getID()), costOfSalary));
+          });
     }
   }
 
@@ -1105,7 +1137,10 @@ public abstract class TerritoryData {
 
   public CompletableFuture<String> getLeaderName() {
     if (this.haveNoLeader()) return CompletableFuture.completedFuture(Lang.NO_LEADER.getDefault());
-    return CompletableFuture.completedFuture(getLeaderData().getNameStored());
+    
+    // Execute getNameStored() asynchronously to avoid blocking main thread
+    // if Bukkit.getOfflinePlayer() needs to be called
+    return CompletableFuture.supplyAsync(() -> getLeaderData().getNameStored());
   }
 
   public String getLeaderNameSync() {
@@ -1251,5 +1286,140 @@ public abstract class TerritoryData {
 
   public void upgradeTown(Upgrade upgrade) {
     getNewLevel().levelUp(upgrade);
+<<<<<<< Updated upstream
+=======
+
+    if (this instanceof TownData) {
+      var syncService = TownsAndNations.getPlugin().getTownSyncService();
+      if (syncService != null) {
+        syncService.publishUpgradePurchased(this.id, upgrade.getID());
+      }
+
+      TownDataStorage.getInstance().put(this.id, (TownData) this);
+    }
+  }
+
+  /**
+   * Upgrades town level with ACID transaction guarantees.
+   * 
+   * <p>This method wraps balance deduction, level increment, and chunk limit increase
+   * in a MySQL transaction. If any operation fails, all changes are rolled back to
+   * prevent partial upgrades (e.g., money deducted but level not increased).
+   * 
+   * <p><b>Transaction steps:</b>
+   * <ol>
+   *   <li>BEGIN TRANSACTION</li>
+   *   <li>Deduct upgrade cost from treasury</li>
+   *   <li>Increment territory level</li>
+   *   <li>Update chunk capacity</li>
+   *   <li>COMMIT (or ROLLBACK on failure)</li>
+   * </ol>
+   * 
+   * <p><b>Error handling:</b> If the transaction fails (e.g., insufficient funds, database error),
+   * all changes are automatically rolled back and an exception is logged. Sync messages are only
+   * sent after successful commit.
+   */
+  public CompletableFuture<Void> upgradeTownLevel() {
+    if (!(this instanceof TownData)) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    int oldLevel = getNewLevel().getMainLevel();
+    int upgradeCost = getNewLevel().getMoneyRequiredForLevelUp();
+
+    // Validate sufficient funds BEFORE starting transaction
+    if (getBalance() < upgradeCost) {
+      String errorMsg = String.format(
+          "[TaN-Transaction] Insufficient funds for town upgrade: required=%d, available=%.2f, town=%s",
+          upgradeCost, getBalance(), this.id);
+      TownsAndNations.getPlugin().getLogger().warning(errorMsg);
+      return CompletableFuture.failedFuture(
+          new IllegalStateException("Insufficient funds for upgrade"));
+    }
+
+    TownData townData = (TownData) this;
+
+    // Execute upgrade in ACID transaction
+    return org.leralix.tan.storage.database.DatabaseTransaction.executeInTransaction(conn -> {
+      try {
+        // Step 1: Deduct upgrade cost from treasury (atomic with optimistic locking)
+        java.sql.PreparedStatement balanceStmt = conn.prepareStatement(
+            "UPDATE " + TownDataStorage.getInstance().getTableName() 
+                + " SET treasury = treasury - ?, version = version + 1 "
+                + "WHERE id = ? AND version = ? AND treasury >= ?");
+        balanceStmt.setDouble(1, upgradeCost);
+        balanceStmt.setString(2, this.id);
+        balanceStmt.setLong(3, getVersion());
+        balanceStmt.setDouble(4, upgradeCost);
+        
+        int balanceRows = balanceStmt.executeUpdate();
+        balanceStmt.close();
+        
+        if (balanceRows == 0) {
+          throw new ConcurrentModificationException(
+              "Town data was modified by another process during upgrade");
+        }
+
+        // Step 2: Increment level in memory
+        getNewLevel().levelUpMain();
+        int newLevel = getNewLevel().getMainLevel();
+
+        // Step 3: Serialize and update town data with new level
+        com.google.gson.Gson gson = new com.google.gson.Gson();
+        String serializedData = gson.toJson(townData);
+        
+        java.sql.PreparedStatement updateStmt = conn.prepareStatement(
+            "UPDATE " + TownDataStorage.getInstance().getTableName() 
+                + " SET data = ?, version = version + 1 WHERE id = ?");
+        updateStmt.setString(1, serializedData);
+        updateStmt.setString(2, this.id);
+        updateStmt.executeUpdate();
+        updateStmt.close();
+
+        // Step 4: Update local balance (transaction already committed in DB)
+        removeFromBalance(upgradeCost, false); // false = skip sync during transaction
+
+        // Step 5: Increment version for optimistic locking
+        touch();
+        
+        TownsAndNations.getPlugin()
+            .getLogger()
+            .info(String.format(
+                "[TaN-Transaction] Town upgrade completed: town=%s, oldLevel=%d, newLevel=%d, cost=%d",
+                this.id, oldLevel, newLevel, upgradeCost));
+
+      } catch (Exception e) {
+        TownsAndNations.getPlugin()
+            .getLogger()
+            .severe("[TaN-Transaction] Town upgrade failed: " + e.getMessage());
+        e.printStackTrace();
+        throw new RuntimeException("Failed to upgrade town level", e);
+      }
+    }).thenRun(() -> {
+      // Post-transaction: Synchronize with other servers (only after successful commit)
+      int newLevel = getNewLevel().getMainLevel();
+      
+      var syncService = TownsAndNations.getPlugin().getTownSyncService();
+      if (syncService != null) {
+        // 1. Publish level up event
+        syncService.publishTownLevelUp(this.id, oldLevel, newLevel);
+        
+        // 2. Publish full town data sync
+        syncService.publishFullTownDataSync(townData);
+      }
+      
+      // Invalidate cache to force other servers to reload
+      var syncManager = TownsAndNations.getPlugin().getRedisSyncManager();
+      if (syncManager != null) {
+        syncManager.publishCacheInvalidation("tan:town:" + this.id);
+      }
+
+      TownsAndNations.getPlugin()
+          .getLogger()
+          .fine(String.format(
+              "[TaN-Transaction] Town upgrade synced: town=%s, newLevel=%d",
+              this.id, newLevel));
+    });
+>>>>>>> Stashed changes
   }
 }

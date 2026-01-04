@@ -1,5 +1,7 @@
 package org.leralix.tan.commands.player;
 
+import org.leralix.tan.TownsAndNations;
+
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.entity.Player;
@@ -37,15 +39,22 @@ public class SeeBalanceCommand extends PlayerSubCommand {
 
   @Override
   public void perform(Player player, String[] args) {
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    LangType langType = tanPlayer.getLang();
-    if (args.length == 1) {
-      TanChatUtils.message(
-          player,
-          Lang.BAL_AMOUNT.get(langType, Double.toString(EconomyUtil.getBalance(tanPlayer))));
-    } else if (args.length > 1) {
-      TanChatUtils.message(player, Lang.TOO_MANY_ARGS_ERROR.get(langType));
-      TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
-    }
+    // Async pattern: load player data without blocking
+    PlayerDataStorage.getInstance().get(player).thenAccept(tanPlayer -> {
+      LangType langType = tanPlayer.getLang();
+      if (args.length == 1) {
+        TanChatUtils.message(
+            player,
+            Lang.BAL_AMOUNT.get(langType, Double.toString(EconomyUtil.getBalance(tanPlayer))));
+      } else if (args.length > 1) {
+        TanChatUtils.message(player, Lang.TOO_MANY_ARGS_ERROR.get(langType));
+        TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
+      }
+    }).exceptionally(throwable -> {
+      player.sendMessage("§cError loading player data");
+      TownsAndNations.getPlugin().getLogger().severe(
+          "Failed to load player data for balance command: " + throwable.getMessage());
+      return null;
+    });
   }
 }

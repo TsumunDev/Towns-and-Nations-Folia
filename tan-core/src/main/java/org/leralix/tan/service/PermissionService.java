@@ -37,7 +37,7 @@ public class PermissionService {
               boolean isAtWar = tanPlayer.isAtWarWith(claimedChunk.getOwner());
               if (isAtWar) return true;
 
-              return claimedChunk.canPlayerDo(player, permissionType, location);
+              return claimedChunk.canPlayerDo(tanPlayer.getPlayer(), permissionType, location);
             });
   }
 

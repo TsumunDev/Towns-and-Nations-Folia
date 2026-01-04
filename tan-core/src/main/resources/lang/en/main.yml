@@ -3,7 +3,7 @@ language:
   STRING: "§f{0}"
   EMPTY: ""
   LANGUAGE_SUCCESSFULLY_LOADED: "[TaN] English language successfully loaded"
-  PLUGIN_STRING: "§6[TaN]§f "
+  PLUGIN_STRING: "§6COCO§eNATION §f§l» §r"
   PLUGIN_DEBUG_STRING: "§c[TaN - Debug]§f "
   NEWSLETTER_STRING: "§6[TaN - Newsletter]§f "
   #Common errors

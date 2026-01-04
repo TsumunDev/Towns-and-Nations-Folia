@@ -100,7 +100,6 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
     }
   }
 
-  @Override
   public void put(String id, RegionData obj) {
     if (id == null || obj == null) {
       return;
@@ -216,7 +215,7 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
           .getLogger()
           .warning("json_extract not supported, falling back to full scan: " + e.getMessage());
 
-      for (RegionData region : getAll().values()) {
+      for (RegionData region : getAllSync().values()) {
         if (name.equals(region.getName())) return true;
       }
     }

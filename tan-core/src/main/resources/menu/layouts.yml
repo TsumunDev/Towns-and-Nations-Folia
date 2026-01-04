@@ -1,0 +1,611 @@
+# ============================================================
+# MENU LAYOUTS CONFIGURATION - Coconation Plugin
+# ============================================================
+# This file allows you to customize the position of items in menus.
+# All values are optional - if not specified, default positions are used.
+#
+# SLOT NUMBERING:
+# Slots are numbered 0-53 for a 6-row inventory:
+#   Row 1: 0-8      (row=1, col=1-9)
+#   Row 2: 9-17     (row=2, col=1-9)
+#   Row 3: 18-26    (row=3, col=1-9)
+#   Row 4: 27-35    (row=4, col=1-9)
+#   Row 5: 36-44    (row=5, col=1-9)
+#   Row 6: 45-53    (row=6, col=1-9)
+#
+# CONVERSION: slot = (row-1)*9 + (col-1)
+#   Example: row=2, col=3 → slot = (2-1)*9 + (3-1) = 9 + 2 = 11
+#
+# FILLER: Material to fill empty slots
+#   Format: "MATERIAL_NAME"
+#
+# NEXO GLYPH: Custom GUI textures using Nexo glyphs
+#   Format: "glyph: \"\\uE001\\uF001\""
+#   The glyph string is prefixed to the menu title to display custom GUI backgrounds.
+#   
+#   HOW TO CREATE CUSTOM GUI TEXTURES WITH NEXO:
+#   1. Create your GUI texture (e.g., 256x256 PNG with custom background)
+#   2. Create a Nexo glyph in your pack: nexo/glyphs/gui_town.yml
+#      Example config:
+#        gui_town_bg:
+#          character: "\uE001"
+#          texture: "coconation:gui/town_background.png"
+#          ascent: 8
+#          height: 256
+#   3. Add negative space glyph to shift text back (optional):
+#      Example: "\uF001" with ascent: -176
+#   4. Combine glyphs in layouts.yml:
+#      town_menu:
+#        glyph: "\\uE001\\uF001"  # Background + negative space
+#   5. Reload plugin with /coconationadmin reload
+#
+#   RESULT: Your town menu will show the custom Nexo texture as background!
+#
+#   See Nexo docs: https://docs.nexomc.com/configuration/glyphs
+#
+# ============================================================
+# HOW TO USE:
+# ============================================================
+# 1. Uncomment (remove #) the menu section you want to customize
+# 2. Uncomment the specific slot you want to move
+# 3. Change the slot number to your desired position
+# 4. Reload the plugin or restart the server
+#
+# Example - move the treasury button to slot 20:
+#   town_menu:
+#     slots:
+#       treasury: 20
+#
+# Example - add custom Nexo GUI texture:
+#   town_menu:
+#     glyph: "\\uE001\\uF001"  # Your Nexo glyph codes
+#     rows: 4
+#     slots:
+#       treasury: 10
+#
+# ============================================================
+# ALL MENUS WITH REAL DEFAULT POSITIONS FROM JAVA CODE
+# ============================================================
+
+# ============================================================
+# MAIN MENU (3 rows) - MainMenu.java
+# ============================================================
+# DÉCOMMENTÉ PAR DÉFAUT - Active si tu veux personnaliser
+# Example with Nexo glyph:
+#   glyph: "\\uE001\\uF001"  # Nexo custom background (uncomment to use)
+main_menu:
+  rows: 3
+  slots:
+    time_icon: 4       # row=1, col=5 → (0)*9 + 4 = 4
+    nation: 10         # row=2, col=2 → (1)*9 + 1 = 10
+    region: 12         # row=2, col=4 → (1)*9 + 3 = 12
+    town: 14           # row=2, col=6 → (1)*9 + 5 = 14
+    player: 16         # row=2, col=8 → (1)*9 + 7 = 16
+    back: 18           # row=3, col=1 → (2)*9 + 0 = 18
+
+# ============================================================
+# TOWN MENU (4 rows) - TownMenu.java
+# ============================================================
+# DÉCOMMENTÉ PAR DÉFAUT - Active si tu veux personnaliser
+#
+# ┌─────────────────────────────────────────────────────────────────┐
+# │ EXEMPLE COMPLET AVEC NEXO GLYPH (GUI TEXTURE CUSTOM)           │
+# ├─────────────────────────────────────────────────────────────────┤
+# │ Pour activer une texture custom Nexo sur ce menu :             │
+# │                                                                 │
+# │ 1. Crée ta texture : town_background.png (256x256)             │
+# │ 2. Configure Nexo : plugins/Nexo/glyphs/coconation.yml         │
+# │    coconation_town_bg:                                          │
+# │      character: "\uE101"                                        │
+# │      texture: "coconation:gui/town_background.png"              │
+# │      ascent: 8                                                  │
+# │      height: 256                                                │
+# │    coconation_town_negative:                                    │
+# │      character: "\uF101"                                        │
+# │      texture: "space:split"                                     │
+# │      ascent: -176                                               │
+# │      height: 0                                                  │
+# │                                                                 │
+# │ 3. Active le glyph dans layouts.yml (décommente ci-dessous) :  │
+# │    town_menu:                                                   │
+# │      glyph: "\\uE101\\uF101"  # ← Active la texture custom     │
+# │      rows: 4                                                    │
+# │      filler: "BLUE_STAINED_GLASS_PANE"                          │
+# │      slots:                                                     │
+# │        treasury: 10                                             │
+# │        members: 11                                              │
+# │        # ... autres slots                                       │
+# │                                                                 │
+# │ 4. Reload : /nexo reload puis /coconationadmin reload           │
+# │                                                                 │
+# │ RÉSULTAT : Texture custom s'affiche en background du menu ! 🎨 │
+# └─────────────────────────────────────────────────────────────────┘
+#
+# Configuration actuelle (sans glyph) :
+town_menu:
+  rows: 4
+  filler: "BLUE_STAINED_GLASS_PANE"
+  slots:
+    territory_info: 4  # row=1, col=5 → slot 4
+    treasury: 10       # row=2, col=2 → slot 10
+    members: 11        # row=2, col=3 → slot 11
+    land: 12           # row=2, col=4 → slot 12
+    browse: 13         # row=2, col=5 → slot 13
+    diplomacy: 14      # row=2, col=6 → slot 14
+    level: 15          # row=2, col=7 → slot 15
+    settings: 16       # row=2, col=8 → slot 16
+    building: 19       # row=3, col=2 → slot 19
+    attack: 20         # row=3, col=3 → slot 20
+    hierarchy: 21      # row=3, col=4 → slot 21
+    landmarks: 25      # row=3, col=8 → slot 25
+    back: 27           # row=4, col=1 → slot 27
+
+# ============================================================
+# REGION MENU (4 rows) - RegionMenu.java
+# ============================================================
+region_menu:
+  rows: 4
+  filler: "LIGHT_BLUE_STAINED_GLASS_PANE"
+  slots:
+    territory_info: 4  # row=1, col=5 → slot 4
+    treasury: 10       # row=2, col=2 → slot 10
+    members: 11        # row=2, col=3 → slot 11
+    land: 12           # row=2, col=4 → slot 12
+    browse: 13         # row=2, col=5 → slot 13
+    diplomacy: 14      # row=2, col=6 → slot 14
+    level: 15          # row=2, col=7 → slot 15
+    settings: 16       # row=2, col=8 → slot 16
+    building: 19       # row=3, col=2 → slot 19
+    attack: 20         # row=3, col=3 → slot 20
+    hierarchy: 21      # row=3, col=4 → slot 21
+    back: 27           # row=4, col=1 → slot 27
+
+# ============================================================
+# PLAYER MENU (3 rows) - PlayerMenu.java
+# ============================================================
+player_menu:
+  rows: 3
+  slots:
+    player_head: 4     # row=1, col=5 → slot 4
+    balance: 10        # row=2, col=2 → slot 10
+    property: 11       # row=2, col=3 → slot 11
+    newsletter: 12     # row=2, col=4 → slot 12
+    timezone: 14       # row=2, col=6 → slot 14
+    language: 16       # row=2, col=8 → slot 16
+    back: 18           # row=3, col=1 → slot 18
+
+# ============================================================
+# NO TOWN MENU (3 rows) - NoTownMenu.java
+# ============================================================
+no_town_menu:
+  rows: 3
+  slots:
+    create_town: 11    # row=2, col=3 → slot 11
+    browse_towns: 15   # row=2, col=7 → slot 15
+    back: 18           # row=3, col=1 → slot 18
+
+# ============================================================
+# NO REGION MENU (3 rows) - NoRegionMenu.java
+# ============================================================
+no_region_menu:
+  rows: 3
+  slots:
+    create_region: 11  # row=2, col=3 → slot 11
+    browse_regions: 15 # row=2, col=7 → slot 15
+    back: 18           # row=3, col=1 → slot 18
+
+# ============================================================
+# TOWN SETTINGS MENU (4 rows) - TownSettingsMenu.java
+# ============================================================
+town_settings_menu:
+  rows: 4
+  filler: "BLUE_STAINED_GLASS_PANE"
+  slots:
+    territory_info: 4  # row=1, col=5 → slot 4
+    rename: 10         # row=2, col=2 → slot 10
+    description: 11    # row=2, col=3 → slot 11
+    color: 12          # row=2, col=4 → slot 12
+    ownership: 14      # row=2, col=6 → slot 14
+    quit: 15           # row=2, col=7 → slot 15
+    delete: 16         # row=2, col=8 → slot 16
+    applications: 19   # row=3, col=2 → slot 19
+    capital: 20        # row=3, col=3 → slot 20
+    tag: 21            # row=3, col=4 → slot 21
+    back: 27           # row=4, col=1 → slot 27
+
+# ============================================================
+# REGION SETTINGS MENU (3 rows) - RegionSettingsMenu.java
+# ============================================================
+region_settings_menu:
+  rows: 3
+  filler: "LIGHT_BLUE_STAINED_GLASS_PANE"
+  slots:
+    territory_info: 4  # row=1, col=5 → slot 4
+    rename: 10         # row=2, col=2 → slot 10
+    description: 11    # row=2, col=3 → slot 11
+    color: 12          # row=2, col=4 → slot 12
+    ownership: 14      # row=2, col=6 → slot 14
+    delete: 15         # row=2, col=7 → slot 15
+    back: 18           # row=3, col=1 → slot 18
+
+# ============================================================
+# TREASURY MENU (5 rows) - TreasuryMenu.java
+# ============================================================
+treasury_menu:
+  rows: 5
+  filler: "YELLOW_STAINED_GLASS_PANE"
+  slots:
+    budget: 4          # row=1, col=5 → slot 4
+    misc_spendings: 16 # row=2, col=8 → slot 16
+    donation: 19       # row=3, col=2 → slot 19
+    retrieve: 21       # row=3, col=4 → slot 21
+    back: 36           # row=5, col=1 → slot 36
+
+# ============================================================
+# CONFIRM MENU (3 rows) - ConfirmMenu.java
+# ============================================================
+confirm_menu:
+  rows: 3
+  slots:
+    message: 13        # row=2, col=5 → slot 13
+    confirm: 20        # row=3, col=3 → slot 20
+    cancel: 24         # row=3, col=7 → slot 24
+
+# ============================================================
+# TERRITORY MEMBER MENU (6 rows) - TerritoryMemberMenu.java
+# Uses IteratorGUI for member list (slots 0-44)
+# ============================================================
+territory_member_menu:
+  rows: 6
+  filler: "LIME_STAINED_GLASS_PANE"
+  slots:
+    manage_ranks: 48       # row=6, col=4 → slot 48
+    manage_applications: 49 # row=6, col=5 → slot 49
+
+# ============================================================
+# ADMIN MAIN MENU (3 rows) - AdminMainMenu.java
+# ============================================================
+admin_main_menu:
+  rows: 3
+  slots:
+    region: 10         # row=2, col=2 → slot 10
+    town: 11           # row=2, col=3 → slot 11
+    player: 12         # row=2, col=4 → slot 12
+    landmark: 15       # row=2, col=7 → slot 15
+    war: 16            # row=2, col=8 → slot 16
+    back: 18           # row=3, col=1 → slot 18
+
+# ============================================================
+# LANGUAGE MENU (3 rows) - LangMenu.java
+# Uses IteratorGUI for language list
+# ============================================================
+lang_menu:
+  rows: 3
+  slots:
+    help_translation: 23  # row=3, col=6 → slot 23
+
+# ============================================================
+# NEWSLETTER MENU (6 rows) - NewsletterMenu.java
+# Uses IteratorGUI for newsletter list
+# ============================================================
+newsletter_menu:
+  rows: 6
+  slots:
+    mark_all_read: 48  # row=6, col=4 → slot 48
+    scope: 49          # row=6, col=5 → slot 49
+
+# ============================================================
+# UPGRADE MENU (6 rows) - UpgradeMenu.java
+# Dynamic level columns 2-9, upgrades on rows 1-4
+# ============================================================
+upgrade_menu:
+  rows: 6
+  filler: "GRAY_STAINED_GLASS_PANE"
+  slots:
+    territory_stats: 0     # row=1, col=1 → slot 0
+    scroll_right: 52       # row=6, col=8 → slot 52
+    scroll_left: 51        # row=6, col=7 → slot 51
+    back: 45               # row=6, col=1 → slot 45
+
+# ============================================================
+# CHUNK SETTINGS MENU (3 rows) - ChunkSettingsMenu.java
+# ============================================================
+chunk_settings_menu:
+  rows: 3
+  filler: "LIME_STAINED_GLASS_PANE"
+  slots:
+    chunk_permissions: 11  # row=2, col=3 → slot 11
+    general_settings: 13   # row=2, col=5 → slot 13
+    mob_spawn: 15          # row=2, col=7 → slot 15
+    back: 18               # row=3, col=1 → slot 18
+
+# ============================================================
+# CHUNK GENERAL SETTINGS MENU (3 rows) - ChunkGeneralSettingsMenu.java
+# Dynamic slots starting at 11 for each GeneralChunkSetting
+# ============================================================
+chunk_general_settings_menu:
+  rows: 3
+  slots:
+    back: 18               # row=3, col=1 → slot 18
+
+# ============================================================
+# DIPLOMACY MENU (3 rows) - OpenDiplomacyMenu.java
+# ============================================================
+diplomacy_menu:
+  rows: 3
+  slots:
+    war: 9             # slot 9 (setItem(9,...))
+    embargo: 11        # slot 11
+    non_aggression: 13 # slot 13
+    alliance: 15       # slot 15
+    proposals: 17      # slot 17
+    back: 18           # row=3, col=1 → slot 18
+
+# ============================================================
+# OPEN RELATION MENU (6 rows) - OpenRelationMenu.java
+# Uses IteratorGUI for territory list
+# ============================================================
+open_relation_menu:
+  rows: 6
+  slots:
+    remove_territory: 48  # row=6, col=4 → slot 48
+    add_territory: 49     # row=6, col=5 → slot 49
+
+# ============================================================
+# VASSALS MENU (4 rows) - VassalsMenu.java
+# Uses IteratorGUI for vassal list
+# ============================================================
+vassals_menu:
+  rows: 4
+  slots:
+    add_vassal: 29     # row=4, col=3 → slot 29
+
+# ============================================================
+# WARS MENU (4 rows) - WarsMenu.java
+# Uses IteratorGUI for war list
+# ============================================================
+wars_menu:
+  rows: 4
+  slots:
+    attack_button: 30  # row=4, col=4 → slot 30
+
+# ============================================================
+# PLANNED ATTACK MENU (3 rows) - PlannedAttackMenu.java
+# ============================================================
+planned_attack_menu:
+  rows: 3
+  slots:
+    attack_icon: 4         # row=1, col=5 → slot 4
+    attacking_side: 10     # row=2, col=2 → slot 10
+    defending_side: 12     # row=2, col=4 → slot 12
+    rename_attack: 14      # row=2, col=6 → slot 14 (main_attacker only)
+    cancel_attack: 16      # row=2, col=8 → slot 16 (main_attacker only)
+    submit_to_requests: 15 # row=2, col=7 → slot 15 (main_defender only)
+    quit_war: 15           # row=2, col=7 → slot 15 (other roles)
+    join_attacking: 14     # row=2, col=6 → slot 14 (neutral)
+    join_defending: 15     # row=2, col=7 → slot 15 (neutral)
+    back: 18               # row=3, col=1 → slot 18
+
+# ============================================================
+# WAR MENU (3 rows) - WarMenu.java
+# ============================================================
+war_menu:
+  rows: 3
+  slots:
+    war_icon: 4        # row=1, col=5 → slot 4
+    wargoals: 11       # row=2, col=3 → slot 11
+    attack: 12         # row=2, col=4 → slot 12
+    enemy_wargoals: 14 # row=2, col=6 → slot 14
+    surrender: 15      # row=2, col=7 → slot 15
+    back: 18           # row=3, col=1 → slot 18
+
+# ============================================================
+# CREATE ATTACK MENU (3 rows) - CreateAttackMenu.java
+# ============================================================
+create_attack_menu:
+  rows: 3
+  slots:
+    remove_time: 10    # row=2, col=2 → slot 10
+    time_icon: 11      # row=2, col=3 → slot 11
+    add_time: 12       # row=2, col=4 → slot 12
+    confirm: 16        # row=2, col=8 → slot 16
+    back: 18           # row=3, col=1 → slot 18
+
+# ============================================================
+# BUILDING MENU (4 rows) - BuildingMenu.java
+# Uses IteratorGUI for building list
+# ============================================================
+building_menu:
+  rows: 4
+  slots:
+    create_property: 30   # row=4, col=4 → slot 30
+    create_fort: 31       # row=4, col=5 → slot 31
+
+# ============================================================
+# TERRITORY RANKS MENU (4 rows) - TerritoryRanksMenu.java
+# Uses IteratorGUI for rank list
+# ============================================================
+territory_ranks_menu:
+  rows: 4
+  slots:
+    create_new_rank: 31   # row=4, col=5 → slot 31
+
+# ============================================================
+# RANK MANAGER MENU (4 rows) - RankManagerMenu.java
+# ============================================================
+rank_manager_menu:
+  rows: 4
+  slots:
+    rank_icon: 4       # row=1, col=5 → slot 4
+    rank_level: 10     # row=2, col=2 → slot 10
+    add_player: 11     # row=2, col=3 → slot 11
+    manage_permission: 12 # row=2, col=4 → slot 12
+    lower_salary: 14   # row=2, col=6 → slot 14
+    salary_icon: 15    # row=2, col=7 → slot 15
+    increase_salary: 16 # row=2, col=8 → slot 16
+    rename_rank: 19    # row=3, col=2 → slot 19
+    pay_tax_rank: 20   # row=3, col=3 → slot 20
+    default_rank: 21   # row=3, col=4 → slot 21
+    delete_rank: 23    # row=3, col=6 → slot 23
+    back: 27           # row=4, col=1 → slot 27
+
+# ============================================================
+# PLAYER PROPERTIES MENU (3 rows) - PlayerPropertiesMenu.java
+# Uses IteratorGUI for property list
+# ============================================================
+player_properties_menu:
+  rows: 3
+  slots:
+    new_property: 13   # row=3, col=5 → slot 22
+
+# ============================================================
+# BROWSE PLAYER WITH PERMISSION MENU (3 rows)
+# ============================================================
+browse_player_permission_menu:
+  rows: 3
+  slots:
+    add_player: 13     # row=3, col=5 → slot 22
+
+# ============================================================
+# BUY OR RENT PROPERTY MENU (3 rows) - BuyOrRentPropertyMenu.java
+# ============================================================
+buy_or_rent_property_menu:
+  rows: 3
+  filler: "BROWN_STAINED_GLASS_PANE"
+  slots:
+    property_icon: 4   # row=1, col=5 → slot 4
+    confirm_action: 11 # row=2, col=3 → slot 11
+    cancel_action: 15  # row=2, col=7 → slot 15
+    back: 18           # row=3, col=1 → slot 18
+
+# ============================================================
+# RENTER PROPERTY MENU (3 rows) - RenterPropertyMenu.java
+# ============================================================
+renter_property_menu:
+  rows: 3
+  filler: "BROWN_STAINED_GLASS_PANE"
+  slots:
+    property_icon: 4       # row=1, col=5 → slot 4
+    authorized_players: 12 # row=2, col=4 → slot 12
+    stop_renting: 14       # row=2, col=6 → slot 14
+    back: 18               # row=3, col=1 → slot 18
+
+# ============================================================
+# LANDMARK NO OWNER MENU (3 rows) - LandmarkNoOwnerMenu.java
+# ============================================================
+landmark_no_owner_menu:
+  rows: 3
+  filler: "GRAY_STAINED_GLASS_PANE"
+  slots:
+    landmark_icon: 4   # row=1, col=5 → slot 4
+    claim_button: 13   # row=2, col=5 → slot 13
+    back: 18           # row=3, col=1 → slot 18
+
+# ============================================================
+# BROWSE TERRITORY MENU (6 rows) - BrowseTerritoryMenu.java
+# Uses IteratorGUI for territory list
+# ============================================================
+browse_territory_menu:
+  rows: 6
+  slots:
+    scope_button: 49   # row=6, col=5 → slot 49
+
+# ============================================================
+# PLAYER SELECT TIMEZONE MENU (4 rows) - PlayerSelectTimezoneMenu.java
+# Uses IteratorGUI for timezone list
+# ============================================================
+player_timezone_menu:
+  rows: 4
+
+# ============================================================
+# MOB SPAWN SETTINGS MENU (6 rows) - MobSpawnSettingsMenu.java
+# Uses IteratorGUI for mob list
+# ============================================================
+mob_spawn_settings_menu:
+  rows: 6
+
+# ============================================================
+# ECONOMIC HISTORY MENU (6 rows) - EconomicHistoryMenu.java
+# Uses IteratorGUI for transaction list
+# ============================================================
+economic_history_menu:
+  rows: 6
+
+# ============================================================
+# ADMIN BROWSE TOWN MENU (6 rows) - AdminBrowseTownMenu.java
+# Uses IteratorGUI for town list
+# ============================================================
+admin_browse_town_menu:
+  rows: 6
+
+# ============================================================
+# ADMIN BROWSE REGION MENU (6 rows) - AdminBrowseRegionMenu.java
+# Uses IteratorGUI for region list
+# ============================================================
+admin_browse_region_menu:
+  rows: 6
+
+# ============================================================
+# ADMIN PLAYER MENU (6 rows) - AdminPlayerMenu.java
+# Uses IteratorGUI for player list
+# ============================================================
+admin_player_menu:
+  rows: 6
+
+# ============================================================
+# ADMIN WARS MENU (6 rows) - AdminWarsMenu.java
+# Uses IteratorGUI for war list
+# ============================================================
+admin_wars_menu:
+  rows: 6
+
+# ============================================================
+# ADMIN LANDMARK MENU (6 rows) - AdminLandmarkMenu.java
+# Uses IteratorGUI for landmark list
+# ============================================================
+admin_landmark_menu:
+  rows: 6
+
+# ============================================================
+# APPLY TO TOWN MENU (6 rows) - ApplyToTownMenu.java
+# ============================================================
+apply_to_town_menu:
+  rows: 6
+
+# ============================================================
+# TOWN PROPERTIES MENU (3 rows) - TownPropertiesMenu.java
+# ============================================================
+town_properties_menu:
+  rows: 3
+
+# ============================================================
+# PROPERTY CHUNK SETTINGS MENU (4 rows) - PropertyChunkSettingsMenu.java
+# ============================================================
+property_chunk_settings_menu:
+  rows: 4
+
+# ============================================================
+# ADD PLAYER PERMISSION MENU (3 rows) - AddPlayerWithPermissionMenu.java
+# ============================================================
+add_player_permission_menu:
+  rows: 3
+
+# ============================================================
+# ADD PLAYER CHUNK PERMISSION MENU (6 rows) - AddPlayerForChunkPermission.java
+# ============================================================
+add_player_chunk_permission_menu:
+  rows: 6
+
+# ============================================================
+# CHOOSE WAR GOAL MENU (3 rows) - ChooseWarGoal.java
+# ============================================================
+choose_war_goal_menu:
+  rows: 3
+
+# ============================================================
+# YOUR CUSTOMIZATIONS BELOW:
+# ============================================================
+# All menus are now active by default.
+# Simply edit the rows or slots values above to customize your menus.
+# Changes take effect after /coconationadmin reload
+

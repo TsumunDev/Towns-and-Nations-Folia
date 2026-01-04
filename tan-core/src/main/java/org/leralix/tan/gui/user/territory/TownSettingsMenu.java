@@ -45,6 +45,12 @@ public class TownSettingsMenu extends SettingsMenus {
   public static void open(Player player, TownData townData) {
     PlayerDataStorage.getInstance()
         .get(player)
+        .thenCompose(
+            tanPlayer -> {
+              // Preload leader name asynchronously to avoid blocking in getTerritoryInfo()
+              return townData.getLeaderName()
+                  .thenApply(leaderName -> tanPlayer); // Ignore result, just trigger cache
+            })
         .thenAccept(
             tanPlayer -> {
               new TownSettingsMenu(player, tanPlayer, townData).open();

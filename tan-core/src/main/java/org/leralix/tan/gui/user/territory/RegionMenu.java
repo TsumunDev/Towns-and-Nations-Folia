@@ -16,8 +16,13 @@ public class RegionMenu extends TerritoryMenu {
 
   private final RegionData regionData;
 
+<<<<<<< Updated upstream
   public RegionMenu(Player player, ITanPlayer tanPlayer, RegionData regionData) {
     super(player, tanPlayer, Lang.HEADER_REGION_MENU.get(player, regionData.getName()), regionData);
+=======
+  private RegionMenu(Player player, ITanPlayer tanPlayer, RegionData regionData) {
+    super(player, tanPlayer, Lang.HEADER_REGION_MENU.get(player, regionData.getName()), "region_menu", regionData);
+>>>>>>> Stashed changes
     this.regionData = regionData;
     // open() doit être appelé explicitement après la construction pour respecter le modèle
     // asynchrone
@@ -26,6 +31,12 @@ public class RegionMenu extends TerritoryMenu {
   public static void open(Player player, RegionData regionData) {
     PlayerDataStorage.getInstance()
         .get(player)
+        .thenCompose(
+            tanPlayer -> {
+              // Preload leader name asynchronously to avoid blocking in getTerritoryInfo()
+              return regionData.getLeaderName()
+                  .thenApply(leaderName -> tanPlayer); // Ignore result, just trigger cache
+            })
         .thenAccept(
             tanPlayer -> {
               new RegionMenu(player, tanPlayer, regionData).open();

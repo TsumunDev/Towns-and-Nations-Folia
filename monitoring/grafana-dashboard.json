@@ -1,0 +1,349 @@
+{
+  "dashboard": {
+    "title": "Towns & Nations - Performance Dashboard",
+    "tags": ["minecraft", "towns-and-nations", "performance"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Database Connection Pool Usage",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "hikaricp_connections_active",
+            "legendFormat": "Active Connections",
+            "refId": "A"
+          },
+          {
+            "expr": "hikaricp_connections_idle",
+            "legendFormat": "Idle Connections",
+            "refId": "B"
+          },
+          {
+            "expr": "hikaricp_connections_pending",
+            "legendFormat": "Pending Connections",
+            "refId": "C"
+          },
+          {
+            "expr": "hikaricp_connections_max",
+            "legendFormat": "Max Pool Size",
+            "refId": "D"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Connections"},
+          {"format": "short"}
+        ],
+        "alert": {
+          "name": "Database Pool Exhaustion",
+          "conditions": [
+            {
+              "evaluator": {"params": [90], "type": "gt"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"type": "avg"},
+              "type": "query"
+            }
+          ],
+          "frequency": "1m",
+          "handler": 1,
+          "message": "Database connection pool >90% usage for 5 minutes",
+          "noDataState": "no_data",
+          "executionErrorState": "alerting"
+        }
+      },
+      {
+        "id": 2,
+        "title": "Database Query Latency (p95)",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(tan_database_query_duration_seconds_bucket[5m]))",
+            "legendFormat": "p95 Latency",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(tan_database_query_duration_seconds_bucket[5m]))",
+            "legendFormat": "p99 Latency",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Latency"},
+          {"format": "short"}
+        ],
+        "alert": {
+          "name": "High Database Latency",
+          "conditions": [
+            {
+              "evaluator": {"params": [0.1], "type": "gt"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"type": "avg"},
+              "type": "query"
+            }
+          ],
+          "frequency": "1m",
+          "handler": 1,
+          "message": "Database p95 latency >100ms for 5 minutes"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Cache Hit Rate",
+        "type": "singlestat",
+        "gridPos": {"x": 0, "y": 8, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "rate(tan_cache_hits_total[5m]) / (rate(tan_cache_hits_total[5m]) + rate(tan_cache_misses_total[5m])) * 100",
+            "refId": "A"
+          }
+        ],
+        "format": "percent",
+        "gauge": {
+          "show": true,
+          "minValue": 0,
+          "maxValue": 100,
+          "thresholdLabels": false,
+          "thresholdMarkers": true
+        },
+        "thresholds": "70,85",
+        "colors": ["#d44a3a", "#e0b400", "#299c46"]
+      },
+      {
+        "id": 4,
+        "title": "Redis Operation Latency",
+        "type": "graph",
+        "gridPos": {"x": 6, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(tan_redis_operation_duration_seconds_bucket[5m]))",
+            "legendFormat": "p95 Redis Latency",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(tan_redis_operation_duration_seconds_bucket[5m]))",
+            "legendFormat": "p99 Redis Latency",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Latency"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Circuit Breaker Status",
+        "type": "table",
+        "gridPos": {"x": 18, "y": 8, "w": 6, "h": 8},
+        "targets": [
+          {
+            "expr": "tan_circuit_breaker_state",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "transform": "table",
+        "columns": [
+          {"text": "Circuit", "value": "circuit_name"},
+          {"text": "State", "value": "Value"}
+        ],
+        "valueMaps": [
+          {"value": "0", "text": "CLOSED"},
+          {"value": "1", "text": "OPEN"},
+          {"value": "2", "text": "HALF_OPEN"}
+        ]
+      },
+      {
+        "id": 6,
+        "title": "GUI Open Duration (p95)",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(tan_gui_open_duration_seconds_bucket{gui_name=~\"MainMenu|TerritoryMenu|PlayerMenu\"}[5m]))",
+            "legendFormat": "{{gui_name}} p95",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Duration"},
+          {"format": "short"}
+        ],
+        "alert": {
+          "name": "Slow GUI Open",
+          "conditions": [
+            {
+              "evaluator": {"params": [0.05], "type": "gt"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"type": "avg"},
+              "type": "query"
+            }
+          ],
+          "frequency": "1m",
+          "handler": 1,
+          "message": "GUI open p95 duration >50ms for 5 minutes"
+        }
+      },
+      {
+        "id": 7,
+        "title": "JVM Memory Usage",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "jvm_memory_used_bytes{area=\"heap\"}",
+            "legendFormat": "Heap Used",
+            "refId": "A"
+          },
+          {
+            "expr": "jvm_memory_max_bytes{area=\"heap\"}",
+            "legendFormat": "Heap Max",
+            "refId": "B"
+          },
+          {
+            "expr": "jvm_memory_used_bytes{area=\"nonheap\"}",
+            "legendFormat": "Non-Heap Used",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "bytes", "label": "Memory"},
+          {"format": "short"}
+        ],
+        "alert": {
+          "name": "High Memory Usage",
+          "conditions": [
+            {
+              "evaluator": {"params": [0.85], "type": "gt"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"type": "avg"},
+              "type": "query"
+            }
+          ],
+          "frequency": "1m",
+          "handler": 1,
+          "message": "Heap memory usage >85% for 5 minutes"
+        }
+      },
+      {
+        "id": 8,
+        "title": "Active Players Online",
+        "type": "singlestat",
+        "gridPos": {"x": 0, "y": 24, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "tan_players_online",
+            "refId": "A"
+          }
+        ],
+        "format": "short",
+        "gauge": {
+          "show": true,
+          "minValue": 0,
+          "maxValue": 800,
+          "thresholdMarkers": true
+        },
+        "thresholds": "500,700"
+      },
+      {
+        "id": 9,
+        "title": "Batch Write Queue Size",
+        "type": "graph",
+        "gridPos": {"x": 6, "y": 24, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "tan_batch_write_queue_size",
+            "legendFormat": "Queue Size",
+            "refId": "A"
+          },
+          {
+            "expr": "tan_batch_write_queue_max_size",
+            "legendFormat": "Max Queue Size",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Operations"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Database Operations Rate",
+        "type": "graph",
+        "gridPos": {"x": 18, "y": 24, "w": 6, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(tan_database_operations_total{operation=\"read\"}[5m])",
+            "legendFormat": "Reads/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(tan_database_operations_total{operation=\"write\"}[5m])",
+            "legendFormat": "Writes/sec",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "Operations/sec"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Thread Pool Utilization",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 32, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "jvm_threads_live",
+            "legendFormat": "Live Threads",
+            "refId": "A"
+          },
+          {
+            "expr": "jvm_threads_daemon",
+            "legendFormat": "Daemon Threads",
+            "refId": "B"
+          },
+          {
+            "expr": "jvm_threads_peak",
+            "legendFormat": "Peak Threads",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Threads"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Server TPS (Estimated)",
+        "type": "singlestat",
+        "gridPos": {"x": 12, "y": 32, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "tan_server_tps",
+            "refId": "A"
+          }
+        ],
+        "format": "short",
+        "decimals": 1,
+        "gauge": {
+          "show": true,
+          "minValue": 0,
+          "maxValue": 20,
+          "thresholdMarkers": true
+        },
+        "thresholds": "15,18",
+        "colors": ["#d44a3a", "#e0b400", "#299c46"]
+      }
+    ]
+  }
+}

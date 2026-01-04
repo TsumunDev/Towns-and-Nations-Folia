@@ -1,5 +1,7 @@
 package org.leralix.tan.events.newsletter.news;
 
+import java.util.concurrent.CompletableFuture;
+
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
@@ -69,30 +71,38 @@ public class RegionCreationNews extends Newsletter {
   @Override
   public GuiItem createGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
 
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
-    if (tanPlayer == null) return null;
-    RegionData regionData = RegionDataStorage.getInstance().getSync(regionID);
-    if (regionData == null) return null;
+    CompletableFuture<ITanPlayer> playerFuture = PlayerDataStorage.getInstance().get(playerID);
+    CompletableFuture<RegionData> regionFuture = RegionDataStorage.getInstance().get(regionID);
+    
+    try {
+      ITanPlayer tanPlayer = playerFuture.join();
+      if (tanPlayer == null) return null;
+      
+      RegionData regionData = regionFuture.join();
+      if (regionData == null) return null;
 
-    ItemStack itemStack =
-        HeadUtils.makeSkullB64(
-            Lang.REGION_CREATED_NEWSLETTER_TITLE.get(lang),
-            "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDljMTgzMmU0ZWY1YzRhZDljNTE5ZDE5NGIxOTg1MDMwZDI1NzkxNDMzNGFhZjI3NDVjOWRmZDYxMWQ2ZDYxZCJ9fX0=",
-            Lang.NEWSLETTER_DATE.get(
-                lang, TimeZoneManager.getInstance().getRelativeTimeDescription(lang, getDate())),
-            Lang.REGION_CREATED_NEWSLETTER.get(
-                lang, tanPlayer.getNameStored(), regionData.getBaseColoredName()),
-            Lang.NEWSLETTER_RIGHT_CLICK_TO_MARK_AS_READ.get(lang));
+      ItemStack itemStack =
+          HeadUtils.makeSkullB64(
+              Lang.REGION_CREATED_NEWSLETTER_TITLE.get(lang),
+              "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDljMTgzMmU0ZWY1YzRhZDljNTE5ZDE5NGIxOTg1MDMwZDI1NzkxNDMzNGFhZjI3NDVjOWRmZDYxMWQ2ZDYxZCJ9fX0=",
+              Lang.NEWSLETTER_DATE.get(
+                  lang, TimeZoneManager.getInstance().getRelativeTimeDescription(lang, getDate())),
+              Lang.REGION_CREATED_NEWSLETTER.get(
+                  lang, tanPlayer.getNameStored(), regionData.getBaseColoredName()),
+              Lang.NEWSLETTER_RIGHT_CLICK_TO_MARK_AS_READ.get(lang));
 
-    return ItemBuilder.from(itemStack)
-        .asGuiItem(
-            event -> {
-              event.setCancelled(true);
-              if (event.isRightClick()) {
-                markAsRead(player);
-                onClick.accept(player);
-              }
-            });
+      return ItemBuilder.from(itemStack)
+          .asGuiItem(
+              event -> {
+                event.setCancelled(true);
+                if (event.isRightClick()) {
+                  markAsRead(player);
+                  onClick.accept(player);
+                }
+              });
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   @Override

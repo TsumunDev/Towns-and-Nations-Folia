@@ -4,6 +4,15 @@ plugins {
     id 'jacoco'
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
 tasks.shadowJar {
     archiveBaseName.set('TownsAndNations')
     archiveClassifier.set('')
@@ -17,48 +26,60 @@ tasks.shadowJar {
 repositories {
     mavenCentral()
     mavenLocal()
+    
+    // Paper/Folia API
     maven {
-        name = "spigot-repo"
-        url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
     }
+    
+    // Spigot API
     maven {
-        name = "placeholderapi"
-        url = "https://repo.extendedclip.com/content/repositories/placeholderapi/"
+        name = 'spigot-repo'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
     }
+    
+    // PlaceholderAPI
     maven {
-        name = "sonatype"
-        url = "https://oss.sonatype.org/content/groups/public/"
-    }
-    maven {
-        name = "placeholderapi"
+        name = 'placeholderapi'
         url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
     }
+    
+    // Sonatype (snapshots + releases)
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+    
+    // Minecraft libraries
     maven {
         name = 'minecraft-repo'
         url = 'https://libraries.minecraft.net/'
     }
+    
+    // ProtocolLib
     maven {
+        name = 'dmulloy2'
         url = 'https://repo.dmulloy2.net/repository/public/'
     }
+    
+    // WorldGuard/WorldEdit
     maven {
-        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+        name = 'enginehub'
+        url = 'https://maven.enginehub.org/repo/'
     }
+    
+    // JitPack (Vault, etc.)
     maven {
-        name = 'WorldGuard'
-        url = "https://maven.enginehub.org/repo/"
+        name = 'jitpack'
+        url = 'https://jitpack.io'
     }
-
-    maven { url = 'https://jitpack.io' } //Vault
-    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
-    maven { url = 'https://oss.sonatype.org/content/repositories/central' }
+    
+    // Nexo API
     maven {
-        url = 'https://repo.papermc.io/repository/maven-public/'
+        name = 'nexo'
+        url = 'https://repo.nexomc.com/snapshots/'
     }
-    maven {
-        name = 'folia'
-        url = 'https://repo.papermc.io/repository/maven-public/'
-    }
-
 }
 
 sourceSets {
@@ -82,6 +103,8 @@ dependencies {
     compileOnly "com.github.MilkBowl:VaultAPI:1.7.1"
     compileOnly 'me.clip:placeholderapi:2.11.5'
     compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.9'
+    // Nexo API - place Nexo.jar in tan-core/libs/ to enable
+    // compileOnly files('libs/Nexo.jar')
     // API now fully integrated in local tan-api module - no external dependency needed
     implementation 'org.bstats:bstats-bukkit:3.1.0'
     implementation 'net.objecthunter:exp4j:0.4.8'
@@ -110,10 +133,17 @@ dependencies {
     testImplementation 'io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.0'
     testImplementation 'org.mockito:mockito-core:5.7.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.7.0'
     testImplementation 'me.clip:placeholderapi:2.11.5'
     testImplementation 'org.xerial:sqlite-jdbc:3.43.2.0'
+    
+    // TestContainers for real database integration tests
+    testImplementation 'org.testcontainers:testcontainers:1.19.3'
+    testImplementation 'org.testcontainers:mysql:1.19.3'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
 }
 
 // JaCoCo configuration for code coverage
@@ -124,9 +154,9 @@ jacoco {
 test {
     useJUnitPlatform()
 
-    // Allow build to succeed even with test failures
-    // This is temporary until MockBukkit tests are fully stabilized
-    ignoreFailures = true
+    // Build fails if tests fail - quality gate enforced
+    // Tests must pass before deployment
+    ignoreFailures = false
 
     // Enable tests that have been fixed with proper mocking
     filter {

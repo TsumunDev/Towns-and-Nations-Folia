@@ -10,6 +10,7 @@ import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.enums.TownRelation;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
+import org.leralix.tan.utils.FoliaScheduler;
 import org.leralix.tan.utils.constants.Constants;
 
 /** Utility class for handling teams for scoreboard color coding */
@@ -75,7 +76,9 @@ public class TeamUtils {
    * @param playerToAdd The player to add to the team scoreboard
    */
   public static void addPlayerToCorrectTeam(Player player, Player playerToAdd) {
+    if (player == null || playerToAdd == null) return;
 
+<<<<<<< Updated upstream
     Scoreboard scoreboard = player.getScoreboard();
     if (!PlayerDataStorage.getInstance().getSync(playerToAdd).hasTown()
         || !PlayerDataStorage.getInstance().getSync(player).hasTown()) return;
@@ -93,5 +96,29 @@ public class TeamUtils {
     }
     if (playerTeam == null) return;
     playerTeam.addEntry(playerToAdd.getName());
+=======
+    PlayerDataStorage storage = PlayerDataStorage.getInstance();
+    storage.get(player)
+        .thenCompose(tanPlayer -> 
+            storage.get(playerToAdd).thenAccept(playerToAddData -> {
+              if (tanPlayer == null || playerToAddData == null) return;
+              if (!tanPlayer.hasTown() || !playerToAddData.hasTown()) return;
+              
+              TownRelation relation = tanPlayer.getRelationWithPlayerSync(playerToAddData);
+              if (relation == null) return;
+              
+              FoliaScheduler.runEntityTask(TownsAndNations.getPlugin(), player, () -> {
+                Scoreboard scoreboard = player.getScoreboard();
+                Team playerTeam = scoreboard.getTeam(relation.getName(Lang.getServerLang()).toLowerCase());
+                if (playerTeam == null) {
+                  TeamUtils.setIndividualScoreBoard(player);
+                  playerTeam = scoreboard.getTeam(relation.getName(Lang.getServerLang()).toLowerCase());
+                }
+                if (playerTeam != null) {
+                  playerTeam.addEntry(playerToAdd.getName());
+                }
+              });
+            }));
+>>>>>>> Stashed changes
   }
 }

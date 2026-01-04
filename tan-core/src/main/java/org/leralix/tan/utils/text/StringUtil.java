@@ -50,17 +50,19 @@ public class StringUtil {
   }
 
   public static String formatMoney(double amount) {
-
-    if (amount < 1_000) {
-      return Double.toString(handleDigits(amount));
-    } else if (amount < 1_000_000) {
-      return String.format("%.1fK", amount / 1_000);
-    } else if (amount < 1_000_000_000) {
-      return String.format("%.1fM", amount / 1_000_000);
-    } else if (amount < 1_000_000_000_000L) {
-      return String.format("%.1fB", amount / 1_000_000_000);
+    double absAmount = Math.abs(amount);
+    String sign = amount < 0 ? "-" : "";
+    
+    if (absAmount < 1_000) {
+      return sign + Double.toString(handleDigits(absAmount));
+    } else if (absAmount < 1_000_000) {
+      return String.format("%s%.1fK", sign, absAmount / 1_000);
+    } else if (absAmount < 1_000_000_000) {
+      return String.format("%s%.1fM", sign, absAmount / 1_000_000);
+    } else if (absAmount < 1_000_000_000_000L) {
+      return String.format("%s%.1fB", sign, absAmount / 1_000_000_000);
     } else {
-      return String.format("%.1fT", amount / 1_000_000_000_000L);
+      return String.format("%s%.1fT", sign, absAmount / 1_000_000_000_000L);
     }
   }
 

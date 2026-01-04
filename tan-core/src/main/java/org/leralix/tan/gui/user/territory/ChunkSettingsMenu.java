@@ -21,8 +21,13 @@ public class ChunkSettingsMenu extends BasicGui {
 
   private final TerritoryData territoryData;
 
+<<<<<<< Updated upstream
   public ChunkSettingsMenu(Player player, ITanPlayer tanPlayer, TerritoryData territoryData) {
     super(player, tanPlayer, Lang.HEADER_TOWN_MENU.get(player, territoryData.getName()), 3);
+=======
+  private ChunkSettingsMenu(Player player, ITanPlayer tanPlayer, TerritoryData territoryData) {
+    super(player, tanPlayer, Lang.HEADER_TOWN_MENU.get(player, territoryData.getName()), "chunk_settings_menu", 3);
+>>>>>>> Stashed changes
     this.territoryData = territoryData;
     // open() doit être appelé explicitement après la construction pour respecter le modèle
     // asynchrone

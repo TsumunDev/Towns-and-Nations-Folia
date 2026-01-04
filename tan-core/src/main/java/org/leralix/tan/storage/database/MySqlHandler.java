@@ -10,8 +10,12 @@ import java.sql.Statement;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.leralix.tan.TownsAndNations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MySqlHandler extends DatabaseHandler {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MySqlHandler.class);
 
   private final String host;
   private final int port;
@@ -89,17 +93,41 @@ public class MySqlHandler extends DatabaseHandler {
     config.setLeakDetectionThreshold(
         plugin.getConfig().getLong("database.leak-detection-threshold", 60000L));
 
+<<<<<<< Updated upstream
     this.dataSource = new HikariDataSource(config);
+=======
+    LOGGER.debug("[TaN-MySQL] Creating HikariCP connection pool...");
+    this.dataSource = new HikariDataSource(config);
+    LOGGER.info("[TaN-MySQL] HikariCP pool created (size: {}, min-idle: {})",
+        config.getMaximumPoolSize(), config.getMinimumIdle());
+>>>>>>> Stashed changes
 
     // OPTIMIZATION: Initialize query limiter (100 concurrent queries, 5s timeout)
     this.queryLimiter = new QueryLimiter(100, 5000);
+<<<<<<< Updated upstream
     plugin.getLogger().info("[TaN] Query limiter initialized: max 100 concurrent queries");
+=======
+    LOGGER.debug("[TaN-MySQL] Query limiter initialized: max 100 concurrent queries");
+>>>>>>> Stashed changes
 
     // OPTIMIZATION: Initialize query batch executor (50 queries per batch, 100ms delay)
     initializeQueryBatcher(50, 100);
+<<<<<<< Updated upstream
 
     createMetadataTable();
     initialize();
+=======
+    LOGGER.debug("[TaN-MySQL] Query batch executor initialized");
+
+    initializeBatchWriter(50, 1000);
+    LOGGER.debug("[TaN-MySQL] Batch write optimizer initialized");
+
+    LOGGER.debug("[TaN-MySQL] Creating metadata table...");
+    createMetadataTable();
+    LOGGER.debug("[TaN-MySQL] Initializing database structures...");
+    initialize();
+    LOGGER.info("[TaN-MySQL] MySQL connection fully initialized and ready");
+>>>>>>> Stashed changes
   }
 
   @Override

@@ -14,6 +14,7 @@ import org.leralix.tan.dataclass.territory.RegionData;
 import org.leralix.tan.dataclass.territory.TownData;
 import org.leralix.tan.gui.BasicGui;
 import org.leralix.tan.gui.cosmetic.IconKey;
+import org.leralix.tan.gui.cosmetic.LayoutManager;
 import org.leralix.tan.gui.user.player.PlayerMenu;
 import org.leralix.tan.gui.user.territory.NoRegionMenu;
 import org.leralix.tan.gui.user.territory.NoTownMenu;
@@ -35,7 +36,7 @@ public class MainMenu extends BasicGui {
       ITanPlayer tanPlayer,
       @Nullable TownData townData,
       @Nullable RegionData regionData) {
-    super(player, tanPlayer, Lang.HEADER_MAIN_MENU.get(tanPlayer.getLang()), 3);
+    super(player, tanPlayer, Lang.HEADER_MAIN_MENU.get(tanPlayer.getLang()), "main_menu", 3);
     this.townData = townData;
     this.regionData = regionData;
   }
@@ -76,32 +77,27 @@ public class MainMenu extends BasicGui {
 
   @Override
   public void open() {
+    LayoutManager layout = LayoutManager.getInstance();
 
-    gui.setItem(1, 5, getTimeIcon());
+    gui.setItem(layout.getSlotOrDefault("main_menu", "time_icon", 4), getTimeIcon());
 
-    int nationPosition = 2;
-    int regionPosition = 4;
-    int townPosition = 6;
-    int playerPosition = 8;
+    int nationPosition = layout.getSlotOrDefault("main_menu", "nation", 10);
+    int regionPosition = layout.getSlotOrDefault("main_menu", "region", 12);
+    int townPosition = layout.getSlotOrDefault("main_menu", "town", 14);
+    int playerPosition = layout.getSlotOrDefault("main_menu", "player", 16);
 
     if (Constants.enableRegion()) {
       if (Constants.enableNation()) {
-        gui.setItem(2, nationPosition, getNationButton(tanPlayer));
-      } else {
-        regionPosition = 3;
-        townPosition = 5;
-        playerPosition = 7;
+        gui.setItem(nationPosition, getNationButton(tanPlayer));
       }
-      gui.setItem(2, regionPosition, getRegionButton(tanPlayer));
-    } else {
-      townPosition = 4;
-      playerPosition = 6;
+      gui.setItem(regionPosition, getRegionButton(tanPlayer));
     }
 
-    gui.setItem(2, townPosition, getTownButton(tanPlayer));
-    gui.setItem(2, playerPosition, getPlayerButton(tanPlayer));
+    gui.setItem(townPosition, getTownButton(tanPlayer));
+    gui.setItem(playerPosition, getPlayerButton(tanPlayer));
 
-    gui.setItem(3, 1, GuiUtil.createBackArrow(player, HumanEntity::closeInventory));
+    gui.setItem(layout.getSlotOrDefault("main_menu", "back", 18), 
+        GuiUtil.createBackArrow(player, HumanEntity::closeInventory));
 
     gui.open(player);
   }

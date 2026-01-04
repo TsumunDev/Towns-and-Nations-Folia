@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import java.lang.reflect.Type;
 import java.sql.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import org.leralix.tan.TownsAndNations;
@@ -19,6 +21,8 @@ import org.leralix.tan.storage.exceptions.DatabaseNotReadyException;
  * @param <T> The type of object being stored
  */
 public abstract class DatabaseStorage<T> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseStorage.class);
 
   protected final Gson gson;
   protected final String tableName;
@@ -75,7 +79,19 @@ public abstract class DatabaseStorage<T> {
     createIndexes();
   }
 
+<<<<<<< Updated upstream
   /** Get the database handler */
+=======
+  /**
+   * Get the table name for this storage instance.
+   * 
+   * @return The MySQL table name
+   */
+  public String getTableName() {
+    return tableName;
+  }
+
+>>>>>>> Stashed changes
   protected DatabaseHandler getDatabase() {
     return TownsAndNations.getPlugin().getDatabaseHandler();
   }
@@ -130,6 +146,11 @@ public abstract class DatabaseStorage<T> {
     if (cacheEnabled && cache != null) {
       T cached = cache.get(id);
       if (cached != null) {
+<<<<<<< Updated upstream
+=======
+        LOGGER.debug("[TaN-Cache] HIT | Table: {} | ID: {} | Type: {}",
+            tableName, id, typeClass.getSimpleName());
+>>>>>>> Stashed changes
         future.complete(cached);
         return future;
       }
@@ -195,6 +216,12 @@ public abstract class DatabaseStorage<T> {
           if (rs.next()) {
             String jsonData = rs.getString("data");
 
+<<<<<<< Updated upstream
+=======
+            LOGGER.debug("[TaN-Cache] MISS | Table: {} | ID: {} | Type: {} | Size: {} bytes | Time: {}ms",
+                tableName, id, typeClass.getSimpleName(), jsonData.length(), duration);
+
+>>>>>>> Stashed changes
             if (typeToken.equals(ITanPlayer.class)) {
               com.google.gson.JsonElement jsonElement =
                   com.google.gson.JsonParser.parseString(jsonData);
@@ -236,6 +263,7 @@ public abstract class DatabaseStorage<T> {
     }
   }
 
+<<<<<<< Updated upstream
   /**
    * Get all objects from the database synchronously WARNING: This can be expensive for large
    * tables. Consider using pagination or specific queries.
@@ -256,6 +284,8 @@ public abstract class DatabaseStorage<T> {
    *
    * @return A map of ID to object
    */
+=======
+>>>>>>> Stashed changes
   public Map<String, T> getAllSync() {
     Map<String, T> result = new LinkedHashMap<>();
     String selectSQL = "SELECT id, data FROM " + tableName;
@@ -376,6 +406,7 @@ public abstract class DatabaseStorage<T> {
     return result;
   }
 
+<<<<<<< Updated upstream
   /**
    * Put an object in the database synchronously (blocks current thread)
    *
@@ -397,6 +428,8 @@ public abstract class DatabaseStorage<T> {
    * @param id The ID of the object
    * @param obj The object to store
    */
+=======
+>>>>>>> Stashed changes
   public void putSync(String id, T obj) {
     if (id == null || obj == null) {
       return;
@@ -558,6 +591,7 @@ public abstract class DatabaseStorage<T> {
     }
   }
 
+<<<<<<< Updated upstream
   /**
    * Delete an object from the database synchronously (blocks current thread)
    *
@@ -600,6 +634,8 @@ public abstract class DatabaseStorage<T> {
    * @param id The ID of the object
    * @return CompletableFuture that completes when the operation is done
    */
+=======
+>>>>>>> Stashed changes
   public CompletableFuture<Void> deleteAsync(String id) {
     if (id == null) {
       return CompletableFuture.completedFuture(null);

@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.gui.cosmetic.IconManager;
+import org.leralix.tan.gui.cosmetic.LayoutManager;
 import org.leralix.tan.lang.LangType;
 
 public abstract class BasicGui {
@@ -35,6 +36,30 @@ public abstract class BasicGui {
           }
         });
     gui.setDragAction(inventoryDragEvent -> inventoryDragEvent.setCancelled(true));
+  }
+
+  /**
+   * Constructor that uses LayoutManager to get rows from config and applies Nexo glyph if configured
+   */
+  protected BasicGui(Player player, ITanPlayer tanPlayer, String title, String menuKey, int defaultRows) {
+    this(player, tanPlayer, applyGlyphToTitle(title, menuKey), LayoutManager.getInstance().getRowsOrDefault(menuKey, defaultRows));
+  }
+
+  /**
+   * Apply Nexo glyph to menu title if configured in layouts.yml.
+   * This allows custom GUI textures using Nexo glyphs + negative spaces.
+   */
+  private static String applyGlyphToTitle(String title, String menuKey) {
+    if (menuKey == null) {
+      return title;
+    }
+    
+    String glyph = LayoutManager.getInstance().getGlyphOrDefault(menuKey);
+    if (glyph != null && !glyph.isEmpty()) {
+      return glyph + title;
+    }
+    
+    return title;
   }
 
   public abstract void open();

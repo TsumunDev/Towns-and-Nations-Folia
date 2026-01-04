@@ -119,6 +119,7 @@ public class TownsAndNations extends JavaPlugin {
     LOGGER.info(
         "To report a bug or request a feature, please ask on my discord server: https://discord.gg/Q8gZSFUuzb");
 
+<<<<<<< Updated upstream
     LOGGER.info("[TaN] Loading Plugin");
 
     // if (SphereLib.getPluginVersion().isOlderThan(MINIMUM_SUPPORTING_SPHERELIB)) {
@@ -134,6 +135,15 @@ public class TownsAndNations extends JavaPlugin {
     // }
 
     LOGGER.info("[TaN] -Loading Lang");
+=======
+    CocoLogger.printBanner();
+    LOGGER.info(CocoLogger.info("Discord: https://discord.gg/Q8gZSFUuzb"));
+
+    CocoLogger.section("INITIALISATION");
+    LOGGER.info(CocoLogger.loading("Démarrage du plugin..."));
+
+    LOGGER.info(CocoLogger.loading("Langues"));
+>>>>>>> Stashed changes
 
     ConfigUtil.saveAndUpdateResource(this, "lang.yml");
     ConfigUtil.addCustomConfig(this, "lang.yml", ConfigTag.LANG);
@@ -142,9 +152,15 @@ public class TownsAndNations extends JavaPlugin {
     File langFolder = new File(TownsAndNations.getPlugin().getDataFolder(), "lang");
     Lang.loadTranslations(langFolder, lang);
     DynamicLang.loadTranslations(langFolder, lang);
+<<<<<<< Updated upstream
     LOGGER.info(Lang.LANGUAGE_SUCCESSFULLY_LOADED.getDefault());
 
     LOGGER.info("[TaN] -Loading Configs");
+=======
+    LOGGER.info(CocoLogger.success("Langue \"" + lang + "\" activée"));
+
+    LOGGER.info(CocoLogger.loading("Configurations"));
+>>>>>>> Stashed changes
 
     List<String> mainBlackList = new ArrayList<>();
     mainBlackList.add("claimBlacklist");
@@ -158,7 +174,11 @@ public class TownsAndNations extends JavaPlugin {
     ConfigUtil.saveAndUpdateResource(this, "upgrades.yml", upgradeBlackList);
     ConfigUtil.addCustomConfig(this, "upgrades.yml", ConfigTag.UPGRADE);
 
+<<<<<<< Updated upstream
     LOGGER.info("[TaN] -Loading Configs");
+=======
+    LOGGER.info(CocoLogger.success("Configurations chargées"));
+>>>>>>> Stashed changes
 
     Constants.init(ConfigUtil.getCustomConfig(ConfigTag.MAIN));
 
@@ -170,6 +190,7 @@ public class TownsAndNations extends JavaPlugin {
     EnabledPermissions.getInstance().init();
     FortStorage.init(new FortDataStorage());
 
+<<<<<<< Updated upstream
     LOGGER.info("[TaN] -Loading Economy");
     setupEconomy();
 
@@ -181,18 +202,54 @@ public class TownsAndNations extends JavaPlugin {
       databaseHealthCheck = new DatabaseHealthCheck(databaseHandler, this);
       databaseHealthCheck.start();
       LOGGER.info("[TaN] -Database health check started");
+=======
+    LOGGER.info(CocoLogger.loading("Économie"));
+    setupEconomy();
+
+    LOGGER.info(CocoLogger.loading("Base de données"));
+    loadDB();
+
+    if (databaseHandler != null && databaseHandler.getDataSource() != null) {
+      LOGGER.info(CocoLogger.database("Initialisation des tables..."));
+      org.leralix.tan.storage.TableInitializer tableInit =
+          new org.leralix.tan.storage.TableInitializer(databaseHandler);
+      tableInit.initializeAllTables();
+      LOGGER.info(CocoLogger.success("Tables initialisées"));
+    } else {
+      LOGGER.error(
+          CocoLogger.error(
+              "Handler NULL - impossible d'initialiser les tables!"));
+    }
+
+    LOGGER.info(CocoLogger.loading("Redis & Cache"));
+    loadRedis();
+
+    if (databaseHandler != null) {
+      databaseHealthCheck = new DatabaseHealthCheck(databaseHandler, this);
+      databaseHealthCheck.start();
+      LOGGER.info(CocoLogger.success("Health Check activé"));
+>>>>>>> Stashed changes
     }
 
     // OPTIMIZATION: Initialize Prometheus metrics collection
     try {
       PrometheusMetricsCollector metricsCollector = new PrometheusMetricsCollector();
       metricsCollector.startServer(9090);
+<<<<<<< Updated upstream
       LOGGER.info("[TaN] -Prometheus metrics enabled on port 9090");
     } catch (Exception ex) {
       LOGGER.warn("[TaN] -Failed to initialize Prometheus metrics: " + ex.getMessage());
     }
 
     LOGGER.info("[TaN] -Loading Local data");
+=======
+      LOGGER.info(CocoLogger.performance("Prometheus :9090"));
+    } catch (Exception ex) {
+      LOGGER.warn(CocoLogger.warning("Prometheus indisponible"));
+    }
+
+    LOGGER.info(CocoLogger.loading("Storages"));
+>>>>>>> Stashed changes
 
     RegionDataStorage.getInstance();
     PlayerDataStorage.getInstance();
@@ -204,11 +261,20 @@ public class TownsAndNations extends JavaPlugin {
     WarStorage.getInstance();
     EventManager.getInstance().registerEvents(new NewsletterEvents());
     TruceStorage.getInstance();
+<<<<<<< Updated upstream
 
     LOGGER.info("[TaN] -Loading blocks data");
     TANCustomNBT.setBlocsData();
 
     LOGGER.info("[TaN] -Loading commands");
+=======
+    LOGGER.info(CocoLogger.success("9 storages prêts"));
+
+    LOGGER.info(CocoLogger.loading("Blocs personnalisés"));
+    TANCustomNBT.setBlocsData();
+
+    LOGGER.info(CocoLogger.loading("Commandes"));
+>>>>>>> Stashed changes
     SaveStats.startSchedule();
 
     DailyTasks dailyTasks =
@@ -216,21 +282,36 @@ public class TownsAndNations extends JavaPlugin {
     dailyTasks.scheduleMidnightTask();
 
     enableEventList();
+<<<<<<< Updated upstream
     getCommand("tan").setExecutor(new PlayerCommandManager());
     getCommand("tanadmin").setExecutor(new AdminCommandManager());
     getCommand("tandebug").setExecutor(new DebugCommandManager());
     getCommand("tanserver").setExecutor(new ServerCommandManager());
 
     LOGGER.info("[TaN] -Registering Dependencies");
+=======
+    getCommand("coconation").setExecutor(new PlayerCommandManager());
+    getCommand("coconationadmin").setExecutor(new AdminCommandManager());
+    getCommand("coconationdebug").setExecutor(new DebugCommandManager());
+    getCommand("coconationserver").setExecutor(new ServerCommandManager());
+    LOGGER.info(CocoLogger.success("4 commandes actives"));
+
+    LOGGER.info(CocoLogger.loading("Intégrations"));
+>>>>>>> Stashed changes
 
     if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
       LOGGER.info("[TaN] -Registering PlaceholderAPI");
       new PlaceHolderAPI().register();
+<<<<<<< Updated upstream
+=======
+      LOGGER.info(CocoLogger.success("PlaceholderAPI ✓"));
+>>>>>>> Stashed changes
     }
 
     if (Bukkit.getPluginManager().isPluginEnabled("WorldGuard")) {
       LOGGER.info("[TaN] -Registering WorldGuard");
       WorldGuardManager.getInstance().register();
+<<<<<<< Updated upstream
     }
 
     // checkForUpdate();
@@ -238,16 +319,45 @@ public class TownsAndNations extends JavaPlugin {
     LOGGER.info("[TaN] -Registering API");
 
     TanAPI.register(new InternalAPI(CURRENT_VERSION, MINIMUM_SUPPORTING_DYNMAP));
+=======
+      LOGGER.info(CocoLogger.success("WorldGuard ✓"));
+    }
+
+    // Nexo integration - uncomment when Nexo.jar is in libs/
+    // if (org.leralix.tan.integration.NexoIntegration.initialize()) {
+    //   LOGGER.info(CocoLogger.success("Nexo ✓"));
+    //   org.leralix.tan.gui.cosmetic.NexoIconProvider.enable(null);
+    // }
+
+    TanAPI.register(new InternalAPI(CURRENT_VERSION, MINIMUM_SUPPORTING_DYNMAP));
+    LOGGER.info(CocoLogger.success("API publique v" + CURRENT_VERSION));
+>>>>>>> Stashed changes
 
     initBStats();
 
     LOGGER.info("[TaN] -Registering Tasks");
     SecondTask secondTask = new SecondTask();
     secondTask.startScheduler();
+<<<<<<< Updated upstream
 
     loadedSuccessfully = true;
     LOGGER.info("[TaN] Plugin loaded successfully");
     LOGGER.info("\u001B[33m----------------Towns & Nations------------------\u001B[0m");
+=======
+    LOGGER.info(CocoLogger.success("Tâches planifiées"));
+
+    try {
+      org.leralix.tan.tasks.ReconciliationTask reconcile =
+          new org.leralix.tan.tasks.ReconciliationTask();
+      reconcile.start();
+      LOGGER.info(CocoLogger.success("Réconciliation active"));
+    } catch (Exception ex) {
+      LOGGER.warn(CocoLogger.warning("Réconciliation désactivée"));
+    }
+
+    loadedSuccessfully = true;
+    LOGGER.info(CocoLogger.boxed("PLUGIN PRÊT", CocoLogger.BRIGHT_GREEN));
+>>>>>>> Stashed changes
   }
 
   private void initBStats() {

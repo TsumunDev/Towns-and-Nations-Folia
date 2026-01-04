@@ -1,5 +1,7 @@
 package org.leralix.tan.events.newsletter.news;
 
+import java.util.concurrent.CompletableFuture;
+
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
@@ -45,8 +47,12 @@ public class PlayerJoinRequestNews extends Newsletter {
     return NewsletterType.PLAYER_APPLICATION;
   }
 
+  private CompletableFuture<TownData> getTownDataAsync() {
+    return TownDataStorage.getInstance().get(townID);
+  }
+
   private TownData getTownData() {
-    return TownDataStorage.getInstance().getSync(townID);
+    return getTownDataAsync().join();
   }
 
   public String getPlayerID() {
@@ -113,7 +119,7 @@ public class PlayerJoinRequestNews extends Newsletter {
             Lang.NEWSLETTER_PLAYER_APPLICATION_DESC1.get(
                 lang,
                 offlinePlayer.getName(),
-                TownDataStorage.getInstance().getSync(townID).getBaseColoredName()),
+                getTownDataAsync().join().getBaseColoredName()),
             Lang.NEWSLETTER_PLAYER_APPLICATION_DESC2.get(lang),
             Lang.NEWSLETTER_RIGHT_CLICK_TO_MARK_AS_READ.get(lang));
 

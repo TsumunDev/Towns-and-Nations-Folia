@@ -1,5 +1,7 @@
 package org.leralix.tan.commands.player;
 
+import org.leralix.tan.TownsAndNations;
+
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.entity.Player;
@@ -43,9 +45,12 @@ public class SetTownSpawnCommand extends PlayerSubCommand {
 
   @Override
   public void perform(Player player, String[] args) {
-
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    LangType langType = tanPlayer.getLang();
+    // Async pattern: load player data without blocking
+    PlayerDataStorage.getInstance()
+        .get(player)
+        .thenAccept(
+            tanPlayer -> {
+              LangType langType = tanPlayer.getLang();
 
     // Incorrect syntax
     if (args.length != 1) {
@@ -88,5 +93,12 @@ public class SetTownSpawnCommand extends PlayerSubCommand {
 
     townData.setSpawn(player.getLocation());
     TanChatUtils.message(player, Lang.SPAWN_SET_SUCCESS.get(langType));
+            })
+        .exceptionally(
+            throwable -> {
+              TownsAndNations.getPlugin().getLogger().severe("SetTownSpawnCommand failed: " + throwable.getMessage());
+              player.sendMessage("§cError processing settownspawn command");
+              return null;
+            });
   }
 }

@@ -13,13 +13,16 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.text.TanChatUtils;
+import org.leralix.tan.utils.gui.AsyncGuiHelper;
 
 public class AddVassalMenu extends IteratorGUI {
 
   private final TerritoryData overlordTerritory;
+  private List<GuiItem> cachedTowns = new ArrayList<>();
+  private boolean isLoaded = false;
 
   private AddVassalMenu(Player player, ITanPlayer tanPlayer, TerritoryData overlordTerritory) {
-    super(player, tanPlayer, Lang.GUI_INVITE_TOWN_TO_REGION.get(tanPlayer), 6);
+    super(player, tanPlayer, Lang.GUI_INVITE_TOWN_TO_REGION.get(tanPlayer), "add_vassal_menu", 6);
     this.overlordTerritory = overlordTerritory;
   }
 
@@ -34,13 +37,27 @@ public class AddVassalMenu extends IteratorGUI {
 
   @Override
   public void open() {
-    iterator(getAvailableTowns(), p -> VassalsMenu.open(player, overlordTerritory));
+    iterator(cachedTowns, p -> VassalsMenu.open(player, overlordTerritory));
     gui.open(player);
+
+    if (!isLoaded) {
+      AsyncGuiHelper.loadAsync(
+          player,
+          this::getAvailableTowns,
+          items -> {
+            cachedTowns = items;
+            isLoaded = true;
+            iterator(items, p -> VassalsMenu.open(player, overlordTerritory));
+            gui.update();
+          });
+    }
   }
 
   private List<GuiItem> getAvailableTowns() {
     List<GuiItem> items = new ArrayList<>();
-    List<TownData> allTowns = new ArrayList<>(TownDataStorage.getInstance().getAllSync().values());
+    // ✅ FIX: Use getAllAsync().join() instead of getAllSync()
+    // Safe because we're in AsyncGuiHelper.loadAsync() context
+    List<TownData> allTowns = new ArrayList<>(TownDataStorage.getInstance().getAllAsync().join().values());
 
     for (TownData town : allTowns) {
       // Skip if already a vassal or is the overlord itself

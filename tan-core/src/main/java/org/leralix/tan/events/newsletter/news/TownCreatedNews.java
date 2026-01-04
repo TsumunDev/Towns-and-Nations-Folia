@@ -1,5 +1,7 @@
 package org.leralix.tan.events.newsletter.news;
 
+import java.util.concurrent.CompletableFuture;
+
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
@@ -51,11 +53,24 @@ public class TownCreatedNews extends Newsletter {
 
   @Override
   public GuiItem createGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
-    if (tanPlayer == null) return null;
+    // Async load both player and town data in parallel
+    CompletableFuture<ITanPlayer> playerFuture = PlayerDataStorage.getInstance().get(playerID);
+    CompletableFuture<TownData> townFuture = TownDataStorage.getInstance().get(townID);
+    
+    try {
+      ITanPlayer tanPlayer = playerFuture.join();
+      if (tanPlayer == null) return null;
+      
+      TownData townData = townFuture.join();
+      if (townData == null) return null;
+      
+      return createGuiItemWithData(player, lang, onClick, tanPlayer, townData);
+    } catch (Exception e) {
+      return null;
+    }
+  }
 
-    TownData townData = TownDataStorage.getInstance().getSync(townID);
-    if (townData == null) return null;
+  private GuiItem createGuiItemWithData(Player player, LangType lang, Consumer<Player> onClick, ITanPlayer tanPlayer, TownData townData) {
 
     ItemStack itemStack =
         HeadUtils.makeSkullB64(

@@ -58,12 +58,12 @@ public class PlannedAttackStorage extends DatabaseStorage<PlannedAttack> {
   public PlannedAttack newAttack(CreateAttackData createAttackData) {
     String newID = getNewID();
     PlannedAttack plannedAttack = new PlannedAttack(newID, createAttackData);
-    put(newID, plannedAttack);
+    putSync(newID, plannedAttack);
     return plannedAttack;
   }
 
   private void setupAllAttacks() {
-    for (PlannedAttack plannedAttack : getAll().values()) {
+    for (PlannedAttack plannedAttack : getAllSync().values()) {
       plannedAttack.setUpStartOfAttack();
     }
   }
@@ -77,7 +77,7 @@ public class PlannedAttackStorage extends DatabaseStorage<PlannedAttack> {
   }
 
   public synchronized void territoryDeleted(TerritoryData territoryData) {
-    for (PlannedAttack plannedAttack : getAll().values()) {
+    for (PlannedAttack plannedAttack : getAllSync().values()) {
       War war = plannedAttack.getWar();
       if (war == null) {
         continue;
@@ -90,7 +90,7 @@ public class PlannedAttackStorage extends DatabaseStorage<PlannedAttack> {
   }
 
   public void delete(PlannedAttack plannedAttack) {
-    delete(plannedAttack.getID());
+    delete(plannedAttack);
   }
 
   @Override

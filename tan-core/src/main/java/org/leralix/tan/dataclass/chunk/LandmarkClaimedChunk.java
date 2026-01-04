@@ -1,5 +1,7 @@
 package org.leralix.tan.dataclass.chunk;
 
+import java.util.concurrent.CompletableFuture;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -9,6 +11,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.Landmark;
 import org.leralix.tan.dataclass.territory.TerritoryData;
+import org.leralix.tan.dataclass.territory.TownData;
 import org.leralix.tan.enums.permissions.ChunkPermissionType;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
@@ -28,7 +31,8 @@ public class LandmarkClaimedChunk extends ClaimedChunk2 {
   }
 
   public String getName() {
-    return TownDataStorage.getInstance().getSync(getOwnerID()).getName();
+    TownData town = TownDataStorage.getInstance().get(getOwnerID()).join();
+    return town != null ? town.getName() : "Unknown";
   }
 
   @Override

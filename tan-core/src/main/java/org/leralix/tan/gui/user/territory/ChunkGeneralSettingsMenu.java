@@ -17,7 +17,7 @@ public class ChunkGeneralSettingsMenu extends BasicGui {
 
   private ChunkGeneralSettingsMenu(
       Player player, ITanPlayer tanPlayer, TerritoryData territoryData) {
-    super(player, tanPlayer, Lang.HEADER_CHUNK_GENERAL_SETTINGS.get(tanPlayer.getLang()), 3);
+    super(player, tanPlayer, Lang.HEADER_CHUNK_GENERAL_SETTINGS.get(tanPlayer.getLang()), "chunk_general_settings_menu", 3);
     this.territoryData = territoryData;
   }
 

@@ -27,7 +27,7 @@ public class ConfirmMenu extends BasicGui {
       FilledLang message,
       Consumer<Player> onConfirm,
       Consumer<Player> onCancel) {
-    super(player, tanPlayer, Lang.HEADER_CONFIRMATION.get(tanPlayer.getLang()), 3);
+    super(player, tanPlayer, Lang.HEADER_CONFIRMATION.get(tanPlayer.getLang()), "confirm_menu", 3);
     this.message = message;
     this.onConfirm = onConfirm;
     this.onCancel = onCancel;

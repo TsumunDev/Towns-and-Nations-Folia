@@ -212,6 +212,26 @@ public class PlayerData implements ITanPlayer {
     return propertyDataList;
   }
 
+  public CompletableFuture<List<PropertyData>> getPropertiesListAsync() {
+    List<CompletableFuture<PropertyData>> futures = getPropertiesListID().stream()
+        .map(propertyID -> {
+          String[] parts = propertyID.split("_");
+          String tID = parts[0];
+          String pID = parts[1];
+          
+          return TownDataStorage.getInstance()
+              .get(tID)
+              .thenApply(town -> town != null ? town.getProperty(pID) : null);
+        })
+        .toList();
+    
+    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+        .thenApply(v -> futures.stream()
+            .map(CompletableFuture::join)
+            .filter(property -> property != null)
+            .toList());
+  }
+
   public void removeProperty(PropertyData propertyData) {
     this.propertiesListID.remove(propertyData.getTotalID());
   }
@@ -268,8 +288,9 @@ public class PlayerData implements ITanPlayer {
 
   @Override
   public CompletableFuture<TownRelation> getRelationWithPlayer(Player otherPlayer) {
-    ITanPlayer otherPlayerData = PlayerDataStorage.getInstance().getSync(otherPlayer);
-    return getRelationWithPlayer(otherPlayerData);
+    return PlayerDataStorage.getInstance()
+        .get(otherPlayer)
+        .thenCompose(otherPlayerData -> getRelationWithPlayer(otherPlayerData));
   }
 
   public CompletableFuture<TownRelation> getRelationWithPlayer(ITanPlayer otherPlayer) {

@@ -14,7 +14,7 @@ import org.leralix.tan.timezone.TimeZoneEnum;
 public class PlayerSelectTimezoneMenu extends IteratorGUI {
 
   private PlayerSelectTimezoneMenu(Player player, ITanPlayer tanPlayer) {
-    super(player, tanPlayer, Lang.HEADER_SELECT_TIMEZONE.get(tanPlayer.getLang()), 4);
+    super(player, tanPlayer, Lang.HEADER_SELECT_TIMEZONE.get(tanPlayer.getLang()), "player_timezone_menu", 4);
   }
 
   public static void open(Player player) {

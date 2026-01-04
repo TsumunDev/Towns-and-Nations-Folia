@@ -133,7 +133,7 @@ public class QueryCacheManager {
 
     String cacheKey = "tan:cache:trans_history:" + territory.getID() + ":" + transactionType;
 
-    return CompletableFuture.supplyAsync(
+    return org.leralix.tan.async.VirtualThreadExecutor.supplyAsync(
         () -> {
           // Try L1 cache first
           @SuppressWarnings("unchecked")

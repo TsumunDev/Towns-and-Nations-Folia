@@ -1,5 +1,7 @@
 package org.leralix.tan.commands.player;
 
+import org.leralix.tan.TownsAndNations;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -61,24 +63,38 @@ public class ChannelChatScopeCommand extends PlayerSubCommand {
 
   @Override
   public void perform(Player player, String[] args) {
-
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    LangType langType = tanPlayer.getLang();
-    if (args.length == 1) {
-      TanChatUtils.message(player, Lang.NOT_ENOUGH_ARGS_ERROR.get(langType), SoundEnum.NOT_ALLOWED);
-      TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
-    } else if (args.length == 2) {
-      registerPlayerToScope(player, args[1]);
-    } else if (args.length >= 3) {
-      sendSingleMessage(player, args[1], args);
-    } else {
-      TanChatUtils.message(player, Lang.TOO_MANY_ARGS_ERROR.get(langType), SoundEnum.NOT_ALLOWED);
-      TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
-    }
+    // Async pattern: load player data without blocking
+    PlayerDataStorage.getInstance()
+        .get(player)
+        .thenAccept(
+            tanPlayer -> {
+              LangType langType = tanPlayer.getLang();
+              if (args.length == 1) {
+                TanChatUtils.message(
+                    player, Lang.NOT_ENOUGH_ARGS_ERROR.get(langType), SoundEnum.NOT_ALLOWED);
+                TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
+              } else if (args.length == 2) {
+                registerPlayerToScope(player, tanPlayer, args[1]);
+              } else if (args.length >= 3) {
+                sendSingleMessage(player, tanPlayer, args[1], args);
+              } else {
+                TanChatUtils.message(
+                    player, Lang.TOO_MANY_ARGS_ERROR.get(langType), SoundEnum.NOT_ALLOWED);
+                TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
+              }
+            })
+        .exceptionally(
+            throwable -> {
+              TownsAndNations.getPlugin()
+                  .getLogger()
+                  .severe("ChannelChatScopeCommand failed: " + throwable.getMessage());
+              player.sendMessage("§cError processing chat command");
+              return null;
+            });
   }
 
-  private static void registerPlayerToScope(Player player, String channelName) {
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
+  private static void registerPlayerToScope(
+      Player player, ITanPlayer tanPlayer, String channelName) {
     LangType langType = tanPlayer.getLang();
     TownData town = tanPlayer.getTownSync();
     if (town == null) {
@@ -134,8 +150,8 @@ public class ChannelChatScopeCommand extends PlayerSubCommand {
     TanChatUtils.message(player, Lang.CHAT_SCOPE_NOT_FOUND.get(langType, channelName));
   }
 
-  private void sendSingleMessage(Player player, String channelName, String[] words) {
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
+  private void sendSingleMessage(
+      Player player, ITanPlayer tanPlayer, String channelName, String[] words) {
     LangType langType = tanPlayer.getLang();
     String message = String.join(" ", Arrays.copyOfRange(words, 2, words.length));
 
@@ -167,7 +183,7 @@ public class ChannelChatScopeCommand extends PlayerSubCommand {
             .getTerritoriesIDWithRelation(TownRelation.ALLIANCE)
             .forEach(
                 territoryID ->
-                    Objects.requireNonNull(TerritoryUtil.getTerritory(territoryID))
+                    Objects.requireNonNull(TerritoryUtil.getTerritoryAsync(territoryID).join())
                         .broadCastMessage(
                             Lang.CHAT_SCOPE_ALLIANCE_MESSAGE.get(
                                 playerTown.getName(), player.getName(), message)));

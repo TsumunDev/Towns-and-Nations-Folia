@@ -44,8 +44,12 @@ public class PropertyRentTaxLine extends ProfitLine {
 
   @Override
   public void addItems(Gui gui, Player player, LangType lang) {
-
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
+    addItems(gui, tanPlayer, lang);
+  }
+
+  public void addItems(Gui gui, ITanPlayer tanPlayer, LangType lang) {
+    Player player = tanPlayer.getPlayer();
 
     ItemStack tax =
         HeadUtils.makeSkullURL(
