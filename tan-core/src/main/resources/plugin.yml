@@ -4,13 +4,8 @@ main: org.leralix.tan.TownsAndNations
 api-version: "1.19"
 folia-supported: true
 authors: [ Leralix ]
-<<<<<<< Updated upstream
-depend: [SphereLib]
-softdepend: [PlaceholderAPI, WorldGuard, Vault]
-=======
 depend: [CocoNationLib]
 softdepend: [PlaceholderAPI, WorldGuard, Vault, Nexo]
->>>>>>> Stashed changes
 description: A town plugin with roleplay elements
 commands:
   tan:
