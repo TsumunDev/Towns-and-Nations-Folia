@@ -1,0 +1,62 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.leralix.tan'
+version = '2.0.0'
+
+allprojects {
+    apply plugin: 'java'
+    
+    java {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+    
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+    
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        
+        maven {
+            name = 'papermc'
+            url = 'https://repo.papermc.io/repository/maven-public/'
+        }
+        
+        maven {
+            name = 'spigot-repo'
+            url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+        }
+        
+        maven {
+            name = 'placeholderapi'
+            url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+        }
+        
+        maven {
+            name = 'sonatype'
+            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
+        
+        maven {
+            name = 'jitpack'
+            url = 'https://jitpack.io'
+        }
+    }
+}
+
+subprojects {
+    group = rootProject.group
+    version = rootProject.version
+}
+
+task build {
+    dependsOn ':tan-core:shadowJar'
+}
+
+task clean {
+    dependsOn subprojects*.clean
+}
