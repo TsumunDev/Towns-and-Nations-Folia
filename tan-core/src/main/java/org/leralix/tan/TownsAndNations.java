@@ -40,6 +40,7 @@ import org.leralix.tan.listeners.*;
 import org.leralix.tan.listeners.chat.ChatListener;
 import org.leralix.tan.listeners.interact.RightClickListener;
 import org.leralix.tan.monitoring.PrometheusMetricsCollector;
+import org.leralix.tan.redis.RedisManager;
 import org.leralix.tan.service.EconomyService;
 import org.leralix.tan.storage.ClaimBlacklistStorage;
 import org.leralix.tan.storage.MobChunkSpawnStorage;
@@ -129,6 +130,8 @@ public class TownsAndNations extends JavaPlugin {
     NumberUtil.init();
     EnabledPermissions.getInstance().init();
     FortStorage.init(new FortDataStorage());
+    LOGGER.info("[TaN] -Loading Redis");
+    RedisManager.initialize(this, ConfigUtil.getCustomConfig(ConfigTag.MAIN));
     LOGGER.info("[TaN] -Loading Economy");
     setupEconomy();
     LOGGER.info("[TaN] -Loading Database");
@@ -245,6 +248,7 @@ public class TownsAndNations extends JavaPlugin {
     SaveStats.saveAll();
     KotlinBridge.shutdownCoroutines();
     LOGGER.info("[TaN] Kotlin coroutines shutdown");
+    RedisManager.shutdown();
     org.leralix.tan.integration.nexo.NexoUpdateChecker.shutdown();
     if (databaseHealthCheck != null) {
       databaseHealthCheck.stop();
