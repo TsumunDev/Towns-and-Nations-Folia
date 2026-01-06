@@ -45,7 +45,7 @@ class JoinTownCommandTest {
 
   @Test
   void getSyntax_returnsCorrectSyntax() {
-    assertEquals("/tan join <Town ID>", command.getSyntax());
+    assertEquals("/ccn join <Town ID>", command.getSyntax());
   }
 
   @Test

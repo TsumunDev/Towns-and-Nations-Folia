@@ -1,17 +1,13 @@
-package org.leralix.tan.gui.service.requirements;
-
+﻿package org.leralix.tan.gui.service.requirements;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.RankData;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
-
 public class RankDifferenceRequirement extends IndividualRequirement {
-
   private final TerritoryData territoryData;
   private final ITanPlayer tanPlayer;
   private final RankData rankToCompare;
-
   public RankDifferenceRequirement(
       TerritoryData territoryData, ITanPlayer tanPlayer, RankData rankToCompare) {
     super();
@@ -19,7 +15,6 @@ public class RankDifferenceRequirement extends IndividualRequirement {
     this.tanPlayer = tanPlayer;
     this.rankToCompare = rankToCompare;
   }
-
   @Override
   public String getLine(LangType langType) {
     return isInvalid()
@@ -28,7 +23,6 @@ public class RankDifferenceRequirement extends IndividualRequirement {
         : Lang.REQUIREMENT_RANK_LEVEL_POSITIVE.get(
             langType, territoryData.getRank(tanPlayer).getName(), rankToCompare.getName());
   }
-
   @Override
   public boolean isInvalid() {
     if (territoryData.isLeader(tanPlayer)) {

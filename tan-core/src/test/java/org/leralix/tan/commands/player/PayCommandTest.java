@@ -51,7 +51,7 @@ class PayCommandTest {
 
   @Test
   void getSyntax_returnsCorrectSyntax() {
-    assertEquals("/tan pay <player> <amount>", payCommand.getSyntax());
+    assertEquals("/ccn pay <player> <amount>", payCommand.getSyntax());
   }
 
   @Test

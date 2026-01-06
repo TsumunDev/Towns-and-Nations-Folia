@@ -1,5 +1,4 @@
-package org.leralix.tan.events.newsletter.news;
-
+﻿package org.leralix.tan.events.newsletter.news;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
@@ -17,40 +16,32 @@ import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.gameplay.TerritoryUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.tan.api.interfaces.TanTerritory;
-
 public class AttackWonByDefenderNewsletter extends Newsletter {
-
   private final String attackingTerritoryID;
   private final String defendingTerritoryID;
-
   public AttackWonByDefenderNewsletter(
       TanTerritory defendingTerritoryID, TanTerritory attackingTerritoryID) {
     super();
     this.defendingTerritoryID = defendingTerritoryID.getID();
     this.attackingTerritoryID = attackingTerritoryID.getID();
   }
-
   public AttackWonByDefenderNewsletter(
       UUID id, long date, String attackingTerritoryID, String defendingTerritoryID) {
     super(id, date);
     this.attackingTerritoryID = attackingTerritoryID;
     this.defendingTerritoryID = defendingTerritoryID;
   }
-
   public String getAttackingTerritoryID() {
     return attackingTerritoryID;
   }
-
   public String getDefendingTerritoryID() {
     return defendingTerritoryID;
   }
-
   @Override
   public GuiItem createGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     TerritoryData attackingTerritory = TerritoryUtil.getTerritory(attackingTerritoryID);
     TerritoryData defendingTerritory = TerritoryUtil.getTerritory(defendingTerritoryID);
     if (attackingTerritory == null || defendingTerritory == null) return null;
-
     ItemStack icon =
         HeadUtils.createCustomItemStack(
             Material.IRON_SWORD,
@@ -63,7 +54,6 @@ public class AttackWonByDefenderNewsletter extends Newsletter {
                 defendingTerritory.getBaseColoredName(),
                 defendingTerritory.getBaseColoredName()),
             Lang.NEWSLETTER_RIGHT_CLICK_TO_MARK_AS_READ.get(lang));
-
     return ItemBuilder.from(icon)
         .asGuiItem(
             event -> {
@@ -74,12 +64,10 @@ public class AttackWonByDefenderNewsletter extends Newsletter {
               }
             });
   }
-
   @Override
   public GuiItem createConcernedGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     return createGuiItem(player, lang, onClick);
   }
-
   @Override
   public boolean shouldShowToPlayer(Player player) {
     TerritoryData attackingTerritory = TerritoryUtil.getTerritory(attackingTerritoryID);
@@ -88,18 +76,15 @@ public class AttackWonByDefenderNewsletter extends Newsletter {
     if (defendingTerritory == null) return false;
     return attackingTerritory.isPlayerIn(player) || defendingTerritory.isPlayerIn(player);
   }
-
   @Override
   public NewsletterType getType() {
     return NewsletterType.ATTACK_WON_BY_DEFENDER;
   }
-
   @Override
   public void broadcast(Player player) {
     TerritoryData attackingTerritory = TerritoryUtil.getTerritory(attackingTerritoryID);
     TerritoryData defendingTerritory = TerritoryUtil.getTerritory(defendingTerritoryID);
     if (attackingTerritory == null || defendingTerritory == null) return;
-
     TanChatUtils.message(
         player,
         Lang.ATTACK_WON_BY_ATTACKER.get(
@@ -109,7 +94,6 @@ public class AttackWonByDefenderNewsletter extends Newsletter {
             defendingTerritory.getBaseColoredName()),
         SoundEnum.MINOR_GOOD);
   }
-
   @Override
   public void broadcastConcerned(Player player) {
     broadcast(player);

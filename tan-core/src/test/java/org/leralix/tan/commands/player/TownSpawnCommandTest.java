@@ -44,7 +44,7 @@ class TownSpawnCommandTest {
 
   @Test
   void getSyntax_returnsCorrectSyntax() {
-    assertEquals("/tan spawn", command.getSyntax());
+    assertEquals("/ccn spawn", command.getSyntax());
   }
 
   @Test

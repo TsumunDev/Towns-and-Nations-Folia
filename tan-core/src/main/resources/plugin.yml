@@ -1,4 +1,4 @@
-name: TownsAndNations
+name: Coconation
 version: '${version}'
 main: org.leralix.tan.TownsAndNations
 api-version: "1.19"
@@ -8,22 +8,26 @@ depend: [CocoNationLib]
 softdepend: [PlaceholderAPI, WorldGuard, Vault, Nexo]
 description: A town plugin with roleplay elements
 commands:
-  tan:
-    description: base command of Towns and Nations
+  coconation:
+    description: base command of Coconation
     permission: tan.base.commands
     usage: /<command>
-  tanadmin:
-    description: admin command of Towns and Nations
+    aliases: [ccn]
+  coconationadmin:
+    description: admin command of Coconation
     permission: tan.admin.commands
     usage: /<command>
-  tandebug:
-    description: debug command of Towns and Nations
+    aliases: [ccnadmin]
+  coconationdebug:
+    description: debug command of Coconation
     permission: tan.admin.commands
     usage: /<command>
-  tanserver:
-    description: server side command of Towns and Nations.
+    aliases: [ccndebug]
+  coconationserver:
+    description: server side command of Coconation
     permission: tan.server.commands
     usage: /<command>
+    aliases: [ccnserver]
 
 permissions:
   tan.base.*:

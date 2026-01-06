@@ -44,7 +44,7 @@ class OpenGuiCommandTest {
 
   @Test
   void getSyntax_returnsCorrectSyntax() {
-    assertEquals("/tan gui", command.getSyntax());
+    assertEquals("/ccn gui", command.getSyntax());
   }
 
   @Test

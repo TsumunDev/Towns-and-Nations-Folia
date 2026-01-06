@@ -1,5 +1,4 @@
-package org.leralix.tan.commands.server;
-
+﻿package org.leralix.tan.commands.server;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -12,59 +11,44 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.commands.CommandExceptionHandler;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class ApplyTownServer extends SubCommand {
-
   @Override
   public String getName() {
     return "applytown";
   }
-
   @Override
   public String getDescription() {
     return Lang.APPLY_TOWN_SERVER_DESC.getDefault();
   }
-
   @Override
   public int getArguments() {
     return 3;
   }
-
   @Override
   public String getSyntax() {
-    return "/tanserver apply <town ID> <player username>";
+    return "/ccnserver apply <town ID> <player username>";
   }
-
   @Override
   public List<String> getTabCompleteSuggestions(
       CommandSender commandSender, String currentMessage, String[] args) {
     return Collections.emptyList();
   }
-
   @Override
   public void perform(CommandSender commandSender, String[] args) {
-    // Validate argument count
     if (!CommandExceptionHandler.validateMinArgCount(commandSender, args, 3, getSyntax())) {
       return;
     }
-
     String townID = args[1];
-
-    // Find and validate player
     Optional<OfflinePlayer> offlinePlayerOpt =
         CommandExceptionHandler.findPlayer(commandSender, args[2]);
     if (offlinePlayerOpt.isEmpty()) {
       return;
     }
-
-    // Check if player is online
     Player p = offlinePlayerOpt.get().getPlayer();
     if (p == null) {
       TanChatUtils.message(commandSender, Lang.PLAYER_NOT_FOUND);
       return;
     }
-
-    // Async: Get player data and add join request
     PlayerDataStorage.getInstance()
         .get(p.getUniqueId().toString())
         .thenAccept(
@@ -80,7 +64,7 @@ public class ApplyTownServer extends SubCommand {
                         if (townData == null) {
                           TanChatUtils.message(
                               commandSender,
-                              Lang.TOWN_NOT_FOUND); // Assuming a new Lang entry for town not found
+                              Lang.TOWN_NOT_FOUND);
                           return;
                         }
                         townData.addPlayerJoinRequest(p);

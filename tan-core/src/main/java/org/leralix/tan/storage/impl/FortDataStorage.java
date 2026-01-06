@@ -1,5 +1,4 @@
-package org.leralix.tan.storage.impl;
-
+﻿package org.leralix.tan.storage.impl;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -16,18 +15,14 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.FortStorage;
 import org.leralix.tan.wars.fort.Fort;
 import org.leralix.tan.wars.fort.FortData;
-
 public class FortDataStorage extends FortStorage {
-
   int newFortID;
   Map<String, FortData> forts;
-
   public FortDataStorage() {
     this.forts = new HashMap<>();
     this.newFortID = 0;
     load();
   }
-
   @Override
   public List<Fort> getOccupiedFort(TerritoryData territoryData) {
     List<Fort> res = new ArrayList<>();
@@ -40,7 +35,6 @@ public class FortDataStorage extends FortStorage {
     }
     return res;
   }
-
   @Override
   public List<Fort> getOwnedFort(TerritoryData territoryData) {
     List<Fort> res = new ArrayList<>();
@@ -53,11 +47,9 @@ public class FortDataStorage extends FortStorage {
     }
     return res;
   }
-
   @Override
   public List<Fort> getAllControlledFort(TerritoryData territoryData) {
     List<Fort> allForts = new ArrayList<>(getOccupiedFort(territoryData));
-
     for (Fort fort : getOwnedFort(territoryData)) {
       if (!fort.isOccupied()) {
         allForts.add(fort);
@@ -65,17 +57,14 @@ public class FortDataStorage extends FortStorage {
     }
     return allForts;
   }
-
   @Override
   public List<Fort> getForts() {
     return new ArrayList<>(forts.values());
   }
-
   @Override
   public Fort getFort(String fortID) {
     return forts.get(fortID);
   }
-
   @Override
   public Fort register(Vector3D position, TerritoryData owningTerritory) {
     FortData fort =
@@ -88,7 +77,6 @@ public class FortDataStorage extends FortStorage {
     save();
     return fort;
   }
-
   @Override
   public void delete(String fortID) {
     Fort fort = getFort(fortID);
@@ -100,9 +88,7 @@ public class FortDataStorage extends FortStorage {
     forts.remove(fortID);
     save();
   }
-
   public void load() {
-
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     File file =
         new File(
@@ -117,7 +103,6 @@ public class FortDataStorage extends FortStorage {
       }
       Type type = new TypeToken<HashMap<String, FortData>>() {}.getType();
       forts = gson.fromJson(reader, type);
-
       int id = 0;
       for (String ids : forts.keySet()) {
         int newID = Integer.parseInt(ids.substring(1));
@@ -126,10 +111,8 @@ public class FortDataStorage extends FortStorage {
       newFortID = id + 1;
     }
   }
-
   @Override
   public void save() {
-
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     File file =
         new File(
@@ -137,7 +120,6 @@ public class FortDataStorage extends FortStorage {
                 + "/storage/json/Forts.json");
     file.getParentFile().getParentFile().mkdir();
     file.getParentFile().mkdir();
-
     if (!file.exists()) {
       try {
         if (!file.createNewFile()) {

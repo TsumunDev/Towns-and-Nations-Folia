@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,37 +21,26 @@ import org.leralix.tan.listeners.interact.events.property.CreateTerritoryPropert
 import org.leralix.tan.upgrade.rewards.numeric.PropertyCap;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class BuildingMenu extends IteratorGUI {
-
   private final BasicGui previousMenu;
   private final TerritoryData territoryData;
-
   public BuildingMenu(
       Player player, ITanPlayer tanPlayer, TerritoryData territoryData, BasicGui previousMenu) {
     super(player, tanPlayer, Lang.HEADER_BUILDING_MENU.get(player), 4);
     this.territoryData = territoryData;
     this.previousMenu = previousMenu;
-    // open() doit être appelé explicitement après la construction pour respecter le modèle
-    // asynchrone
   }
-
   @Override
   public void open() {
     iterator(getBuildings(), p -> previousMenu.open());
-
-    // For now, only towns can have properties
     if (territoryData instanceof TownData townData) {
       gui.setItem(4, 4, getCreatePublicPropertyButton(townData));
     }
     gui.setItem(4, 5, getCreateFortButton());
     gui.open(player);
   }
-
   private @NotNull GuiItem getCreatePublicPropertyButton(TownData townData) {
-
     List<FilledLang> description = new ArrayList<>();
-
     int nbProperties = townData.getProperties().size();
     int maxNbProperties = townData.getNewLevel().getStat(PropertyCap.class).getMaxAmount();
     if (nbProperties >= maxNbProperties) {
@@ -65,7 +53,6 @@ public class BuildingMenu extends IteratorGUI {
               Integer.toString(nbProperties), Integer.toString(maxNbProperties)));
     }
     description.add(Lang.CREATE_PUBLIC_PROPERTY_COST.get());
-
     return iconManager
         .get(IconKey.PLAYER_PROPERTY_ICON)
         .setName(Lang.CREATE_PUBLIC_PROPERTY_ICON.get(langType))
@@ -93,7 +80,6 @@ public class BuildingMenu extends IteratorGUI {
             })
         .asGuiItem(player, langType);
   }
-
   private @NotNull GuiItem getCreateFortButton() {
     return iconManager
         .get(IconKey.FORT_BUILDING_ICON)
@@ -111,14 +97,12 @@ public class BuildingMenu extends IteratorGUI {
                         Double.toString(Constants.getFortCost() - territoryData.getBalance())));
                 return;
               }
-
               TanChatUtils.message(player, Lang.RIGHT_CLICK_TO_PLACE_FORT.get(langType));
               RightClickListener.register(player, new CreateFortEvent(territoryData));
               player.closeInventory();
             })
         .asGuiItem(player, langType);
   }
-
   private List<GuiItem> getBuildings() {
     List<GuiItem> res = new ArrayList<>();
     for (Building building : territoryData.getBuildings()) {

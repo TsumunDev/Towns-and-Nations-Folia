@@ -1,5 +1,4 @@
-package org.leralix.tan.commands.server;
-
+﻿package org.leralix.tan.commands.server;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.command.CommandSender;
@@ -8,28 +7,23 @@ import org.leralix.tan.dataclass.Landmark;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.LandmarkStorage;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class LandmarkUpdateServer extends SubCommand {
   @Override
   public String getName() {
     return "landmarkUpdate";
   }
-
   @Override
   public String getDescription() {
     return Lang.LANDMARK_UPDATE_SERVER_DESC.getDefault();
   }
-
   @Override
   public int getArguments() {
     return 2;
   }
-
   @Override
   public String getSyntax() {
-    return "/tanserver landmarkUpdate <id?>";
+    return "/ccnserver landmarkUpdate <id?>";
   }
-
   @Override
   public List<String> getTabCompleteSuggestions(
       CommandSender commandSender, String s, String[] args) {
@@ -40,7 +34,6 @@ public class LandmarkUpdateServer extends SubCommand {
     }
     return Collections.emptyList();
   }
-
   @Override
   public void perform(CommandSender commandSender, String[] args) {
     LandmarkStorage instance = LandmarkStorage.getInstance();
@@ -55,7 +48,7 @@ public class LandmarkUpdateServer extends SubCommand {
                 if (landmark == null) {
                   TanChatUtils.message(
                       commandSender,
-                      Lang.LANDMARK_NOT_FOUND); // Assuming a new Lang entry for landmark not found
+                      Lang.LANDMARK_NOT_FOUND);
                   return;
                 }
                 landmark.generateResources();

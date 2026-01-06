@@ -1,7 +1,5 @@
-package org.leralix.tan.gui.user.territory.hierarchy;
-
+﻿package org.leralix.tan.gui.user.territory.hierarchy;
 import static org.leralix.lib.data.SoundEnum.BAD;
-
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -18,16 +16,12 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class VassalsMenu extends IteratorGUI {
-
   private final TerritoryData territoryData;
-
   private VassalsMenu(Player player, ITanPlayer tanPlayer, TerritoryData territoryData) {
     super(player, tanPlayer, Lang.HEADER_VASSALS.get(tanPlayer.getLang()), 4);
     this.territoryData = territoryData;
   }
-
   public static void open(Player player, TerritoryData territoryData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -36,22 +30,17 @@ public class VassalsMenu extends IteratorGUI {
               new VassalsMenu(player, tanPlayer, territoryData).open();
             });
   }
-
   @Override
   public void open() {
     iterator(getVassals(), p -> territoryData.openMainMenu(player));
-
     gui.setItem(4, 3, getAddVassalButton());
-
     gui.open(player);
   }
-
   private @NotNull GuiItem getAddVassalButton() {
     ItemStack addTown =
         HeadUtils.makeSkullB64(
             Lang.GUI_INVITE_TOWN_TO_REGION.get(tanPlayer),
             "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWZmMzE0MzFkNjQ1ODdmZjZlZjk4YzA2NzU4MTA2ODFmOGMxM2JmOTZmNTFkOWNiMDdlZDc4NTJiMmZmZDEifX19");
-
     return ItemBuilder.from(addTown)
         .asGuiItem(
             event -> {
@@ -64,13 +53,9 @@ public class VassalsMenu extends IteratorGUI {
               AddVassalMenu.open(player, territoryData);
             });
   }
-
   private List<GuiItem> getVassals() {
-
     List<GuiItem> res = new ArrayList<>();
-
     for (TerritoryData vassal : territoryData.getVassals()) {
-
       GuiItem vassalButton =
           iconManager
               .get(vassal.getIcon())

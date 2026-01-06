@@ -1,15 +1,12 @@
-package org.leralix.tan.wars.legacy;
-
+﻿package org.leralix.tan.wars.legacy;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.enums.permissions.GeneralChunkSetting;
-
 public enum InteractionStatus {
   ALWAYS,
   WAR_ONLY,
   PLAYER_CHOICE_AND_WAR,
   PLAYER_CHOICE,
   NEVER;
-
   public boolean canGrief(TerritoryData territoryData, GeneralChunkSetting action) {
     return switch (this) {
       case ALWAYS -> true;

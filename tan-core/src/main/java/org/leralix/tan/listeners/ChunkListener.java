@@ -1,5 +1,4 @@
-package org.leralix.tan.listeners;
-
+﻿package org.leralix.tan.listeners;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -25,32 +24,21 @@ import org.bukkit.inventory.FurnaceInventory;
 import org.leralix.tan.enums.permissions.ChunkPermissionType;
 import org.leralix.tan.service.PermissionService;
 import org.leralix.tan.storage.stored.NewClaimedChunkStorage;
-
 public class ChunkListener implements Listener {
-
   private final PermissionService permissionService = new PermissionService();
-
   @EventHandler
   public void onBlockBreak(BlockBreakEvent event) {
-
     Player player = event.getPlayer();
     Block breakedBlock = event.getBlock();
     Location loc = breakedBlock.getLocation();
-
-    // Check if the block is a property sign
     if (breakedBlock.hasMetadata("propertySign")) {
       event.setCancelled(true);
       return;
     }
-
-    // Check if the block is a property sign
     if (breakedBlock.hasMetadata("fortFlag")) {
       event.setCancelled(true);
       return;
     }
-
-    // CRITICAL: Event cancellation must happen synchronously before handler returns
-    // We must block here because event handling cannot be async
     try {
       boolean canDo =
           permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.BREAK_BLOCK).join();
@@ -58,19 +46,16 @@ public class ChunkListener implements Listener {
         event.setCancelled(true);
       }
     } catch (Exception e) {
-      // If error occurs, deny action for safety
       event.setCancelled(true);
       org.leralix.tan.TownsAndNations.getPlugin()
           .getLogger()
           .warning("Error checking block break permission: " + e.getMessage());
     }
   }
-
   @EventHandler
   public void onBucketFillEvent(PlayerBucketFillEvent event) {
     Player player = event.getPlayer();
     Location loc = event.getBlock().getLocation();
-
     try {
       boolean canDo =
           permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.BREAK_BLOCK).join();
@@ -84,12 +69,10 @@ public class ChunkListener implements Listener {
           .warning("Error checking bucket fill permission: " + e.getMessage());
     }
   }
-
   @EventHandler
   public void onBucketEmptyEvent(PlayerBucketEmptyEvent event) {
     Player player = event.getPlayer();
     Location loc = event.getBlock().getLocation();
-
     try {
       boolean canDo =
           permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.PLACE_BLOCK).join();
@@ -103,21 +86,15 @@ public class ChunkListener implements Listener {
           .warning("Error checking bucket empty permission: " + e.getMessage());
     }
   }
-
   @EventHandler
   public void onPlayerInteractEvent(PlayerInteractEvent event) {
     Player player = event.getPlayer();
     Block block = event.getClickedBlock();
-
     if (block == null) return;
-
     BlockData blockData = block.getBlockData();
     Material materialType = block.getType();
     Material materialBlock = blockData.getMaterial();
-
     Location loc = block.getLocation();
-
-    // Check if the block is a property sign
     if (block.getType() == Material.OAK_SIGN) {
       Sign sign = (Sign) block.getState();
       if (sign.hasMetadata("propertySign")) {
@@ -125,9 +102,7 @@ public class ChunkListener implements Listener {
         return;
       }
     }
-
     if (Tag.BUTTONS.isTagged(materialType) || materialBlock == Material.LEVER) {
-
       try {
         boolean canDo =
             permissionService
@@ -147,7 +122,6 @@ public class ChunkListener implements Listener {
         || materialBlock == Material.DROPPER
         || materialBlock == Material.BREWING_STAND
         || materialBlock == Material.SHULKER_BOX) {
-
       try {
         boolean canDo =
             permissionService
@@ -182,7 +156,6 @@ public class ChunkListener implements Listener {
         || materialBlock == Material.CHISELED_BOOKSHELF
         || Tag.CAMPFIRES.isTagged(materialType)
         || materialBlock == Material.BEACON) {
-
       try {
         boolean canDo =
             permissionService
@@ -271,7 +244,6 @@ public class ChunkListener implements Listener {
       }
     } else if (event.getAction() == Action.PHYSICAL
         && (event.getClickedBlock().getType() == Material.FARMLAND)) {
-
       try {
         boolean canDo =
             permissionService
@@ -285,13 +257,10 @@ public class ChunkListener implements Listener {
       }
     }
   }
-
   @EventHandler
   public void onBlocPlaced(BlockPlaceEvent event) {
-
     Player player = event.getPlayer();
     Location loc = event.getBlock().getLocation();
-
     try {
       boolean canDo =
           permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.PLACE_BLOCK).join();
@@ -302,14 +271,11 @@ public class ChunkListener implements Listener {
       event.setCancelled(true);
     }
   }
-
   @EventHandler
   public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-
     if (event.getDamager() instanceof Player player) {
       Entity entity = event.getEntity();
       Location loc = entity.getLocation();
-
       if (entity instanceof Allay
           || entity instanceof Axolotl
           || entity instanceof Bat
@@ -385,13 +351,10 @@ public class ChunkListener implements Listener {
         event.setCancelled(true);
       }
     }
-
     if (event.getDamager() instanceof Projectile projectile) {
-
       if (projectile.getShooter() instanceof Player player) {
         Entity entity = event.getEntity();
         Location loc = entity.getLocation();
-
         if (entity instanceof Allay
             || entity instanceof Axolotl
             || entity instanceof Bat
@@ -427,7 +390,6 @@ public class ChunkListener implements Listener {
             || entity instanceof PolarBear
             || entity instanceof Wolf
             || entity instanceof ArmorStand) {
-
           try {
             boolean canDo =
                 permissionService
@@ -470,14 +432,12 @@ public class ChunkListener implements Listener {
       }
     }
   }
-
   @EventHandler
   public void onInventoryOpen(InventoryOpenEvent event) {
     if (event.getPlayer() instanceof Player player
         && (event.getInventory() instanceof FurnaceInventory
             || event.getInventory() instanceof BlastFurnace
             || event.getInventory() instanceof Smoker)) {
-
       Location loc = event.getInventory().getLocation();
       if (loc == null) return;
       try {
@@ -493,15 +453,11 @@ public class ChunkListener implements Listener {
       }
     }
   }
-
   @EventHandler
   public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-
     Player player = event.getPlayer();
-
     if (event.getRightClicked() instanceof ItemFrame itemFrame) {
       Location loc = itemFrame.getLocation();
-
       try {
         boolean canDo =
             permissionService
@@ -515,7 +471,6 @@ public class ChunkListener implements Listener {
       }
     } else if (event.getRightClicked() instanceof LeashHitch leashHitch) {
       Location loc = leashHitch.getLocation();
-
       try {
         boolean canDo =
             permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.USE_LEAD).join();
@@ -525,11 +480,9 @@ public class ChunkListener implements Listener {
       } catch (Exception e) {
         event.setCancelled(true);
       }
-
     } else if (event.getRightClicked() instanceof LivingEntity livingEntity) {
       if (livingEntity.isLeashed()) {
         Location loc = livingEntity.getLocation();
-
         try {
           boolean canDo =
               permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.USE_LEAD).join();
@@ -542,13 +495,11 @@ public class ChunkListener implements Listener {
       }
     }
   }
-
   @EventHandler
   public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
     if (event.getRightClicked() instanceof ArmorStand armorStand) {
       Player player = event.getPlayer();
       Location loc = armorStand.getLocation();
-
       try {
         boolean canDo =
             permissionService
@@ -562,13 +513,11 @@ public class ChunkListener implements Listener {
       }
     }
   }
-
   @EventHandler
   public void onPlayerLeashEntityEvent(PlayerLeashEntityEvent event) {
     Player player = event.getPlayer();
     Entity entity = event.getEntity();
     Location loc = entity.getLocation();
-
     try {
       boolean canDo =
           permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.USE_LEAD).join();
@@ -579,14 +528,12 @@ public class ChunkListener implements Listener {
       event.setCancelled(true);
     }
   }
-
   @EventHandler
   public void onHangingBreakByEntityEvent(HangingBreakByEntityEvent event) {
     Entity remover = event.getRemover();
     if (remover instanceof Player player) {
       Entity entity = event.getEntity();
       Location loc = entity.getLocation();
-
       if (entity instanceof LeashHitch) {
         try {
           boolean canDo =
@@ -614,7 +561,6 @@ public class ChunkListener implements Listener {
       if (projectile.getShooter() instanceof Player player) {
         Entity entity = event.getEntity();
         Location loc = entity.getLocation();
-
         if (entity instanceof LeashHitch) {
           try {
             boolean canDo =
@@ -643,13 +589,11 @@ public class ChunkListener implements Listener {
       }
     }
   }
-
   @EventHandler
   public void onHangingPlaceEvent(HangingPlaceEvent event) {
     Player player = event.getPlayer();
     Block block = event.getBlock();
     Location loc = block.getLocation();
-
     Entity entity = event.getEntity();
     if (entity instanceof LeashHitch) {
       try {
@@ -675,12 +619,10 @@ public class ChunkListener implements Listener {
       }
     }
   }
-
   @EventHandler
   public void onPlayerShearEntityEvent(PlayerShearEntityEvent event) {
     Player player = event.getPlayer();
     Location loc = event.getEntity().getLocation();
-
     try {
       boolean canDo =
           permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.USE_SHEARS).join();
@@ -691,7 +633,6 @@ public class ChunkListener implements Listener {
       event.setCancelled(true);
     }
   }
-
   @EventHandler
   public void onExplosion(EntityExplodeEvent event) {
     event
@@ -700,19 +641,15 @@ public class ChunkListener implements Listener {
             block ->
                 !NewClaimedChunkStorage.getInstance().get(block.getChunk()).canExplosionGrief());
   }
-
   @EventHandler
   public void onBurning(BlockBurnEvent event) {
     Chunk chunk = event.getBlock().getChunk();
-
     if (!NewClaimedChunkStorage.getInstance().get(chunk).canFireGrief()) {
       event.setCancelled(true);
     }
   }
-
   @EventHandler
   public void onFireSpreading(BlockSpreadEvent event) {
-
     if (event.getSource().getType() == Material.FIRE) {
       Chunk chunk = event.getBlock().getChunk();
       if (!NewClaimedChunkStorage.getInstance().get(chunk).canFireGrief()) {
@@ -720,11 +657,8 @@ public class ChunkListener implements Listener {
       }
     }
   }
-
   public void onWitherBlockBreak(EntityChangeBlockEvent event) {
-
     Chunk chunk = event.getBlock().getChunk();
-
     if (!NewClaimedChunkStorage.getInstance().get(chunk).canMobGrief()) {
       event.setCancelled(true);
     }

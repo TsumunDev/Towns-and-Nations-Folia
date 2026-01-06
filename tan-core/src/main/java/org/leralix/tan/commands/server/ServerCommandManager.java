@@ -1,9 +1,6 @@
-package org.leralix.tan.commands.server;
-
+﻿package org.leralix.tan.commands.server;
 import org.leralix.lib.commands.CommandManager;
-
 public class ServerCommandManager extends CommandManager {
-
   public ServerCommandManager() {
     super("tan.server");
     addSubCommand(new CreateTownServer());
@@ -14,7 +11,6 @@ public class ServerCommandManager extends CommandManager {
     addSubCommand(new LandmarkUpdateServer());
     addSubCommand(new LandmarkSetStoredLimitServer());
   }
-
   @Override
   public String getName() {
     return "tanserver";

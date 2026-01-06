@@ -1,5 +1,4 @@
-package org.leralix.tan.listeners.chat.events;
-
+﻿package org.leralix.tan.listeners.chat.events;
 import java.util.function.Consumer;
 import org.bukkit.entity.Player;
 import org.leralix.lib.data.SoundEnum;
@@ -7,18 +6,15 @@ import org.leralix.tan.dataclass.Landmark;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.listeners.chat.ChatListenerEvent;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class ChangeLandmarkName extends ChatListenerEvent {
   private final Landmark landmark;
   private final int maxSize;
   private final Consumer<Player> guiCallback;
-
   public ChangeLandmarkName(Landmark landmark, int maxSize, Consumer<Player> guiCallback) {
     this.landmark = landmark;
     this.maxSize = maxSize;
     this.guiCallback = guiCallback;
   }
-
   @Override
   public boolean execute(Player player, String message) {
     if (message.length() >= maxSize) {

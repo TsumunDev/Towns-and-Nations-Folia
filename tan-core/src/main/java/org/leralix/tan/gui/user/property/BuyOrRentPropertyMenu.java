@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.property;
-
+﻿package org.leralix.tan.gui.user.property;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
@@ -11,9 +10,7 @@ import org.leralix.tan.gui.user.RenterPropertyMenu;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
-
 public class BuyOrRentPropertyMenu extends PropertyMenus {
-
   private BuyOrRentPropertyMenu(Player player, ITanPlayer tanPlayer, PropertyData propertyData) {
     super(
         player,
@@ -22,7 +19,6 @@ public class BuyOrRentPropertyMenu extends PropertyMenus {
         3,
         propertyData);
   }
-
   public static void open(Player player, PropertyData propertyData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -31,13 +27,10 @@ public class BuyOrRentPropertyMenu extends PropertyMenus {
               new BuyOrRentPropertyMenu(player, tanPlayer, propertyData).open();
             });
   }
-
   @Override
   public void open() {
-
     gui.setItem(1, 5, getPropertyIcon());
     gui.getFiller().fillTop(GuiUtil.getUnnamedItem(Material.BROWN_STAINED_GLASS_PANE));
-
     if (propertyData.isForSale()) {
       gui.setItem(2, 3, getConfirmBuyButton());
       gui.setItem(2, 7, getCancelBuyButton());
@@ -46,16 +39,11 @@ public class BuyOrRentPropertyMenu extends PropertyMenus {
       gui.setItem(2, 3, getConfirmRentButton());
       gui.setItem(2, 7, getCancelRentButton());
     }
-
     gui.setItem(3, 1, GuiUtil.createBackArrow(player, HumanEntity::closeInventory));
-
     gui.open(player);
   }
-
   private GuiItem getConfirmBuyButton() {
-
     double price = propertyData.getSalePrice();
-
     return iconManager
         .get(IconKey.CONFIRM_BUY_PROPERTY_ICON)
         .setName(Lang.CONFIRM_SALE.get(tanPlayer))
@@ -68,7 +56,6 @@ public class BuyOrRentPropertyMenu extends PropertyMenus {
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getCancelBuyButton() {
     return iconManager
         .get(IconKey.CANCEL_BUY_PROPERTY_ICON)
@@ -77,11 +64,8 @@ public class BuyOrRentPropertyMenu extends PropertyMenus {
         .setAction(action -> player.closeInventory())
         .asGuiItem(player, langType);
   }
-
   private GuiItem getConfirmRentButton() {
-
     double price = propertyData.getRentPrice();
-
     return iconManager
         .get(IconKey.CONFIRM_RENT_PROPERTY_ICON)
         .setName(Lang.CONFIRM_RENT.get(tanPlayer))
@@ -94,7 +78,6 @@ public class BuyOrRentPropertyMenu extends PropertyMenus {
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getCancelRentButton() {
     return iconManager
         .get(IconKey.CANCEL_RENT_PROPERTY_ICON)

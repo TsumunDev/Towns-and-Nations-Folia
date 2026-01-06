@@ -1,7 +1,5 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import static org.leralix.lib.data.SoundEnum.NOT_ALLOWED;
-
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.ITanPlayer;
@@ -19,13 +17,10 @@ import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class NoTownMenu extends BasicGui {
-
   private NoTownMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, Lang.HEADER_NO_TOWN_MENU.get(tanPlayer.getLang()), 3);
   }
-
   public static void open(Player player) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -34,21 +29,15 @@ public class NoTownMenu extends BasicGui {
               new NoTownMenu(player, tanPlayer).open();
             });
   }
-
   @Override
   public void open() {
-
     gui.setItem(2, 3, getCreateTownButton());
     gui.setItem(2, 7, getBrowseTownsButton());
     gui.setItem(3, 1, GuiUtil.createBackArrow(player, MainMenu::open));
-
     gui.open(player);
   }
-
   private GuiItem getCreateTownButton() {
-
     int townPrice = Constants.getTownCost();
-
     return IconManager.getInstance()
         .get(IconKey.CREATE_TOWN_ICON)
         .setName(Lang.GUI_NO_TOWN_CREATE_NEW_TOWN.get(tanPlayer))
@@ -60,7 +49,6 @@ public class NoTownMenu extends BasicGui {
                 TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(tanPlayer), NOT_ALLOWED);
                 return;
               }
-
               double playerMoney = EconomyUtil.getBalance(player);
               if (playerMoney < townPrice) {
                 TanChatUtils.message(
@@ -75,9 +63,7 @@ public class NoTownMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getBrowseTownsButton() {
-
     return IconManager.getInstance()
         .get(IconKey.BROWSE_TOWN_ICON)
         .setName(Lang.GUI_NO_TOWN_JOIN_A_TOWN.get(tanPlayer))

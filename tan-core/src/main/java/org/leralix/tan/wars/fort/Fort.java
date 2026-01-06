@@ -1,5 +1,4 @@
-package org.leralix.tan.wars.fort;
-
+﻿package org.leralix.tan.wars.fort;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -16,11 +15,8 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.storage.stored.FortStorage;
 import org.leralix.tan.utils.gameplay.TANCustomNBT;
-
 public abstract class Fort extends Building {
-
   protected Fort() {}
-
   public void updateFlag() {
     Vector3D flagPosition = getPosition();
     Block flagBlock = flagPosition.getLocation().add(0, 1, 0).getBlock();
@@ -31,49 +27,34 @@ public abstract class Fort extends Building {
       flagBlock.setType(Material.GREEN_BANNER);
     }
   }
-
   public void spawnFlag() {
     Vector3D flagPosition = getPosition();
     Block flagBlock = flagPosition.getLocation().add(0, 1, 0).getBlock();
     flagBlock.setType(Material.GREEN_BANNER);
-
     setProtectedBlockData();
   }
-
   public abstract String getID();
-
   public abstract Vector3D getPosition();
-
   public abstract TerritoryData getOwner();
-
   public abstract TerritoryData getOccupier();
-
   public abstract String getName();
-
   public abstract int getCaptureProgress();
-
   protected abstract void setOccupierInternal(TerritoryData newOwner);
-
   public void setOccupier(TerritoryData newOwner) {
     newOwner.addOccupiedFort(this);
     setOccupierInternal(newOwner);
   }
-
   public void liberate() {
     getOccupier().removeOccupiedFort(this);
     this.setOccupierInternal(getOwner());
   }
-
   public abstract void setCaptureProgress(int value);
-
   public boolean isOccupied() {
     return !getOwner().getID().equals(getOccupier().getID());
   }
-
   @Override
   public GuiItem getGuiItem(
       IconManager iconManager, Player player, BasicGui basicGui, LangType langType) {
-
     Vector3D position = getPosition();
     return iconManager
         .get(IconKey.FORT_BUILDING_ICON)
@@ -95,29 +76,23 @@ public abstract class Fort extends Building {
             })
         .asGuiItem(player, langType);
   }
-
   private void deleteFlag() {
     Vector3D flagPosition = getPosition();
     Block baseBlock = flagPosition.getLocation().getBlock();
     Block flagBlock = flagPosition.getLocation().add(0, 1, 0).getBlock();
     flagBlock.setType(Material.AIR);
-
     TANCustomNBT.removeBockMetaData(baseBlock, "fortFlag");
     TANCustomNBT.removeBockMetaData(flagBlock, "fortFlag");
   }
-
   public void delete() {
     getOccupier().removeOwnedFort(this);
     deleteFlag();
   }
-
   public abstract void setOwner(TerritoryData newOwner);
-
   public void setProtectedBlockData() {
     Vector3D flagPosition = getPosition();
     Block baseBlock = flagPosition.getLocation().getBlock();
     Block flagBlock = flagPosition.getLocation().add(0, 1, 0).getBlock();
-
     TANCustomNBT.setBockMetaData(baseBlock, "fortFlag", getID());
     TANCustomNBT.setBockMetaData(flagBlock, "fortFlag", getID());
   }

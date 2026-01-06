@@ -1,5 +1,4 @@
-package org.leralix.tan.commands.player;
-
+﻿package org.leralix.tan.commands.player;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.command.CommandSender;
@@ -13,27 +12,22 @@ import org.leralix.tan.storage.PlayerAutoClaimStorage;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.commands.CommandExceptionHandler;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class AutoClaimCommand extends PlayerSubCommand {
   @Override
   public String getName() {
     return "autoclaim";
   }
-
   @Override
   public String getDescription() {
     return Lang.TOWN_AUTO_CLAIM_DESC.getDefault();
   }
-
   public int getArguments() {
     return 1;
   }
-
   @Override
   public String getSyntax() {
-    return "/tan autoclaim <chunk type>";
+    return "/ccn autoclaim <chunk type>";
   }
-
   @Override
   public List<String> getTabCompleteSuggestions(Player player, String lowerCase, String[] args) {
     List<String> suggestions = new ArrayList<>();
@@ -45,19 +39,14 @@ public class AutoClaimCommand extends PlayerSubCommand {
     }
     return suggestions;
   }
-
   @Override
   public void perform(Player player, String[] args) {
-    // Validate argument count
     if (!CommandExceptionHandler.validateArgCount((CommandSender) player, args, 2, getSyntax())) {
       return;
     }
-
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
     LangType langType = tanPlayer.getLang();
-
     String message = args[1];
-
     switch (message) {
       case "town" -> {
         PlayerAutoClaimStorage.addPlayer(player, ChunkType.TOWN);

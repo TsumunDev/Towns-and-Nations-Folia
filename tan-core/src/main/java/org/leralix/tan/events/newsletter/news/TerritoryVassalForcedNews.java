@@ -1,5 +1,4 @@
-package org.leralix.tan.events.newsletter.news;
-
+﻿package org.leralix.tan.events.newsletter.news;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
@@ -20,35 +19,29 @@ import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.gameplay.TerritoryUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.tan.api.interfaces.TanTerritory;
-
 public class TerritoryVassalForcedNews extends Newsletter {
   private final String proposingTerritoryID;
   private final String forcedTerritoryID;
-
   public TerritoryVassalForcedNews(
       TanTerritory proposingTerritory, TanTerritory receivingTerritory) {
     this(proposingTerritory.getID(), receivingTerritory.getID());
   }
-
   public TerritoryVassalForcedNews(String proposingTerritoryID, String forcedTerritoryID) {
     super();
     this.proposingTerritoryID = proposingTerritoryID;
     this.forcedTerritoryID = forcedTerritoryID;
   }
-
   public TerritoryVassalForcedNews(
       UUID id, long date, String proposingTerritoryID, String forcedTerritoryID) {
     super(id, date);
     this.proposingTerritoryID = proposingTerritoryID;
     this.forcedTerritoryID = forcedTerritoryID;
   }
-
   @Override
   public GuiItem createGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     TerritoryData proposingTerritory = TerritoryUtil.getTerritory(proposingTerritoryID);
     TerritoryData forcedTerritory = TerritoryUtil.getTerritory(forcedTerritoryID);
     if (proposingTerritory == null || forcedTerritory == null) return null;
-
     ItemStack icon =
         HeadUtils.createCustomItemStack(
             Material.GOLDEN_HELMET,
@@ -60,7 +53,6 @@ public class TerritoryVassalForcedNews extends Newsletter {
                 proposingTerritory.getBaseColoredName(),
                 forcedTerritory.getBaseColoredName()),
             Lang.NEWSLETTER_RIGHT_CLICK_TO_MARK_AS_READ.get(lang));
-
     return ItemBuilder.from(icon)
         .asGuiItem(
             event -> {
@@ -71,12 +63,10 @@ public class TerritoryVassalForcedNews extends Newsletter {
               }
             });
   }
-
   @Override
   public GuiItem createConcernedGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     return createGuiItem(player, lang, onClick);
   }
-
   @Override
   public boolean shouldShowToPlayer(Player player) {
     TerritoryData territoryData = TerritoryUtil.getTerritory(forcedTerritoryID);
@@ -89,12 +79,10 @@ public class TerritoryVassalForcedNews extends Newsletter {
         || proposingTerritory.doesPlayerHavePermission(
             tanPlayer, RolePermission.TOWN_ADMINISTRATOR);
   }
-
   @Override
   public NewsletterType getType() {
     return NewsletterType.TERRITORY_VASSAL_FORCED;
   }
-
   @Override
   public void broadcast(Player player) {
     TerritoryData proposingTerritory = TerritoryUtil.getTerritory(proposingTerritoryID);
@@ -109,15 +97,12 @@ public class TerritoryVassalForcedNews extends Newsletter {
             proposingTerritory.getBaseColoredName()),
         SoundEnum.MINOR_BAD);
   }
-
   public String getProposingTerritoryID() {
     return proposingTerritoryID;
   }
-
   public String getForcedTerritoryID() {
     return forcedTerritoryID;
   }
-
   @Override
   public void broadcastConcerned(Player player) {
     broadcast(player);

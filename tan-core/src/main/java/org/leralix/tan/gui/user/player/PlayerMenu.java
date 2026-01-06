@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.player;
-
+﻿package org.leralix.tan.gui.user.player;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.ITanPlayer;
@@ -14,13 +13,10 @@ import org.leralix.tan.lang.LangType;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.timezone.TimeZoneManager;
 import org.leralix.tan.utils.deprecated.GuiUtil;
-
 public class PlayerMenu extends BasicGui {
-
   private PlayerMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, Lang.HEADER_PLAYER_PROFILE.get(tanPlayer.getLang()), 3);
   }
-
   public static void open(Player player) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -29,29 +25,23 @@ public class PlayerMenu extends BasicGui {
               new PlayerMenu(player, tanPlayer).open();
             });
   }
-
   @Override
   public void open() {
-
     gui.setItem(1, 5, getPlayerHeadIcon());
     gui.setItem(2, 2, getBalanceButton());
     gui.setItem(2, 3, getPropertyButton());
     gui.setItem(2, 4, getNewsletterButton());
     gui.setItem(2, 6, getTimezoneButton());
     gui.setItem(2, 8, getLanguageButton());
-
     gui.setItem(3, 1, GuiUtil.createBackArrow(player, MainMenu::open));
-
     gui.open(player);
   }
-
   private GuiItem getPlayerHeadIcon() {
     return IconManager.getInstance()
         .get(IconKey.PLAYER_HEAD_ICON)
         .setName(Lang.GUI_PLAYER_ICON.get(tanPlayer, player.getName()))
         .asGuiItem(player, langType);
   }
-
   private GuiItem getBalanceButton() {
     return IconManager.getInstance()
         .get(IconKey.PLAYER_BALANCE_ICON)
@@ -60,7 +50,6 @@ public class PlayerMenu extends BasicGui {
             Lang.GUI_YOUR_BALANCE_DESC1.get(Double.toString(EconomyUtil.getBalance(player))))
         .asGuiItem(player, langType);
   }
-
   private GuiItem getPropertyButton() {
     return IconManager.getInstance()
         .get(IconKey.PLAYER_PROPERTY_ICON)
@@ -69,16 +58,14 @@ public class PlayerMenu extends BasicGui {
         .setAction(event -> PlayerPropertiesMenu.open(player))
         .asGuiItem(player, langType);
   }
-
   private GuiItem getNewsletterButton() {
     return IconManager.getInstance()
         .get(IconKey.NEWSLETTER_ICON)
         .setName(Lang.GUI_PLAYER_NEWSLETTER.get(tanPlayer))
-        .setDescription(Lang.GUI_PLAYER_NEWSLETTER_DESC1.get("?")) // Count loaded async
+        .setDescription(Lang.GUI_PLAYER_NEWSLETTER_DESC1.get("?"))
         .setAction(event -> NewsletterMenu.open(player))
         .asGuiItem(player, langType);
   }
-
   private GuiItem getTimezoneButton() {
     TimeZoneManager timeZoneManager = TimeZoneManager.getInstance();
     return iconManager
@@ -92,12 +79,9 @@ public class PlayerMenu extends BasicGui {
         .setAction(p -> PlayerSelectTimezoneMenu.open(player))
         .asGuiItem(player, langType);
   }
-
   private GuiItem getLanguageButton() {
-
     LangType serverLang = Lang.getServerLang();
     LangType playerLang = tanPlayer.getLang();
-
     return IconManager.getInstance()
         .get(IconKey.LANGUAGE_ICON)
         .setName(Lang.GUI_LANGUAGE_BUTTON.get(tanPlayer))

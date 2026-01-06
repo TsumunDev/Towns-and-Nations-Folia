@@ -45,7 +45,7 @@ class ChannelChatScopeCommandTest {
 
   @Test
   void getSyntax_returnsCorrectSyntax() {
-    assertEquals("/tan chat <global|alliance|region|town> [message]", command.getSyntax());
+    assertEquals("/ccn chat <global|alliance|region|town> [message]", command.getSyntax());
   }
 
   @Test

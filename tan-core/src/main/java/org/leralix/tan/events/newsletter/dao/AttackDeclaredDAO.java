@@ -1,20 +1,15 @@
-package org.leralix.tan.events.newsletter.dao;
-
+﻿package org.leralix.tan.events.newsletter.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.UUID;
 import javax.sql.DataSource;
 import org.leralix.tan.events.newsletter.news.AttackDeclaredNewsletter;
-
 public class AttackDeclaredDAO extends NewsletterSubDAO<AttackDeclaredNewsletter> {
-
   private static final String TABLE_NAME = "attack_declared_newsletter";
-
   public AttackDeclaredDAO(DataSource connection) {
     super(connection);
   }
-
   @Override
   protected void createTableIfNotExists() {
     String sql =
@@ -25,7 +20,6 @@ public class AttackDeclaredDAO extends NewsletterSubDAO<AttackDeclaredNewsletter
             + "attackingTerritoryID VARCHAR(36) NOT NULL, "
             + "defendingTerritoryID VARCHAR(36) NOT NULL"
             + ")";
-
     try (Connection conn = dataSource.getConnection();
         var ps = conn.prepareStatement(sql)) {
       ps.executeUpdate();
@@ -33,14 +27,12 @@ public class AttackDeclaredDAO extends NewsletterSubDAO<AttackDeclaredNewsletter
       throw new RuntimeException("Failed to create player diplomacy accepted newsletter table", e);
     }
   }
-
   @Override
   public void save(AttackDeclaredNewsletter newsletter) {
     String sql =
         "INSERT INTO "
             + TABLE_NAME
             + " (id, attackingTerritoryID, defendingTerritoryID) VALUES (?, ?, ?)";
-
     try (Connection conn = dataSource.getConnection();
         var ps = conn.prepareStatement(sql)) {
       ps.setString(1, newsletter.getId().toString());
@@ -51,12 +43,10 @@ public class AttackDeclaredDAO extends NewsletterSubDAO<AttackDeclaredNewsletter
       throw new RuntimeException("Failed to save player application newsletter", e);
     }
   }
-
   @Override
   public AttackDeclaredNewsletter load(UUID id, long date) {
     String sql =
         "SELECT attackingTerritoryID, defendingTerritoryID FROM " + TABLE_NAME + " WHERE id = ?";
-
     try (Connection conn = dataSource.getConnection();
         var ps = conn.prepareStatement(sql)) {
       ps.setString(1, id.toString());
@@ -72,7 +62,6 @@ public class AttackDeclaredDAO extends NewsletterSubDAO<AttackDeclaredNewsletter
     }
     return null;
   }
-
   @Override
   public void delete(UUID id) {
     String sql = "DELETE FROM " + TABLE_NAME + " WHERE id = ?";

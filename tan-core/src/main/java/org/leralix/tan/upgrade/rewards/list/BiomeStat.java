@@ -1,5 +1,4 @@
-package org.leralix.tan.upgrade.rewards.list;
-
+﻿package org.leralix.tan.upgrade.rewards.list;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,36 +10,26 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.upgrade.rewards.AggregatableStat;
 import org.leralix.tan.upgrade.rewards.IndividualStat;
-
 public class BiomeStat extends IndividualStat implements AggregatableStat<BiomeStat> {
-
   private final List<Biome> biomes;
-
   public BiomeStat() {
     this.biomes = Collections.emptyList();
   }
-
   public BiomeStat(List<Biome> biomeKey) {
     this.biomes = new ArrayList<>(biomeKey);
   }
-
   public static BiomeStat fromStrings(List<String> biomeKey) {
-
     ArrayList<Biome> res = new ArrayList<>();
-
     for (String key : biomeKey) {
       key = key.toUpperCase().replace(" ", "_");
-
       if (key.equals("ALL")) {
         try {
           res.addAll(Arrays.asList(Biome.values()));
         } catch (IncompatibleClassChangeError ignored) {
           res.add(Biome.PLAINS);
-          // Error with MockBukkit. This allows for tests to run.
         }
         break;
       }
-
       try {
         BiomeCategory category = BiomeCategory.valueOf(key);
         res.addAll(category.getBiomes());
@@ -48,13 +37,11 @@ public class BiomeStat extends IndividualStat implements AggregatableStat<BiomeS
         try {
           res.add(Biome.valueOf(key));
         } catch (IllegalArgumentException ignored2) {
-          // Ignore invalid biome keys
         }
       }
     }
     return new BiomeStat(res);
   }
-
   @Override
   public BiomeStat aggregate(List<BiomeStat> stats) {
     List<Biome> res = new ArrayList<>();
@@ -63,16 +50,14 @@ public class BiomeStat extends IndividualStat implements AggregatableStat<BiomeS
     }
     return new BiomeStat(res);
   }
-
   @Override
   public BiomeStat scale(int factor) {
     if (factor > 0) {
       return this;
     } else {
-      return new BiomeStat(); // Level 0 => No biomes unlocked.
+      return new BiomeStat();
     }
   }
-
   @Override
   public FilledLang getStatReward(LangType langType, int level, int maxLevel) {
     String nbNewCommands = getMathSign(biomes.size());
@@ -84,18 +69,15 @@ public class BiomeStat extends IndividualStat implements AggregatableStat<BiomeS
           Lang.CHUNK_AUTHORIZED_BIOMES.get(langType), nbNewCommands);
     }
   }
-
   @Override
   public FilledLang getStatReward(LangType langType) {
     String nbNewCommands = getMathSign(biomes.size());
     return Lang.UPGRADE_LINE_INT_MAX.get(Lang.CHUNK_AUTHORIZED_BIOMES.get(langType), nbNewCommands);
   }
-
   public boolean canClaimBiome(Chunk chunk) {
     Biome biome = chunk.getWorld().getBiome(chunk.getX() << 4, 64, chunk.getZ() << 4);
     return biomes.contains(biome);
   }
-
   enum BiomeCategory {
     OCEAN(
         List.of(
@@ -143,17 +125,13 @@ public class BiomeStat extends IndividualStat implements AggregatableStat<BiomeS
             Biome.END_MIDLANDS,
             Biome.END_HIGHLANDS,
             Biome.END_BARRENS));
-
     private final List<Biome> biomes;
-
     BiomeCategory(List<Biome> biomes) {
       this.biomes = biomes;
     }
-
     public List<Biome> getBiomes() {
       return biomes;
     }
-
     public boolean contains(Biome biome) {
       return biomes.contains(biome);
     }

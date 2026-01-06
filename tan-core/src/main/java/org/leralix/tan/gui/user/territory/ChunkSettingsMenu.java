@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -16,18 +15,12 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.upgrade.rewards.bool.EnableMobBan;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class ChunkSettingsMenu extends BasicGui {
-
   private final TerritoryData territoryData;
-
   public ChunkSettingsMenu(Player player, ITanPlayer tanPlayer, TerritoryData territoryData) {
     super(player, tanPlayer, Lang.HEADER_TOWN_MENU.get(player, territoryData.getName()), 3);
     this.territoryData = territoryData;
-    // open() doit être appelé explicitement après la construction pour respecter le modèle
-    // asynchrone
   }
-
   public static void open(Player player, TerritoryData territoryData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -36,21 +29,15 @@ public class ChunkSettingsMenu extends BasicGui {
               new ChunkSettingsMenu(player, tanPlayer, territoryData).open();
             });
   }
-
   @Override
   public void open() {
-
     gui.getFiller().fillTop(GuiUtil.getUnnamedItem(Material.LIME_STAINED_GLASS_PANE));
-
     gui.setItem(2, 3, getChunkIcon());
     gui.setItem(2, 5, getChunkGeneralSettings());
     gui.setItem(2, 7, getChunkMobSpawnSettings());
-
     gui.setItem(3, 1, GuiUtil.createBackArrow(player, territoryData::openMainMenu));
-
     gui.open(player);
   }
-
   private GuiItem getChunkIcon() {
     return iconManager
         .get(IconKey.LANDS_PERMISSION_ICON)
@@ -61,7 +48,6 @@ public class ChunkSettingsMenu extends BasicGui {
         .setAction(event -> TerritoryChunkSettingsMenu.open(player, territoryData))
         .asGuiItem(player, langType);
   }
-
   private GuiItem getChunkGeneralSettings() {
     return iconManager
         .get(IconKey.GENERAL_SETTINGS_ICON)
@@ -72,7 +58,6 @@ public class ChunkSettingsMenu extends BasicGui {
         .setAction(event -> ChunkGeneralSettingsMenu.open(player, territoryData))
         .asGuiItem(player, langType);
   }
-
   private GuiItem getChunkMobSpawnSettings() {
     return iconManager
         .get(IconKey.MOBS_SPAWN_SETTINGS_ICON)

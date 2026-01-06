@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,19 +20,14 @@ import org.leralix.tan.gui.user.territory.upgrade.UpgradeMenu;
 import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public abstract class TerritoryMenu extends BasicGui {
-
   protected final TerritoryData territoryData;
-
   protected TerritoryMenu(
-      Player player, ITanPlayer tanPlayer, String name, TerritoryData territoryData) {
-    super(player, tanPlayer, name, 4);
+      Player player, ITanPlayer tanPlayer, String name, String menuKey, TerritoryData territoryData) {
+    super(player, tanPlayer, name, menuKey, 4);
     this.territoryData = territoryData;
   }
-
   protected GuiItem getTerritoryInfo() {
-
     List<FilledLang> lore = new ArrayList<>();
     lore.add(Lang.GUI_TOWN_INFO_DESC0.get(territoryData.getDescription()));
     lore.add(Lang.GUI_TOWN_INFO_DESC1.get(territoryData.getLeaderNameSync()));
@@ -48,7 +42,6 @@ public abstract class TerritoryMenu extends BasicGui {
             .orElseGet(Lang.GUI_TOWN_INFO_DESC5_NO_REGION::get));
     lore.add(Lang.GUI_TOWN_INFO_CHANGE_ICON.get());
     lore.add(Lang.RIGHT_CLICK_TO_SELECT_MEMBER_HEAD.get());
-
     return iconManager
         .get(IconKey.TERRITORY_ICON)
         .setName(Lang.GUI_TOWN_NAME.get(langType, territoryData.getName()))
@@ -61,19 +54,16 @@ public abstract class TerritoryMenu extends BasicGui {
                     player, Lang.PLAYER_NO_PERMISSION.get(langType), SoundEnum.NOT_ALLOWED);
                 return;
               }
-
               if (action.isRightClick()) {
                 SelectTerritoryHeadMenu.open(player, territoryData);
                 return;
               }
-
               if (action.getCursor() == null) {
                 return;
               }
               if (action.getCursor().getType() == Material.AIR) {
                 return;
               }
-
               ItemStack itemMaterial = action.getCursor();
               territoryData.setIcon(new CustomIcon(itemMaterial));
               TanChatUtils.message(
@@ -84,7 +74,6 @@ public abstract class TerritoryMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getLevelButton() {
     return IconManager.getInstance()
         .get(IconKey.TERRITORY_LEVEL_ICON)
@@ -95,7 +84,6 @@ public abstract class TerritoryMenu extends BasicGui {
         .setAction(event -> UpgradeMenu.open(player, territoryData))
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getTownTreasuryButton() {
     return iconManager
         .get(IconKey.TERRITORY_TREASURY_ICON)
@@ -106,7 +94,6 @@ public abstract class TerritoryMenu extends BasicGui {
         .setAction(event -> TreasuryMenu.open(player, territoryData))
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getMemberButton() {
     return iconManager
         .get(IconKey.TERRITORY_MEMBER_ICON)
@@ -115,7 +102,6 @@ public abstract class TerritoryMenu extends BasicGui {
         .setAction(event -> TerritoryMemberMenu.open(player, territoryData))
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getLandButton() {
     return iconManager
         .get(IconKey.TERRITORY_LAND_ICON)
@@ -124,7 +110,6 @@ public abstract class TerritoryMenu extends BasicGui {
         .setAction(event -> ChunkSettingsMenu.open(player, territoryData))
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getBrowseButton() {
     return iconManager
         .get(IconKey.TERRITORY_BROWSE_ICON)
@@ -142,7 +127,6 @@ public abstract class TerritoryMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getDiplomacyButton() {
     return iconManager
         .get(IconKey.TERRITORY_DIPLOMACY_ICON)
@@ -154,7 +138,6 @@ public abstract class TerritoryMenu extends BasicGui {
         .setAction(event -> OpenDiplomacyMenu.open(player, territoryData))
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getAttackButton() {
     return iconManager
         .get(IconKey.TERRITORY_WAR_ICON)
@@ -165,7 +148,6 @@ public abstract class TerritoryMenu extends BasicGui {
         .setAction(event -> WarsMenu.open(player, territoryData))
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getHierarchyButton() {
     return iconManager
         .get(IconKey.TERRITORY_HIERARCHY_ICON)
@@ -180,7 +162,6 @@ public abstract class TerritoryMenu extends BasicGui {
                     player, territoryData))
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getBuildingButton() {
     return iconManager
         .get(IconKey.TERRITORY_BUILDING_ICON)

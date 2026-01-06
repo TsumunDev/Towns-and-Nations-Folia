@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.cosmetic;
-
+﻿package org.leralix.tan.gui.cosmetic;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,38 +8,24 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.leralix.lib.utils.config.ConfigUtil;
 import org.leralix.tan.TownsAndNations;
-
-/**
- * Manages menu layouts loaded from layouts.yml.
- * Allows externalizing slot positions, rows, and filler materials.
- */
 public class LayoutManager {
-
   private static LayoutManager instance;
   private final Map<String, MenuLayout> layouts;
-
   private LayoutManager() {
     this.layouts = new HashMap<>();
-
     Plugin plugin = TownsAndNations.getPlugin();
-
-    // Ensure menu directory exists
     File menuDir = new File(plugin.getDataFolder(), "menu");
     if (!menuDir.exists()) {
       menuDir.mkdirs();
       plugin.getLogger().info("[TaN-Layout] Created menu directory: " + menuDir.getAbsolutePath());
     }
-
     File layoutFile = new File(menuDir, "layouts.yml");
-
-    // Copy default layouts.yml from resources if it doesn't exist
     if (!layoutFile.exists()) {
       try {
         plugin.saveResource("menu/layouts.yml", false);
         plugin.getLogger().info("[TaN-Layout] Extracted layouts.yml from plugin resources");
       } catch (Exception e) {
         plugin.getLogger().warning("[TaN-Layout] Could not extract layouts.yml: " + e.getMessage());
-        // Create a basic file manually
         try {
           layoutFile.createNewFile();
           java.io.FileWriter writer = new java.io.FileWriter(layoutFile);
@@ -79,18 +64,14 @@ public class LayoutManager {
         }
       }
     }
-
     plugin.getLogger().info("[TaN-Layout] Loading layouts from: " + layoutFile.getAbsolutePath());
-
     if (!layoutFile.exists()) {
       plugin.getLogger().warning("[TaN-Layout] No layouts.yml found after creation attempt!");
       return;
     }
-
     YamlConfiguration config = YamlConfiguration.loadConfiguration(layoutFile);
     int totalMenus = 0;
     int loadedMenus = 0;
-
     for (String menuKey : config.getKeys(false)) {
       totalMenus++;
       try {
@@ -105,7 +86,6 @@ public class LayoutManager {
         plugin.getLogger().warning("[TaN-Layout] ✖ Error parsing layout for menu: " + menuKey + " - " + e.getMessage());
       }
     }
-
     plugin.getLogger().info("[TaN-Layout] ════════════════════════════════════════");
     plugin.getLogger().info("[TaN-Layout] Loaded " + loadedMenus + "/" + totalMenus + " menu layouts.");
     if (loadedMenus == 0) {
@@ -113,19 +93,14 @@ public class LayoutManager {
     }
     plugin.getLogger().info("[TaN-Layout] ════════════════════════════════════════");
   }
-
   private MenuLayout parseLayout(ConfigurationSection section) {
     int rows = section.getInt("rows", 3);
     String fillerStr = section.getString("filler", "BLACK_STAINED_GLASS_PANE");
     Material filler = parseMaterial(fillerStr);
-    
-    // Parse Nexo glyph for custom GUI texture (optional)
     String glyph = section.getString("glyph", null);
     if (glyph != null && !glyph.isEmpty()) {
-      // Process escape sequences like \uE001
       glyph = processUnicodeEscapes(glyph);
     }
-
     Map<String, Integer> slots = new HashMap<>();
     ConfigurationSection slotsSection = section.getConfigurationSection("slots");
     if (slotsSection != null) {
@@ -133,23 +108,16 @@ public class LayoutManager {
         slots.put(slotKey, slotsSection.getInt(slotKey));
       }
     }
-
     return new MenuLayout(rows, filler, slots, glyph);
   }
-
-  /**
-   * Process Unicode escape sequences (backslash-u-XXXX) in glyph strings.
-   */
   private String processUnicodeEscapes(String input) {
     if (input == null || !input.contains("\\u")) {
       return input;
     }
-    
     StringBuilder result = new StringBuilder();
     int i = 0;
     while (i < input.length()) {
       if (i < input.length() - 5 && input.charAt(i) == '\\' && input.charAt(i + 1) == 'u') {
-        // Parse backslash-u-XXXX
         try {
           String hex = input.substring(i + 2, i + 6);
           int codePoint = Integer.parseInt(hex, 16);
@@ -166,10 +134,8 @@ public class LayoutManager {
     }
     return result.toString();
   }
-
   private Material parseMaterial(String value) {
     if (value == null) return Material.BLACK_STAINED_GLASS_PANE;
-
     String materialName = value.replace("minecraft:", "").toUpperCase();
     try {
       return Material.valueOf(materialName);
@@ -177,26 +143,15 @@ public class LayoutManager {
       return Material.BLACK_STAINED_GLASS_PANE;
     }
   }
-
   public static LayoutManager getInstance() {
     if (instance == null) {
       instance = new LayoutManager();
     }
     return instance;
   }
-
   public static void reload() {
     instance = new LayoutManager();
   }
-
-  /**
-   * Get the slot position for a menu element, or use the default if not configured.
-   *
-   * @param menuKey The menu identifier (e.g., "main_menu", "town_menu")
-   * @param slotKey The slot identifier (e.g., "treasury", "members")
-   * @param defaultSlot The default slot to use if not configured
-   * @return The configured slot or the default
-   */
   public int getSlotOrDefault(String menuKey, String slotKey, int defaultSlot) {
     MenuLayout layout = layouts.get(menuKey);
     if (layout == null) {
@@ -204,10 +159,6 @@ public class LayoutManager {
     }
     return layout.getSlotOrDefault(slotKey, defaultSlot);
   }
-
-  /**
-   * Get the number of rows for a menu, or use the default if not configured.
-   */
   public int getRowsOrDefault(String menuKey, int defaultRows) {
     MenuLayout layout = layouts.get(menuKey);
     if (layout == null) {
@@ -215,10 +166,6 @@ public class LayoutManager {
     }
     return layout.getRows();
   }
-
-  /**
-   * Get the filler material for a menu, or use the default if not configured.
-   */
   public Material getFillerOrDefault(String menuKey, Material defaultFiller) {
     MenuLayout layout = layouts.get(menuKey);
     if (layout == null) {
@@ -226,13 +173,6 @@ public class LayoutManager {
     }
     return layout.getFiller();
   }
-
-  /**
-   * Get the Nexo glyph for a menu, or null if not configured.
-   * 
-   * @param menuKey The menu identifier
-   * @return The glyph string with Unicode characters, or null
-   */
   public String getGlyphOrDefault(String menuKey) {
     MenuLayout layout = layouts.get(menuKey);
     if (layout == null) {
@@ -240,10 +180,6 @@ public class LayoutManager {
     }
     return layout.getGlyph();
   }
-
-  /**
-   * Check if a layout exists for the given menu.
-   */
   public boolean hasLayout(String menuKey) {
     return layouts.containsKey(menuKey);
   }

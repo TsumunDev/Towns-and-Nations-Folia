@@ -1,5 +1,4 @@
-package org.leralix.tan.commands.player;
-
+﻿package org.leralix.tan.commands.player;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +10,7 @@ import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
 import org.leralix.lib.commands.PlayerSubCommand;
 import org.leralix.lib.data.SoundEnum;
+import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.chunk.ClaimedChunk2;
 import org.leralix.tan.dataclass.chunk.TerritoryChunk;
 import org.leralix.tan.enums.ClaimAction;
@@ -20,34 +20,28 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.storage.stored.NewClaimedChunkStorage;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
+import org.leralix.tan.utils.FoliaScheduler;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class MapCommand extends PlayerSubCommand {
-
   @Override
   public String getName() {
     return "map";
   }
-
   @Override
   public String getDescription() {
     return Lang.MAP_COMMAND_DESC.getDefault();
   }
-
   public int getArguments() {
     return 1;
   }
-
   @Override
   public String getSyntax() {
-    return "/tan map";
+    return "/ccn map";
   }
-
   @Override
   public List<String> getTabCompleteSuggestions(Player player, String lowerCase, String[] args) {
     return new ArrayList<>();
   }
-
   @Override
   public void perform(Player player, String[] args) {
     if (args.length == 1) {
@@ -58,14 +52,35 @@ public class MapCommand extends PlayerSubCommand {
       openMap(player, new MapSettings(args[1], args[2]));
       return;
     }
-    LangType langType = PlayerDataStorage.getInstance().getSync(player).getLang();
-    TanChatUtils.message(player, Lang.TOO_MANY_ARGS_ERROR.get(langType), SoundEnum.NOT_ALLOWED);
-    TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
+    PlayerDataStorage.getInstance()
+        .get(player)
+        .thenAccept(
+            tanPlayer -> {
+              FoliaScheduler.runTask(
+                  TownsAndNations.getPlugin(),
+                  () -> {
+                    LangType langType = tanPlayer.getLang();
+                    TanChatUtils.message(
+                        player, Lang.TOO_MANY_ARGS_ERROR.get(langType), SoundEnum.NOT_ALLOWED);
+                    TanChatUtils.message(
+                        player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
+                  });
+            });
   }
-
   public static void openMap(Player player, MapSettings settings) {
+    PlayerDataStorage.getInstance()
+        .get(player)
+        .thenAccept(
+            tanPlayer -> {
+              FoliaScheduler.runTask(
+                  TownsAndNations.getPlugin(),
+                  () -> {
+                    renderMap(player, tanPlayer.getLang(), settings);
+                  });
+            });
+  }
+  private static void renderMap(Player player, LangType langType, MapSettings settings) {
     Chunk currentChunk = player.getLocation().getChunk();
-    LangType langType = PlayerDataStorage.getInstance().getSync(player).getLang();
     int radius = 4;
     Map<Integer, Component> text = new HashMap<>();
     Component claimType =
@@ -75,25 +90,19 @@ public class MapCommand extends PlayerSubCommand {
     text.put(-3, typeButton);
     Component actionButton = settings.getClaimTypeButton(langType);
     text.put(-2, actionButton);
-
-    // Envoi de l'en-tête
     player.sendMessage("╭─────────⟢⟐⟣─────────╮");
     for (int dz = -radius; dz <= radius; dz++) {
       Component newLine = Component.text("   ");
       for (int dx = -radius; dx <= radius; dx++) {
         int chunkX = currentChunk.getX();
         int chunkZ = currentChunk.getZ();
-
         chunkX += dx;
         chunkZ += dz;
-
         ClaimedChunk2 claimedChunk =
             NewClaimedChunkStorage.getInstance()
                 .get(chunkX, chunkZ, player.getWorld().getUID().toString());
         Component icon = claimedChunk.getMapIcon(langType);
-
         if (dx == 0 && dz == 0) {
-
           if (claimedChunk instanceof TerritoryChunk territoryChunk
               && territoryChunk.isOccupied()) {
             icon =
@@ -103,7 +112,7 @@ public class MapCommand extends PlayerSubCommand {
                         builder ->
                             builder
                                 .matchLiteral("🟧")
-                                .replacement("🟠")); // Hashed orange square emoji
+                                .replacement("🟠"));
           } else {
             icon =
                 icon.hoverEvent(icon.hoverEvent())
@@ -113,17 +122,15 @@ public class MapCommand extends PlayerSubCommand {
                             builder
                                 .match("⬛|⬜|✖")
                                 .replacement(
-                                    "🌑")); // For some reason, the only round emoji with the same
-            // size as ⬛ is this emoji
+                                    "🌑"));
           }
         }
-
         ClaimAction claimAction = settings.getClaimActionType();
         ClaimType mapType = settings.getClaimType();
         icon =
             icon.clickEvent(
                 ClickEvent.runCommand(
-                    "/tan "
+                    "/ccn "
                         + claimAction.toString().toLowerCase()
                         + " "
                         + mapType.toString().toLowerCase()

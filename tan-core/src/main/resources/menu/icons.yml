@@ -18,8 +18,9 @@
 #Main menu
 TIMEZONE_ICON_DAY: "https://textures.minecraft.net/texture/b4d7651e9deb5c2813820fed311d541119f3155eaab549d3ad52d202bc3f0e7"
 TIMEZONE_ICON_NIGHT: "https://textures.minecraft.net/texture/c00a1a7bb07fdb4e6a86e341816e8843ddaf7cf3713a3666d74b72f98619f063"
-NATION_BASE_ICON: "https://textures.minecraft.net/texture/c69196b330c6b8962f23ad5627fb6ecce472eaf5c9d44f791f6709c7d0f4dece"
-REGION_BASE_ICON: "https://textures.minecraft.net/texture/49c1832e4ef5c4ad9c519d194b1985030d257914334aaf2745c9dfd611d6d61d"
+# Nexo items - will use BARRIER if Nexo not installed or item not found
+NATION_BASE_ICON: "nexo:bouton_fleche_gauche"
+REGION_BASE_ICON: "nexo:bouton_fleche_droite"
 TOWN_BASE_ICON: "https://textures.minecraft.net/texture/63d02cdc075bb1cc5f6fe3c7711ae4977e38b910d50ed6023df73913e5e7fcff"
 PLAYER_BASE_ICON: "PLAYER_HEAD"
 #Player menu

@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -22,14 +21,11 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class AddPlayerForChunkPermission extends IteratorGUI {
-
   private final TerritoryData territoryData;
   private final ChunkPermissionType type;
   private final BasicGui backMenu;
   private final Map<String, ITanPlayer> playersData;
-
   private AddPlayerForChunkPermission(
       Player player,
       ITanPlayer tanPlayer,
@@ -43,20 +39,9 @@ public class AddPlayerForChunkPermission extends IteratorGUI {
     this.backMenu = backMenu;
     this.playersData = playersData;
   }
-
-  /**
-   * Opens the add player permission menu asynchronously.
-   *
-   * @param player The player viewing the menu
-   * @param territoryData The territory to manage permissions for
-   * @param type The type of chunk permission
-   * @param backMenu The menu to return to
-   */
   public static void open(
       Player player, TerritoryData territoryData, ChunkPermissionType type, BasicGui backMenu) {
     PlayerDataStorage storage = PlayerDataStorage.getInstance();
-
-    // Load viewer data and all online players data
     storage
         .get(player)
         .thenCompose(
@@ -65,7 +50,6 @@ public class AddPlayerForChunkPermission extends IteratorGUI {
               for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 playerFutures.add(storage.get(onlinePlayer));
               }
-
               return CompletableFuture.allOf(playerFutures.toArray(new CompletableFuture[0]))
                   .thenApply(
                       v -> {
@@ -87,27 +71,20 @@ public class AddPlayerForChunkPermission extends IteratorGUI {
                   .open();
             });
   }
-
   @Override
   public void open() {
     iterator(getPeopleToAuthorized(), p -> backMenu.open());
     gui.open(player);
   }
-
   private List<GuiItem> getPeopleToAuthorized() {
     ITanPlayer playerStat = playersData.get(player.getUniqueId().toString());
-
     List<GuiItem> guiItems = new ArrayList<>();
-
     for (Player playerToAdd : Bukkit.getOnlinePlayers()) {
-
       ITanPlayer playerToAddData = playersData.get(playerToAdd.getUniqueId().toString());
       if (territoryData.getPermission(type).isAllowed(territoryData, playerToAddData)) continue;
-
       ItemStack icon =
           HeadUtils.getPlayerHead(
               playerToAdd.getName(), playerToAdd, Lang.GUI_GENERIC_ADD_BUTTON.get(tanPlayer));
-
       GuiItem guiItem =
           ItemBuilder.from(icon)
               .asGuiItem(
@@ -126,7 +103,6 @@ public class AddPlayerForChunkPermission extends IteratorGUI {
                   });
       guiItems.add(guiItem);
     }
-
     return guiItems;
   }
 }

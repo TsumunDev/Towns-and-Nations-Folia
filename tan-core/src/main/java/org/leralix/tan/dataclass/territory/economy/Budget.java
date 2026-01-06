@@ -1,5 +1,4 @@
-package org.leralix.tan.dataclass.territory.economy;
-
+﻿package org.leralix.tan.dataclass.territory.economy;
 import dev.triumphteam.gui.guis.Gui;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -9,23 +8,17 @@ import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.utils.text.StringUtil;
-
 public class Budget {
-
   private final List<ProfitLine> profitList;
-
   public Budget() {
     profitList = new LinkedList<>();
   }
-
   public void addProfitLine(ProfitLine profitLine) {
     profitList.add(profitLine);
   }
-
   public List<FilledLang> createLore() {
     double total = 0;
     LinkedList<FilledLang> lore = new LinkedList<>();
-
     Collections.sort(profitList);
     for (ProfitLine profitLine : profitList) {
       if (profitLine.isRecurrent()) {
@@ -36,7 +29,6 @@ public class Budget {
     lore.addFirst(Lang.TOTAL_ESTIMATED_EVOLUTION.get(StringUtil.getColoredMoney(total)));
     return lore;
   }
-
   public void createGui(Gui gui, Player player, LangType langType) {
     for (ProfitLine profitLine : profitList) {
       profitLine.addItems(gui, player, langType);

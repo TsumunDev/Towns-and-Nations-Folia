@@ -1,12 +1,9 @@
-package org.leralix.tan.storage.stored;
-
+﻿package org.leralix.tan.storage.stored;
 import com.google.gson.*;
 import java.lang.reflect.Type;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.PlayerData;
-
 public class ITanPlayerAdapter implements JsonSerializer<ITanPlayer>, JsonDeserializer<ITanPlayer> {
-
   @Override
   public ITanPlayer deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
       throws JsonParseException {
@@ -17,7 +14,6 @@ public class ITanPlayerAdapter implements JsonSerializer<ITanPlayer>, JsonDeseri
     }
     return playerData;
   }
-
   @Override
   public JsonElement serialize(ITanPlayer src, Type typeOfSrc, JsonSerializationContext context) {
     JsonObject jsonObject = context.serialize(src, src.getClass()).getAsJsonObject();

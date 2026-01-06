@@ -1,5 +1,4 @@
-package org.leralix.tan.events.newsletter.dao;
-
+﻿package org.leralix.tan.events.newsletter.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,15 +6,11 @@ import java.sql.SQLException;
 import java.util.UUID;
 import javax.sql.DataSource;
 import org.leralix.tan.events.newsletter.news.PlayerJoinTownNews;
-
 public class PlayerJoinTownDAO extends NewsletterSubDAO<PlayerJoinTownNews> {
-
   private static final String TABLE_NAME = "player_join_town_newsletter";
-
   public PlayerJoinTownDAO(DataSource connection) {
     super(connection);
   }
-
   @Override
   protected void createTableIfNotExists() {
     String sql =
@@ -33,7 +28,6 @@ public class PlayerJoinTownDAO extends NewsletterSubDAO<PlayerJoinTownNews> {
       throw new RuntimeException("Failed to create table " + TABLE_NAME, e);
     }
   }
-
   @Override
   public void save(PlayerJoinTownNews newsletter) {
     String sql = "INSERT INTO " + TABLE_NAME + " (id, playerID, townID) VALUES (?, ?, ?)";
@@ -47,7 +41,6 @@ public class PlayerJoinTownDAO extends NewsletterSubDAO<PlayerJoinTownNews> {
       throw new RuntimeException("Failed to save to table " + TABLE_NAME, e);
     }
   }
-
   @Override
   public PlayerJoinTownNews load(UUID id, long date) {
     String sql = "SELECT playerID, townID FROM " + TABLE_NAME + " WHERE id = ?";
@@ -66,7 +59,6 @@ public class PlayerJoinTownDAO extends NewsletterSubDAO<PlayerJoinTownNews> {
     }
     return null;
   }
-
   @Override
   public void delete(UUID id) {
     String sql = "DELETE FROM " + TABLE_NAME + " WHERE id = ?";

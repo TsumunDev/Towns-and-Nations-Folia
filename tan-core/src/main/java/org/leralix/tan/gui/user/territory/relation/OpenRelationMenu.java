@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory.relation;
-
+﻿package org.leralix.tan.gui.user.territory.relation;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -22,12 +21,9 @@ import org.leralix.tan.storage.stored.WarStorage;
 import org.leralix.tan.utils.gameplay.TerritoryUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.leralix.tan.wars.War;
-
 public class OpenRelationMenu extends IteratorGUI {
-
   private final TerritoryData territoryData;
   private final TownRelation relation;
-
   private OpenRelationMenu(
       Player player, ITanPlayer tanPlayer, TerritoryData territoryData, TownRelation relation) {
     super(
@@ -38,7 +34,6 @@ public class OpenRelationMenu extends IteratorGUI {
     this.territoryData = territoryData;
     this.relation = relation;
   }
-
   public static void open(Player player, TerritoryData territoryData, TownRelation relation) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -47,18 +42,13 @@ public class OpenRelationMenu extends IteratorGUI {
               new OpenRelationMenu(player, tanPlayer, territoryData, relation).open();
             });
   }
-
   @Override
   public void open() {
-
     iterator(getTerritories(), p -> OpenDiplomacyMenu.open(p, territoryData));
-
     gui.setItem(6, 4, getRemoveTerritoryButton());
     gui.setItem(6, 5, getAddTerritoryButton());
-
     gui.open(player);
   }
-
   private GuiItem getRemoveTerritoryButton() {
     return iconManager
         .get(IconKey.GUI_REMOVE_TERRITORY_ICON)
@@ -74,7 +64,6 @@ public class OpenRelationMenu extends IteratorGUI {
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getAddTerritoryButton() {
     return iconManager
         .get(IconKey.GUI_ADD_TERRITORY_ICON)
@@ -90,15 +79,12 @@ public class OpenRelationMenu extends IteratorGUI {
             })
         .asGuiItem(player, langType);
   }
-
   private List<GuiItem> getTerritories() {
     ArrayList<GuiItem> guiItems = new ArrayList<>();
     for (String territoryID : territoryData.getRelations().getTerritoriesIDWithRelation(relation)) {
-
       TerritoryData otherTerritory = TerritoryUtil.getTerritory(territoryID);
       ItemStack icon =
           otherTerritory.getIconWithInformationAndRelation(territoryData, tanPlayer.getLang());
-
       if (relation == TownRelation.WAR) {
         ItemMeta meta = icon.getItemMeta();
         assert meta != null;
@@ -108,13 +94,11 @@ public class OpenRelationMenu extends IteratorGUI {
         meta.setLore(lore);
         icon.setItemMeta(meta);
       }
-
       GuiItem townButton =
           ItemBuilder.from(icon)
               .asGuiItem(
                   event -> {
                     event.setCancelled(true);
-
                     if (relation == TownRelation.WAR && event.isRightClick()) {
                       WarStorage warStorage = WarStorage.getInstance();
                       if (warStorage.isTerritoryAtWarWith(territoryData, otherTerritory)) {
@@ -123,7 +107,6 @@ public class OpenRelationMenu extends IteratorGUI {
                         SoundUtil.playSound(player, SoundEnum.NOT_ALLOWED);
                         return;
                       }
-
                       territoryData.broadcastMessageWithSound(
                           Lang.GUI_WAR_DECLARED.get(
                               territoryData.getColoredName(), otherTerritory.getColoredName()),

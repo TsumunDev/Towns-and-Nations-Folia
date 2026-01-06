@@ -44,7 +44,7 @@ class ClaimCommandTest {
 
   @Test
   void getSyntax_returnsCorrectSyntax() {
-    assertEquals("/tan claim <town/region>", claimCommand.getSyntax());
+    assertEquals("/ccn claim <town/region>", claimCommand.getSyntax());
   }
 
   @Test

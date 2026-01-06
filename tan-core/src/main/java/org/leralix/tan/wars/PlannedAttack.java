@@ -1,5 +1,4 @@
-package org.leralix.tan.wars;
-
+﻿package org.leralix.tan.wars;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import java.time.Instant;
 import java.util.*;
@@ -29,81 +28,52 @@ import org.leralix.tan.wars.capture.CaptureManager;
 import org.leralix.tan.wars.legacy.CreateAttackData;
 import org.leralix.tan.wars.legacy.CurrentAttack;
 import org.leralix.tan.wars.legacy.WarRole;
-
 public class PlannedAttack {
-
   private final String ID;
   private String name;
   private final Collection<String> defendersID;
   private final Collection<String> attackersID;
-
-  /** The start time of the war, in milliseconds since January 1, 1970 */
   final long startTime;
-
-  /** The end time of the war, in milliseconds since January 1, 1970 */
   private final long endTime;
-
   private final War war;
   private final WarRole warRole;
-
   private transient ScheduledTask warStartTask;
   private transient ScheduledTask warWarningTask;
-
   boolean isAdminApproved;
-
-  /**
-   * Constructor for a Planned attack
-   *
-   * @param id The ID of the attack
-   * @param createAttackData Data related to the attack and its war.
-   */
   public PlannedAttack(String id, CreateAttackData createAttackData) {
     this.ID = id;
-
     this.war = createAttackData.getWar();
     this.warRole = createAttackData.getAttackingSide();
-
     this.name =
         Lang.BASIC_ATTACK_NAME.get(
             Lang.getServerLang(), war.getMainAttacker().getName(), war.getMainDefender().getName());
-
     this.isAdminApproved =
         !ConfigUtil.getCustomConfig(ConfigTag.MAIN).getBoolean("AdminApproval", false);
-
     this.attackersID = new ArrayList<>();
     this.attackersID.add(war.getMainAttackerID());
     this.defendersID = new ArrayList<>();
     this.defendersID.add(war.getMainDefenderID());
-
     this.startTime = new Date().getTime() + (long) createAttackData.getSelectedTime() * 60 * 1000;
     this.endTime = this.startTime + Constants.getAttackDuration() * 60 * 1000;
-
     war.getMainDefender().addPlannedAttack(this);
     war.getMainAttacker().addPlannedAttack(this);
-
     setUpStartOfAttack();
   }
-
   public String getID() {
     return ID;
   }
-
   public String getName() {
     return name;
   }
-
   public War getWar() {
     return war;
   }
-
   public boolean isAdminApproved() {
     return isAdminApproved;
   }
-
   public void setAdminApproved(boolean isAdminApproved) {
     this.isAdminApproved = isAdminApproved;
   }
-
   public Collection<ITanPlayer> getDefendingPlayers() {
     Collection<ITanPlayer> defenders = new ArrayList<>();
     for (TerritoryData defendingTerritory : getDefendingTerritories()) {
@@ -111,7 +81,6 @@ public class PlannedAttack {
     }
     return defenders;
   }
-
   public Collection<ITanPlayer> getAttackersPlayers() {
     Collection<ITanPlayer> defenders = new ArrayList<>();
     for (TerritoryData attackingTerritory : getAttackingTerritories()) {
@@ -119,7 +88,6 @@ public class PlannedAttack {
     }
     return defenders;
   }
-
   public Collection<TerritoryData> getDefendingTerritories() {
     Collection<TerritoryData> defenders = new ArrayList<>();
     for (String defenderID : defendersID) {
@@ -127,7 +95,6 @@ public class PlannedAttack {
     }
     return defenders;
   }
-
   public Collection<TerritoryData> getAttackingTerritories() {
     Collection<TerritoryData> attackers = new ArrayList<>();
     for (String attackerID : attackersID) {
@@ -135,7 +102,6 @@ public class PlannedAttack {
     }
     return attackers;
   }
-
   public void broadCastMessageWithSound(FilledLang message, SoundEnum soundEnum) {
     Collection<TerritoryData> territoryData = getAttackingTerritories();
     territoryData.addAll(getDefendingTerritories());
@@ -143,23 +109,17 @@ public class PlannedAttack {
       territory.broadcastMessageWithSound(message, soundEnum);
     }
   }
-
   public void setUpStartOfAttack() {
-
-    // Convesion to ticks
     long currentTime = new Date().getTime();
     long timeLeftBeforeStart = (long) ((startTime - currentTime) * 0.02);
-    long timeLeftBeforeWarning = timeLeftBeforeStart - 1200; // Warning 1 minute before
-
+    long timeLeftBeforeWarning = timeLeftBeforeStart - 1200;
     if (timeLeftBeforeStart <= 0) {
       startWar(startTime - timeLeftBeforeStart);
       return;
     }
-
     warStartTask =
         org.leralix.tan.utils.FoliaScheduler.runTaskLater(
             TownsAndNations.getPlugin(), () -> startWar(startTime), timeLeftBeforeStart);
-
     if (timeLeftBeforeWarning > 0) {
       warWarningTask =
           org.leralix.tan.utils.FoliaScheduler.runTaskLater(
@@ -170,25 +130,19 @@ public class PlannedAttack {
               timeLeftBeforeWarning);
     }
   }
-
   void startWar(long startTime) {
     broadCastMessageWithSound(Lang.ATTACK_START_NOW.get(name), SoundEnum.WAR);
     CurrentAttacksStorage.startAttack(this, startTime, endTime);
   }
-
   public void addDefender(TerritoryData territory) {
     defendersID.add(territory.getID());
   }
-
   public void addAttacker(TerritoryData territoryData) {
     attackersID.add(territoryData.getID());
   }
-
   public ItemStack getAdminIcon(LangType langType) {
-
     long startDate = startTime - new Date().getTime() / 50;
     long attackDuration = endTime - startTime;
-
     ItemStack itemStack = new ItemStack(Material.IRON_SWORD);
     ItemMeta itemMeta = itemStack.getItemMeta();
     if (itemMeta != null) {
@@ -214,16 +168,13 @@ public class PlannedAttack {
     itemStack.setItemMeta(itemMeta);
     return itemStack;
   }
-
   public ItemStack getIcon(ITanPlayer tanPlayer, TerritoryData territoryConcerned) {
-
     long startDate = startTime - new Date().getTime() / 50;
     long attackDuration = endTime - startTime;
     FilledLang exactTimeStart =
         TimeZoneManager.getInstance()
             .formatDateForPlayer(tanPlayer, Instant.ofEpochSecond(startTime / 20));
     LangType langType = tanPlayer.getLang();
-
     ItemStack itemStack = new ItemStack(Material.IRON_SWORD);
     ItemMeta itemMeta = itemStack.getItemMeta();
     if (itemMeta != null) {
@@ -241,21 +192,17 @@ public class PlannedAttack {
       lore.add(
           Lang.ATTACK_ICON_DESC_8.get(
               langType, getTerritoryRole(territoryConcerned).getName(langType)));
-
       org.leralix.tan.utils.text.ComponentUtil.setLore(itemMeta, lore);
     }
     itemStack.setItemMeta(itemMeta);
     return itemStack;
   }
-
   private int getNumberOfAttackers() {
     return attackersID.size();
   }
-
   private int getNumberOfDefenders() {
     return defendersID.size();
   }
-
   public void end() {
     if (warStartTask != null) {
       warStartTask.cancel();
@@ -263,10 +210,7 @@ public class PlannedAttack {
     if (warWarningTask != null) {
       warWarningTask.cancel();
     }
-
-    // All chunks captured due to the war are now released
     CaptureManager.getInstance().removeCapture(this);
-
     CurrentAttack currentAttack = CurrentAttacksStorage.get(ID);
     if (currentAttack != null) {
       currentAttack.end();
@@ -279,15 +223,12 @@ public class PlannedAttack {
     }
     PlannedAttackStorage.getInstance().delete(this);
   }
-
   private boolean isSecondaryAttacker(TerritoryData territoryConcerned) {
     return attackersID.contains(territoryConcerned.getID());
   }
-
   private boolean isSecondaryDefender(TerritoryData territoryConcerned) {
     return defendersID.contains(territoryConcerned.getID());
   }
-
   public WarRole getRole(ITanPlayer player) {
     List<TerritoryData> territories = player.getAllTerritoriesPlayerIsInSync();
     if (territories == null) return WarRole.NEUTRAL;
@@ -299,7 +240,6 @@ public class PlannedAttack {
     }
     return WarRole.NEUTRAL;
   }
-
   public WarRole getTerritoryRole(TerritoryData territory) {
     if (war.isMainAttacker(territory)) return WarRole.MAIN_ATTACKER;
     if (war.isMainDefender(territory)) return WarRole.MAIN_DEFENDER;
@@ -307,14 +247,11 @@ public class PlannedAttack {
     if (isSecondaryDefender(territory)) return WarRole.OTHER_DEFENDER;
     return WarRole.NEUTRAL;
   }
-
   public void removeBelligerent(TerritoryData territory) {
     String territoryID = territory.getID();
-    // no need to check, it only removes if it is a part of it
     attackersID.remove(territoryID);
     defendersID.remove(territoryID);
   }
-
   public void territorySurrendered() {
     EventManager.getInstance()
         .callEvent(
@@ -323,7 +260,6 @@ public class PlannedAttack {
     war.territorySurrender(warRole);
     end();
   }
-
   public ItemStack getAttackingIcon(LangType langType) {
     ItemStack itemStack = new ItemStack(Material.IRON_HELMET);
     ItemMeta itemMeta = itemStack.getItemMeta();
@@ -338,7 +274,6 @@ public class PlannedAttack {
     itemStack.setItemMeta(itemMeta);
     return itemStack;
   }
-
   public ItemStack getDefendingIcon(LangType langType) {
     ItemStack itemStack = new ItemStack(Material.DIAMOND_HELMET);
     ItemMeta itemMeta = itemStack.getItemMeta();
@@ -353,17 +288,14 @@ public class PlannedAttack {
     itemStack.setItemMeta(itemMeta);
     return itemStack;
   }
-
   public void rename(String message) {
     this.name = message;
   }
-
   public List<OfflinePlayer> getAllOfflinePlayers() {
     List<ITanPlayer> res = new ArrayList<>(getDefendingPlayers());
     res.addAll(getAttackersPlayers());
     return res.stream().map(ITanPlayer::getOfflinePlayer).filter(Objects::nonNull).toList();
   }
-
   public List<Player> getAllOnlinePlayers() {
     return getAllOfflinePlayers().stream()
         .map(OfflinePlayer::getPlayer)

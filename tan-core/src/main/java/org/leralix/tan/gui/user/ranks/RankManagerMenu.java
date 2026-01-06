@@ -1,7 +1,5 @@
-package org.leralix.tan.gui.user.ranks;
-
+﻿package org.leralix.tan.gui.user.ranks;
 import static org.leralix.lib.data.SoundEnum.*;
-
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,12 +22,9 @@ import org.leralix.tan.listeners.chat.events.RenameRank;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class RankManagerMenu extends BasicGui {
-
   private final TerritoryData territoryData;
   private final RankData rankData;
-
   private RankManagerMenu(
       Player player, ITanPlayer tanPlayer, TerritoryData territoryData, RankData rankData) {
     super(
@@ -40,7 +35,6 @@ public class RankManagerMenu extends BasicGui {
     this.territoryData = territoryData;
     this.rankData = rankData;
   }
-
   public static void open(Player player, TerritoryData territoryData, RankData rankData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -49,43 +43,32 @@ public class RankManagerMenu extends BasicGui {
               new RankManagerMenu(player, tanPlayer, territoryData, rankData).open();
             });
   }
-
   @Override
   public void open() {
-
     fillTopLayer(rankData.getRankEnum().getRankColorGuiIcon());
-
     gui.setItem(1, 5, getRankIcon());
-
     gui.setItem(2, 2, getRankLevel());
     gui.setItem(2, 3, getAddPlayerButton());
     gui.setItem(2, 4, getManagePermissionIcon());
-
     gui.setItem(2, 6, lowerSalaryButton());
     gui.setItem(2, 7, getSalaryIcon());
     gui.setItem(2, 8, increaseSalaryButton());
-
     gui.setItem(3, 2, getRenameRankButton());
     gui.setItem(3, 3, getPayTaxRankButton());
     gui.setItem(3, 4, getDefaultRankButton());
-
     gui.setItem(3, 6, deleteRankIcon());
-
     gui.setItem(
         4, 1, GuiUtil.createBackArrow(player, p -> TerritoryRanksMenu.open(p, territoryData)));
     gui.open(player);
   }
-
   private void fillTopLayer(GuiItem rankColorGuiIcon) {
     for (int i = 0; i <= 8; i++) {
       gui.setItem(i, rankColorGuiIcon);
     }
   }
-
   private GuiItem deleteRankIcon() {
     boolean isEmpty = rankData.getPlayersID().isEmpty();
     boolean isDefaultRank = Objects.equals(rankData.getID(), territoryData.getDefaultRankID());
-
     return iconManager
         .get(IconKey.DELETE_RANK_ICON)
         .setName(Lang.GUI_TOWN_MEMBERS_ROLE_DELETE.get(tanPlayer))
@@ -112,14 +95,11 @@ public class RankManagerMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getDefaultRankButton() {
     boolean isDefaultRank = Objects.equals(rankData.getID(), territoryData.getDefaultRankID());
-
     List<FilledLang> description = new ArrayList<>();
     description.add(Lang.GUI_TOWN_MEMBERS_ROLE_SET_DEFAULT1.get());
     if (isDefaultRank) description.add(Lang.GUI_TOWN_MEMBERS_ROLE_SET_DEFAULT2.get());
-
     return iconManager
         .get(IconKey.SET_DEFAULT_ROLE_ICON)
         .setName(
@@ -142,7 +122,6 @@ public class RankManagerMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getPayTaxRankButton() {
     return iconManager
         .get(IconKey.PAY_TAXES_ICON)
@@ -160,7 +139,6 @@ public class RankManagerMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getRenameRankButton() {
     return iconManager
         .get(IconKey.RENAME_RANK_ICON)
@@ -173,7 +151,6 @@ public class RankManagerMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem increaseSalaryButton() {
     return iconManager
         .get(IconKey.INCREASE_SALARY_ICON)
@@ -182,14 +159,12 @@ public class RankManagerMenu extends BasicGui {
         .setAction(
             event -> {
               int amountToAdd = event.isShiftClick() ? 10 : 1;
-
               rankData.addFromSalary(amountToAdd);
               SoundUtil.playSound(player, ADD);
               open();
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getSalaryIcon() {
     return iconManager
         .get(IconKey.CURRENT_SALARY_ICON)
@@ -198,7 +173,6 @@ public class RankManagerMenu extends BasicGui {
             Lang.GUI_TOWN_MEMBERS_ROLE_SALARY_DESC1.get(Integer.toString(rankData.getSalary())))
         .asGuiItem(player, langType);
   }
-
   private GuiItem lowerSalaryButton() {
     return iconManager
         .get(IconKey.DECREASE_SALARY_ICON)
@@ -208,7 +182,6 @@ public class RankManagerMenu extends BasicGui {
             event -> {
               int currentSalary = rankData.getSalary();
               int amountToRemove = event.isShiftClick() && currentSalary >= 10 ? 10 : 1;
-
               if (currentSalary <= 0) {
                 TanChatUtils.message(
                     player,
@@ -216,14 +189,12 @@ public class RankManagerMenu extends BasicGui {
                     NOT_ALLOWED);
                 return;
               }
-
               rankData.removeFromSalary(amountToRemove);
               SoundUtil.playSound(player, REMOVE);
               open();
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getManagePermissionIcon() {
     return iconManager
         .get(IconKey.MANAGE_PERMISSION_ICON)
@@ -231,7 +202,6 @@ public class RankManagerMenu extends BasicGui {
         .setAction(event -> ManageRankPermissionMenu.open(player, territoryData, rankData))
         .asGuiItem(player, langType);
   }
-
   private GuiItem getRankLevel() {
     RankEnum rankEnum = rankData.getRankEnum();
     return iconManager
@@ -249,7 +219,6 @@ public class RankManagerMenu extends BasicGui {
               boolean isLeader = territoryData.isLeader(player);
               boolean isInferiorOrEquals =
                   playerRank.getRankEnum().getLevel() <= (rankData.getRankEnum().getLevel() + 1);
-
               if (isInferiorOrEquals && !isLeader) {
                 TanChatUtils.message(
                     player,
@@ -257,7 +226,6 @@ public class RankManagerMenu extends BasicGui {
                         tanPlayer, playerRank.getColoredName()));
                 return;
               }
-
               if (event.isLeftClick()) {
                 rankData.incrementLevel();
                 SoundUtil.playSound(player, ADD);
@@ -269,9 +237,7 @@ public class RankManagerMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getRankIcon() {
-
     return iconManager
         .get(rankData.getRankIcon())
         .setName(Lang.GUI_BASIC_NAME.get(tanPlayer, rankData.getColoredName()))
@@ -291,17 +257,13 @@ public class RankManagerMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getAddPlayerButton() {
-
     List<FilledLang> description = new ArrayList<>();
-
     for (ITanPlayer tanPlayer : rankData.getPlayers()) {
       description.add(
           Lang.GUI_TOWN_MEMBERS_ROLE_MEMBER_LIST_INFO_DESC.get(tanPlayer.getNameStored()));
     }
     description.add(Lang.GUI_TOWN_MEMBERS_ROLE_MEMBER_LIST_INFO_DESC1.get());
-
     return iconManager
         .get(IconKey.PLAYER_LIST_ICON)
         .setName(Lang.GUI_TOWN_MEMBERS_ROLE_MEMBER_LIST_INFO.get(tanPlayer))

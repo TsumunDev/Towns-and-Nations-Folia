@@ -1,5 +1,4 @@
-package org.leralix.tan.events.newsletter.dao;
-
+﻿package org.leralix.tan.events.newsletter.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,15 +6,11 @@ import java.sql.SQLException;
 import java.util.UUID;
 import javax.sql.DataSource;
 import org.leralix.tan.events.newsletter.news.TerritoryVassalAcceptedNews;
-
 public class TerritoryVassalAcceptedDAO extends NewsletterSubDAO<TerritoryVassalAcceptedNews> {
-
   private static final String TABLE_NAME = "territory_vassal_accepted_newsletter";
-
   public TerritoryVassalAcceptedDAO(DataSource connection) {
     super(connection);
   }
-
   @Override
   protected void createTableIfNotExists() {
     String sql =
@@ -33,7 +28,6 @@ public class TerritoryVassalAcceptedDAO extends NewsletterSubDAO<TerritoryVassal
       throw new RuntimeException("Failed to create table " + TABLE_NAME, e);
     }
   }
-
   @Override
   public void save(TerritoryVassalAcceptedNews newsletter) {
     String sql =
@@ -50,7 +44,6 @@ public class TerritoryVassalAcceptedDAO extends NewsletterSubDAO<TerritoryVassal
       throw new RuntimeException("Failed to save to table " + TABLE_NAME, e);
     }
   }
-
   @Override
   public TerritoryVassalAcceptedNews load(UUID id, long date) {
     String sql =
@@ -71,7 +64,6 @@ public class TerritoryVassalAcceptedDAO extends NewsletterSubDAO<TerritoryVassal
     }
     return null;
   }
-
   @Override
   public void delete(UUID id) {
     String sql = "DELETE FROM " + TABLE_NAME + " WHERE id = ?";

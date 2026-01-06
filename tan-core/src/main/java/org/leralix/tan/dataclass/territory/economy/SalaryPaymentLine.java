@@ -1,5 +1,4 @@
-package org.leralix.tan.dataclass.territory.economy;
-
+﻿package org.leralix.tan.dataclass.territory.economy;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
@@ -14,29 +13,23 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.StringUtil;
-
 public class SalaryPaymentLine extends ProfitLine {
   double totalSalaries;
-
   public SalaryPaymentLine(TerritoryData territoryData) {
     super(territoryData);
     totalSalaries = 0;
-
     for (RankData rankData : territoryData.getAllRanks()) {
       totalSalaries -= rankData.getSalary() * rankData.getPlayersID().size();
     }
   }
-
   @Override
   protected double getMoney() {
     return totalSalaries;
   }
-
   @Override
   public FilledLang getLine() {
     return Lang.PLAYER_SALARY_LINE.get(StringUtil.getColoredMoney(getMoney()));
   }
-
   @Override
   public void addItems(Gui gui, Player player, LangType lang) {
     ItemStack salarySpending =
@@ -55,7 +48,6 @@ public class SalaryPaymentLine extends ProfitLine {
                 });
     gui.setItem(2, 6, salaryHistoryButton);
   }
-
   @Override
   public boolean isRecurrent() {
     return true;

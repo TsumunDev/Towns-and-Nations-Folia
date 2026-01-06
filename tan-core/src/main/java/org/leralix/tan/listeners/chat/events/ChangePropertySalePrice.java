@@ -1,5 +1,4 @@
-package org.leralix.tan.listeners.chat.events;
-
+﻿package org.leralix.tan.listeners.chat.events;
 import java.util.function.Consumer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -7,17 +6,13 @@ import org.leralix.tan.dataclass.PropertyData;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.listeners.chat.ChatListenerEvent;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class ChangePropertySalePrice extends ChatListenerEvent {
-
   private final PropertyData propertyData;
   private final Consumer<Player> guiCallback;
-
   public ChangePropertySalePrice(@NotNull PropertyData propertyData, Consumer<Player> guiCallback) {
     this.propertyData = propertyData;
     this.guiCallback = guiCallback;
   }
-
   @Override
   public boolean execute(Player player, String message) {
     int amount;

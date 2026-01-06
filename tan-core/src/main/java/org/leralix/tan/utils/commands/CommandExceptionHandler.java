@@ -1,5 +1,4 @@
-package org.leralix.tan.utils.commands;
-
+﻿package org.leralix.tan.utils.commands;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.bukkit.Bukkit;
@@ -13,35 +12,11 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-/**
- * Utility class for handling exceptions in commands with proper error messages and logging.
- *
- * <p>This class provides standardized exception handling patterns for command execution, including:
- *
- * <ul>
- *   <li>Number parsing with error messages
- *   <li>Player lookups with error handling
- *   <li>Safe execution wrappers
- *   <li>Logging of command errors
- * </ul>
- */
 public class CommandExceptionHandler {
-
   private static final Logger logger = LoggerFactory.getLogger(CommandExceptionHandler.class);
-
   private CommandExceptionHandler() {
     throw new IllegalStateException("Utility class");
   }
-
-  /**
-   * Safely parses an integer from a string with error handling.
-   *
-   * @param sender The command sender to send error messages to
-   * @param value The string value to parse
-   * @param paramName The parameter name for error messages (e.g., "amount", "x coordinate")
-   * @return Optional containing the parsed integer, or empty if parsing failed
-   */
   public static Optional<Integer> parseInt(CommandSender sender, String value, String paramName) {
     try {
       return Optional.of(Integer.parseInt(value));
@@ -55,15 +30,6 @@ public class CommandExceptionHandler {
       return Optional.empty();
     }
   }
-
-  /**
-   * Safely parses a double from a string with error handling.
-   *
-   * @param sender The command sender to send error messages to
-   * @param value The string value to parse
-   * @param paramName The parameter name for error messages (e.g., "amount", "balance")
-   * @return Optional containing the parsed double, or empty if parsing failed
-   */
   public static Optional<Double> parseDouble(CommandSender sender, String value, String paramName) {
     try {
       return Optional.of(Double.parseDouble(value));
@@ -77,25 +43,14 @@ public class CommandExceptionHandler {
       return Optional.empty();
     }
   }
-
-  /**
-   * Safely looks up a player by name.
-   *
-   * @param sender The command sender to send error messages to
-   * @param playerName The name of the player to look up
-   * @return Optional containing the OfflinePlayer, or empty if player not found
-   */
   public static Optional<OfflinePlayer> findPlayer(CommandSender sender, String playerName) {
     try {
       OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerName);
-
-      // Check if player has ever played (exists in server records)
       if (offlinePlayer.getName() == null && !offlinePlayer.hasPlayedBefore()) {
         TanChatUtils.message(sender, Lang.PLAYER_NOT_FOUND, SoundEnum.NOT_ALLOWED);
         logger.debug("Player not found: {} (Command sender: {})", playerName, sender.getName());
         return Optional.empty();
       }
-
       return Optional.of(offlinePlayer);
     } catch (Exception e) {
       TanChatUtils.message(sender, Lang.PLAYER_NOT_FOUND, SoundEnum.NOT_ALLOWED);
@@ -107,14 +62,6 @@ public class CommandExceptionHandler {
       return Optional.empty();
     }
   }
-
-  /**
-   * Safely retrieves TAN player data synchronously.
-   *
-   * @param sender The command sender to send error messages to
-   * @param offlinePlayer The offline player to get data for
-   * @return Optional containing the ITanPlayer, or empty if retrieval failed
-   */
   public static Optional<ITanPlayer> getTanPlayer(
       CommandSender sender, OfflinePlayer offlinePlayer) {
     try {
@@ -138,15 +85,6 @@ public class CommandExceptionHandler {
       return Optional.empty();
     }
   }
-
-  /**
-   * Safely executes a command operation with exception handling.
-   *
-   * @param sender The command sender
-   * @param operation The operation to execute
-   * @param errorMessage Custom error message to display on failure (null for default)
-   * @return true if operation succeeded, false otherwise
-   */
   public static boolean safeExecute(
       CommandSender sender, Supplier<Boolean> operation, Lang errorMessage) {
     try {
@@ -161,16 +99,6 @@ public class CommandExceptionHandler {
       return false;
     }
   }
-
-  /**
-   * Validates that a command has the required number of arguments.
-   *
-   * @param sender The command sender to send error messages to
-   * @param args The command arguments
-   * @param expected The expected number of arguments
-   * @param syntax The correct syntax string to display
-   * @return true if validation passed, false otherwise
-   */
   public static boolean validateArgCount(
       CommandSender sender, String[] args, int expected, String syntax) {
     if (args.length < expected) {
@@ -184,16 +112,6 @@ public class CommandExceptionHandler {
     }
     return true;
   }
-
-  /**
-   * Validates that a command has at least the minimum number of arguments.
-   *
-   * @param sender The command sender to send error messages to
-   * @param args The command arguments
-   * @param minimum The minimum number of arguments required
-   * @param syntax The correct syntax string to display
-   * @return true if validation passed, false otherwise
-   */
   public static boolean validateMinArgCount(
       CommandSender sender, String[] args, int minimum, String syntax) {
     if (args.length < minimum) {
@@ -203,16 +121,6 @@ public class CommandExceptionHandler {
     }
     return true;
   }
-
-  /**
-   * Validates that a command has at most the maximum number of arguments.
-   *
-   * @param sender The command sender to send error messages to
-   * @param args The command arguments
-   * @param maximum The maximum number of arguments allowed
-   * @param syntax The correct syntax string to display
-   * @return true if validation passed, false otherwise
-   */
   public static boolean validateMaxArgCount(
       CommandSender sender, String[] args, int maximum, String syntax) {
     if (args.length > maximum) {
@@ -222,17 +130,6 @@ public class CommandExceptionHandler {
     }
     return true;
   }
-
-  /**
-   * Validates that a command has arguments within a range.
-   *
-   * @param sender The command sender to send error messages to
-   * @param args The command arguments
-   * @param min The minimum number of arguments required
-   * @param max The maximum number of arguments allowed
-   * @param syntax The correct syntax string to display
-   * @return true if validation passed, false otherwise
-   */
   public static boolean validateArgCountRange(
       CommandSender sender, String[] args, int min, int max, String syntax) {
     if (args.length < min) {
@@ -246,13 +143,6 @@ public class CommandExceptionHandler {
     }
     return true;
   }
-
-  /**
-   * Validates that a player sender is online.
-   *
-   * @param sender The command sender
-   * @return Optional containing the Player if online, or empty otherwise
-   */
   public static Optional<Player> requirePlayer(CommandSender sender) {
     if (sender instanceof Player player) {
       return Optional.of(player);
@@ -260,14 +150,6 @@ public class CommandExceptionHandler {
     sender.sendMessage("This command can only be executed by a player.");
     return Optional.empty();
   }
-
-  /**
-   * Logs a command execution for debugging purposes.
-   *
-   * @param sender The command sender
-   * @param commandName The command name
-   * @param args The command arguments
-   */
   public static void logCommandExecution(CommandSender sender, String commandName, String[] args) {
     if (logger.isDebugEnabled()) {
       logger.debug(

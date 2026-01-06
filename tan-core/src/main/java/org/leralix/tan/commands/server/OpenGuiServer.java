@@ -1,5 +1,4 @@
-package org.leralix.tan.commands.server;
-
+﻿package org.leralix.tan.commands.server;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -9,29 +8,23 @@ import org.leralix.lib.commands.SubCommand;
 import org.leralix.tan.gui.user.MainMenu;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 class OpenGuiServer extends SubCommand {
-
   @Override
   public String getName() {
     return "gui";
   }
-
   @Override
   public String getDescription() {
     return Lang.OPEN_GUI_SERVER_DESC.getDefault();
   }
-
   @Override
   public int getArguments() {
     return 2;
   }
-
   @Override
   public String getSyntax() {
-    return "/tanserver gui <player_username>";
+    return "/ccnserver gui <player_username>";
   }
-
   @Override
   public List<String> getTabCompleteSuggestions(
       CommandSender player, String currentMessage, String[] args) {
@@ -40,7 +33,6 @@ class OpenGuiServer extends SubCommand {
     }
     return Collections.emptyList();
   }
-
   @Override
   public void perform(CommandSender commandSender, String[] args) {
     if (args.length < 2) {

@@ -1,8 +1,6 @@
-package org.leralix.tan.gui.user;
-
+﻿package org.leralix.tan.gui.user;
 import static org.leralix.lib.data.SoundEnum.MINOR_BAD;
 import static org.leralix.lib.data.SoundEnum.MINOR_GOOD;
-
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
 import org.bukkit.Bukkit;
@@ -19,9 +17,7 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class RenterPropertyMenu extends PropertyMenus {
-
   private RenterPropertyMenu(Player player, ITanPlayer tanPlayer, PropertyData propertyData) {
     super(
         player,
@@ -30,7 +26,6 @@ public class RenterPropertyMenu extends PropertyMenus {
         3,
         propertyData);
   }
-
   public static void open(Player player, PropertyData propertyData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -39,19 +34,15 @@ public class RenterPropertyMenu extends PropertyMenus {
               new RenterPropertyMenu(player, tanPlayer, propertyData).open();
             });
   }
-
   @Override
   public void open() {
     gui.setItem(1, 5, getPropertyIcon());
     gui.getFiller().fillTop(GuiUtil.getUnnamedItem(Material.BROWN_STAINED_GLASS_PANE));
-
     gui.setItem(2, 4, getAuthorizedPlayersButton());
     gui.setItem(2, 6, getStopRentPropertyButton());
-
     gui.setItem(3, 1, GuiUtil.createBackArrow(player, HumanEntity::closeInventory));
     gui.open(player);
   }
-
   private GuiItem getStopRentPropertyButton() {
     return iconManager
         .get(IconKey.STOP_RENTING_PROPERTY_ICON)
@@ -60,12 +51,10 @@ public class RenterPropertyMenu extends PropertyMenus {
         .setAction(
             action -> {
               propertyData.expelRenter(true);
-
               TanChatUtils.message(
                   player,
                   Lang.PROPERTY_RENTER_LEAVE_RENTER_SIDE.get(tanPlayer, propertyData.getName()),
                   MINOR_GOOD);
-
               AbstractOwner owner = propertyData.getOwner();
               if (owner instanceof PlayerOwned playerOwned) {
                 Player playerOwn = Bukkit.getPlayer(UUID.fromString(playerOwned.getPlayerID()));
@@ -75,7 +64,6 @@ public class RenterPropertyMenu extends PropertyMenus {
                         playerOwn, player.getName(), propertyData.getName()),
                     MINOR_BAD);
               }
-
               player.closeInventory();
             })
         .asGuiItem(player, langType);

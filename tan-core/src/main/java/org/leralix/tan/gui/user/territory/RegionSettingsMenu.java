@@ -1,8 +1,6 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import static org.leralix.lib.data.SoundEnum.GOOD;
 import static org.leralix.lib.data.SoundEnum.NOT_ALLOWED;
-
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -20,18 +18,12 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.file.FileUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class RegionSettingsMenu extends SettingsMenus {
-
   private final RegionData regionData;
-
   public RegionSettingsMenu(Player player, ITanPlayer tanPlayer, RegionData regionData) {
     super(player, tanPlayer, Lang.HEADER_SETTINGS.get(player), regionData, 3);
     this.regionData = regionData;
-    // open() doit être appelé explicitement après la construction pour respecter le modèle
-    // asynchrone
   }
-
   public static void open(Player player, RegionData regionData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -40,24 +32,18 @@ public class RegionSettingsMenu extends SettingsMenus {
               new RegionSettingsMenu(player, tanPlayer, regionData).open();
             });
   }
-
   @Override
   public void open() {
     gui.setItem(1, 5, getTerritoryInfo());
     gui.getFiller().fillTop(GuiUtil.getUnnamedItem(Material.LIGHT_BLUE_STAINED_GLASS_PANE));
-
     gui.setItem(2, 2, getRenameButton());
     gui.setItem(2, 3, getChangeDescriptionButton());
     gui.setItem(2, 4, getChangeColorButton());
-
     gui.setItem(2, 6, getChangeOwnershipButton());
     gui.setItem(2, 7, getDeleteButton());
-
     gui.setItem(3, 1, GuiUtil.createBackArrow(player, p -> RegionMenu.open(player, regionData)));
-
     gui.open(player);
   }
-
   private @NotNull GuiItem getChangeOwnershipButton() {
     return iconManager
         .get(IconKey.REGION_CHANGE_OWNERSHIP_ICON)
@@ -72,13 +58,10 @@ public class RegionSettingsMenu extends SettingsMenus {
                 TanChatUtils.message(player, Lang.GUI_NEED_TO_BE_LEADER_OF_REGION.get(tanPlayer));
                 return;
               }
-              // TODO: Implement region change ownership GUI after PlayerGUI migration
-              // Original: PlayerGUI.openRegionChangeOwnership(player, 0)
               TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(tanPlayer), NOT_ALLOWED);
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getDeleteButton() {
     return iconManager
         .get(IconKey.REGION_DELETE_REGION_ICON)
@@ -101,12 +84,10 @@ public class RegionSettingsMenu extends SettingsMenus {
                         tanPlayer, regionData.getOverlord().get().getBaseColoredName()));
                 return;
               }
-
               if (!player.hasPermission("tan.base.region.disband")) {
                 TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(tanPlayer), NOT_ALLOWED);
                 return;
               }
-
               ConfirmMenu.open(
                   player,
                   Lang.GUI_CONFIRM_DELETE_REGION.get(),

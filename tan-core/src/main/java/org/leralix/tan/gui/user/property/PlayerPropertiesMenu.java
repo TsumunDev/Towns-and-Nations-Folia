@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.property;
-
+﻿package org.leralix.tan.gui.user.property;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,13 +21,10 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.upgrade.rewards.numeric.PropertyCap;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class PlayerPropertiesMenu extends IteratorGUI {
-
   private PlayerPropertiesMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, Lang.HEADER_PLAYER_PROPERTIES.get(tanPlayer.getLang()), 3);
   }
-
   public static void open(Player player) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -37,27 +33,19 @@ public class PlayerPropertiesMenu extends IteratorGUI {
               new PlayerPropertiesMenu(player, tanPlayer).open();
             });
   }
-
   @Override
   public void open() {
-
     GuiUtil.createIterator(
         gui, getProperties(), page, player, PlayerMenu::open, p -> nextPage(), p -> previousPage());
-
     gui.setItem(3, 5, getNewPropertyButton());
-
     gui.open(player);
   }
-
   private GuiItem getNewPropertyButton() {
-
     List<FilledLang> description = new ArrayList<>();
     List<IndividualRequirement> requirements = new ArrayList<>();
     if (tanPlayer.hasTown()) {
       TownData townData = tanPlayer.getTownSync();
-
       double costPerBlock = townData.getTaxOnCreatingProperty();
-
       if (costPerBlock > 0) {
         description.add(Lang.GUI_PROPERTY_COST_PER_BLOCK.get(Double.toString(costPerBlock)));
       }
@@ -67,7 +55,6 @@ public class PlayerPropertiesMenu extends IteratorGUI {
     } else {
       description.add(Lang.PLAYER_NO_TOWN.get());
     }
-
     return iconManager
         .get(IconKey.CREATE_NEW_PROPERTY_ICON)
         .setName(Lang.GUI_PLAYER_NEW_PROPERTY.get(tanPlayer))
@@ -80,7 +67,6 @@ public class PlayerPropertiesMenu extends IteratorGUI {
                     player, Lang.PLAYER_NO_TOWN.get(tanPlayer), SoundEnum.NOT_ALLOWED);
                 return;
               }
-
               TanChatUtils.message(
                   player, Lang.PLAYER_RIGHT_CLICK_2_POINTS_TO_CREATE_PROPERTY.get(tanPlayer));
               RightClickListener.register(player, new CreatePlayerPropertyEvent(player));
@@ -88,11 +74,9 @@ public class PlayerPropertiesMenu extends IteratorGUI {
             })
         .asGuiItem(player, langType);
   }
-
   private List<GuiItem> getProperties() {
     List<GuiItem> guiItems = new ArrayList<>();
     for (PropertyData propertyData : tanPlayer.getProperties()) {
-
       guiItems.add(
           iconManager
               .get(propertyData.getIcon())

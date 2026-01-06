@@ -1,5 +1,4 @@
-package org.leralix.tan.lang;
-
+﻿package org.leralix.tan.lang;
 import java.io.File;
 import java.util.EnumMap;
 import java.util.List;
@@ -12,7 +11,6 @@ import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.economy.EconomyUtil;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.constants.Constants;
-
 public enum Lang {
   WELCOME,
   STRING,
@@ -717,14 +715,12 @@ public enum Lang {
   GUI_COLLECT_LANDMARK_DESC2,
   GUI_LANDMARK_REWARD_COLLECTED,
   GUI_REMOVE_LANDMARK,
-
   SPECIFIC_LANDMARK_ICON_DEFAULT_NAME,
   SPECIFIC_LANDMARK_ICON_DESC1,
   SPECIFIC_LANDMARK_ICON_DESC2_NO_OWNER,
   SPECIFIC_LANDMARK_ICON_DESC2_OWNER,
   SPECIFIC_LANDMARK_ICON_SWITCH_REWARD,
   ADMIN_GUI_LANDMARK_REWARD_SET,
-
   CANT_KICK_REGIONAL_CAPITAL,
   ADMIN_GUI_CANT_DELETE_REGIONAL_CAPITAL,
   PLAYER_PROPERTY_CAP_REACHED,
@@ -1122,38 +1118,26 @@ public enum Lang {
   WAR_INFO_CHUNK_OWNED,
   WAR_INFO_CONTESTED,
   WAR_INFO_FORT_STATUS;
-
   private static LangType serverLang;
-
   private static final EnumMap<LangType, EnumMap<Lang, String>> translations =
       new EnumMap<>(LangType.class);
   private static final EnumMap<LangType, Integer> completedLang = new EnumMap<>(LangType.class);
-
   static final String MESSAGE_NOT_FOUND_FOR = "Message not found for ";
   static final String IN_THIS_LANGUAGE_FILE = " in this language file.";
-
   public static void loadTranslations(File langFolder, String fileTag) {
-
     serverLang = LangType.fromCode(fileTag);
-
     if (!langFolder.exists()) {
       langFolder.mkdir();
     }
-
     for (LangType langType : LangType.values()) {
-
       File specificLangFolder = new File(langFolder, langType.getCode());
       if (!specificLangFolder.exists()) {
         specificLangFolder.mkdir();
       }
-
       File file = new File(specificLangFolder, "main.yml");
-
       ConfigUtil.saveAndUpdateResource(
           TownsAndNations.getPlugin(), "lang/" + langType.getCode() + "/main.yml");
-
       YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-
       EnumMap<Lang, String> specificTranslation = new EnumMap<>(Lang.class);
       int numberOfTranslation = 0;
       for (Lang key : Lang.values()) {
@@ -1167,37 +1151,30 @@ public enum Lang {
       translations.put(langType, specificTranslation);
     }
   }
-
   public static LangType getServerLang() {
     return serverLang;
   }
-
   public static int getCompletionPercentage(LangType langType) {
     return (int) ((double) completedLang.get(langType) / Lang.values().length * 100);
   }
-
   public String getDefault() {
     return get(serverLang);
   }
-
   public FilledLang get() {
     return new FilledLang(this);
   }
-
   public String get(Player player) {
     if (player == null) {
       return get(serverLang);
     }
     return get(PlayerDataStorage.getInstance().getSync(player));
   }
-
   public String get(ITanPlayer tanPlayer) {
     if (tanPlayer == null) {
       return get(serverLang);
     }
     return get(tanPlayer.getLang());
   }
-
   private String get(LangType lang) {
     String translation = translations.get(lang).get(this);
     if (translation != null) {
@@ -1210,26 +1187,21 @@ public enum Lang {
     }
     return get(LangType.ENGLISH);
   }
-
   public FilledLang get(String... placeholders) {
     return new FilledLang(this, placeholders);
   }
-
   public String get(Player player, String... placeholders) {
     return get(PlayerDataStorage.getInstance().getSync(player), placeholders);
   }
-
   public String get(ITanPlayer tanPlayer, String... placeholders) {
     if (tanPlayer == null) {
       return get(serverLang, placeholders);
     }
     return get(tanPlayer.getLang(), placeholders);
   }
-
   public String get(LangType lang, String... placeholders) {
     return get(lang, List.of(placeholders));
   }
-
   public String get(LangType lang, List<String> placeholders) {
     String translation = translations.get(lang).get(this);
     if (translation != null) {
@@ -1248,12 +1220,9 @@ public enum Lang {
     }
     return get(LangType.ENGLISH, placeholders);
   }
-
   private String replaceCommonPlaceholders(String translation) {
-
     final String MONEY_CHAR = "{MONEY_CHAR}";
     final String CANCEL = "{CANCEL}";
-
     if (translation.contains(MONEY_CHAR)) {
       if (Constants.shouldShowCurrency()) {
         String moneyChar = EconomyUtil.getMoneyIcon();

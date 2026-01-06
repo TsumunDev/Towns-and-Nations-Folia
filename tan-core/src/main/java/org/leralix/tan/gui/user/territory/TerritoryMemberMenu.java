@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.List;
 import org.bukkit.Material;
@@ -15,16 +14,12 @@ import org.leralix.tan.gui.service.requirements.RankPermissionRequirement;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
-
 public class TerritoryMemberMenu extends IteratorGUI {
-
   private final TerritoryData territoryData;
-
   public TerritoryMemberMenu(Player player, ITanPlayer tanPlayer, TerritoryData territoryData) {
     super(player, tanPlayer, Lang.HEADER_TOWN_MEMBERS.get(player), 6);
     this.territoryData = territoryData;
   }
-
   public static void open(Player player, TerritoryData territoryData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -33,7 +28,6 @@ public class TerritoryMemberMenu extends IteratorGUI {
               new TerritoryMemberMenu(player, tanPlayer, territoryData).open();
             });
   }
-
   @Override
   public void open() {
     GuiUtil.createIterator(
@@ -45,18 +39,15 @@ public class TerritoryMemberMenu extends IteratorGUI {
         p -> nextPage(),
         p -> previousPage(),
         Material.LIME_STAINED_GLASS_PANE);
-
     gui.setItem(6, 4, getManageRankButton());
     if (territoryData instanceof TownData townData) {
       gui.setItem(6, 5, getManageApplicationsButton(townData));
     }
     gui.open(player);
   }
-
   private List<GuiItem> getMemberList() {
     return territoryData.getOrderedMemberList(tanPlayer);
   }
-
   private GuiItem getManageRankButton() {
     return IconManager.getInstance()
         .get(IconKey.MANAGE_RANKS_ICON)
@@ -66,7 +57,6 @@ public class TerritoryMemberMenu extends IteratorGUI {
         .setAction(p -> TerritoryRanksMenu.open(player, territoryData))
         .asGuiItem(player, langType);
   }
-
   private GuiItem getManageApplicationsButton(TownData townData) {
     return IconManager.getInstance()
         .get(IconKey.MANAGE_APPLICATIONS_ICON)

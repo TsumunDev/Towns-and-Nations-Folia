@@ -1,5 +1,4 @@
-package org.leralix.tan.storage.stored;
-
+﻿package org.leralix.tan.storage.stored;
 import com.google.gson.GsonBuilder;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -10,19 +9,14 @@ import org.leralix.lib.position.Vector3D;
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.Landmark;
 import org.leralix.tan.dataclass.territory.TerritoryData;
-
 public class LandmarkStorage extends DatabaseStorage<Landmark> {
-
   private static final String TABLE_NAME = "tan_landmarks";
   private int newLandmarkID;
-
   private static LandmarkStorage instance;
-
   private LandmarkStorage() {
     super(TABLE_NAME, Landmark.class, new GsonBuilder().setPrettyPrinting().create());
     loadNextLandmarkID();
   }
-
   @Override
   protected void createTable() {
     String createTableSQL =
@@ -33,7 +27,6 @@ public class LandmarkStorage extends DatabaseStorage<Landmark> {
             )
         """
             .formatted(TABLE_NAME);
-
     try (Connection conn = getDatabase().getDataSource().getConnection();
         Statement stmt = conn.createStatement()) {
       stmt.execute(createTableSQL);
@@ -43,7 +36,6 @@ public class LandmarkStorage extends DatabaseStorage<Landmark> {
           .severe("Error creating table " + TABLE_NAME + ": " + e.getMessage());
     }
   }
-
   private void loadNextLandmarkID() {
     int ID = 0;
     for (String ids : getAllAsync().join().keySet()) {
@@ -52,18 +44,15 @@ public class LandmarkStorage extends DatabaseStorage<Landmark> {
     }
     newLandmarkID = ID + 1;
   }
-
   public static LandmarkStorage getInstance() {
     if (instance == null) {
       instance = new LandmarkStorage();
     }
     return instance;
   }
-
   public static void setInstance(LandmarkStorage mockLandmarkStorage) {
     instance = mockLandmarkStorage;
   }
-
   public Landmark getSync(String id) {
     try {
       return get(id).join();
@@ -74,7 +63,6 @@ public class LandmarkStorage extends DatabaseStorage<Landmark> {
       return null;
     }
   }
-
   public Landmark addLandmark(Location position) {
     Vector3D vector3D = new Vector3D(position);
     String landmarkID = "L" + newLandmarkID;
@@ -84,19 +72,16 @@ public class LandmarkStorage extends DatabaseStorage<Landmark> {
     NewClaimedChunkStorage.getInstance().claimLandmarkChunk(position.getChunk(), landmarkID);
     return landmark;
   }
-
   public List<Landmark> getLandmarkOf(TerritoryData territoryData) {
     return getAllAsync().join().values().stream()
         .filter(landmark -> landmark.isOwnedBy(territoryData))
         .toList();
   }
-
   public void generateAllResources() {
     for (Landmark landmark : getAllAsync().join().values()) {
       landmark.generateResources();
     }
   }
-
   @Override
   public void reset() {
     instance = null;

@@ -1,5 +1,4 @@
-package org.leralix.tan.events.newsletter.news;
-
+﻿package org.leralix.tan.events.newsletter.news;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
@@ -17,33 +16,26 @@ import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.gameplay.TerritoryUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.tan.api.interfaces.TanTerritory;
-
 public class TerritoryVassalAcceptedNews extends Newsletter {
-
   private final String regionID;
   private final String townID;
-
   public TerritoryVassalAcceptedNews(TanTerritory regionID, TanTerritory townID) {
     super();
     this.regionID = regionID.getID();
     this.townID = townID.getID();
   }
-
   public TerritoryVassalAcceptedNews(
       UUID id, long date, String proposingTerritoryID, String receivingTerritoryID) {
     super(id, date);
     this.regionID = proposingTerritoryID;
     this.townID = receivingTerritoryID;
   }
-
   @Override
   public GuiItem createGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     TerritoryData region = TerritoryUtil.getTerritory(regionID);
     if (region == null) return null;
     TerritoryData town = TerritoryUtil.getTerritory(townID);
     if (town == null) return null;
-
-    // BUGFIX: Convert Adventure Component to legacy text properly
     ItemStack itemStack =
         HeadUtils.makeSkullB64(
             Lang.TOWN_JOIN_REGION_ACCEPTED_NEWSLETTER_TITLE.get(lang),
@@ -55,7 +47,6 @@ public class TerritoryVassalAcceptedNews extends Newsletter {
                 LegacyComponentSerializer.legacySection().serialize(town.getCustomColoredName()),
                 LegacyComponentSerializer.legacySection().serialize(region.getCustomColoredName())),
             Lang.NEWSLETTER_RIGHT_CLICK_TO_MARK_AS_READ.get(lang));
-
     return ItemBuilder.from(itemStack)
         .asGuiItem(
             event -> {
@@ -66,12 +57,10 @@ public class TerritoryVassalAcceptedNews extends Newsletter {
               }
             });
   }
-
   @Override
   public GuiItem createConcernedGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     return createGuiItem(player, lang, onClick);
   }
-
   @Override
   public boolean shouldShowToPlayer(Player player) {
     TerritoryData proposingTerritory = TerritoryUtil.getTerritory(regionID);
@@ -80,20 +69,16 @@ public class TerritoryVassalAcceptedNews extends Newsletter {
     if (receivingTerritory == null) return false;
     return proposingTerritory.isPlayerIn(player) || receivingTerritory.isPlayerIn(player);
   }
-
   @Override
   public NewsletterType getType() {
     return NewsletterType.TERRITORY_VASSAL_ACCEPTED;
   }
-
   @Override
   public void broadcast(Player player) {
     TerritoryData proposingTerritory = TerritoryUtil.getTerritory(regionID);
     if (proposingTerritory == null) return;
     TerritoryData receivingTerritory = TerritoryUtil.getTerritory(townID);
     if (receivingTerritory == null) return;
-
-    // BUGFIX: Convert Adventure Component to legacy text properly
     TanChatUtils.message(
         player,
         Lang.TOWN_JOIN_REGION_ACCEPTED_NEWSLETTER.get(
@@ -104,15 +89,12 @@ public class TerritoryVassalAcceptedNews extends Newsletter {
                 .serialize(receivingTerritory.getCustomColoredName())),
         SoundEnum.MINOR_GOOD);
   }
-
   public String getProposingTerritoryID() {
     return regionID;
   }
-
   public String getReceivingTerritoryID() {
     return townID;
   }
-
   @Override
   public void broadcastConcerned(Player player) {
     broadcast(player);

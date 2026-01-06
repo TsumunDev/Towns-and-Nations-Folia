@@ -5,6 +5,11 @@ plugins {
     id 'jacoco'
 }
 
+// Set base archive name for all JARs
+base {
+    archivesName = 'coconation-core'
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
@@ -30,13 +35,50 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.shadowJar {
-    archiveBaseName.set('TownsAndNations')
+    archiveBaseName.set('Coconation')
+    archiveVersion.set('')
     archiveClassifier.set('')
+    
+    // Minimize JAR - remove unused classes from dependencies
+    minimize {
+        // Don't minimize these (needed at runtime via reflection)
+        exclude dependency('org.xerial:sqlite-jdbc:.*')  // Native binaries
+        exclude dependency('com.mysql:mysql-connector-j:.*')  // JDBC driver
+        exclude dependency('ch.qos.logback:logback-classic:.*')  // Logging
+        exclude dependency('org.jetbrains.kotlin:kotlin-stdlib:.*')  // Kotlin runtime
+        exclude dependency('org.jetbrains.kotlinx:kotlinx-coroutines-core:.*')  // Coroutines
+    }
+    
+    // Exclude unnecessary SQLite native binaries (keep only common platforms)
+    exclude 'org/sqlite/native/FreeBSD/**'
+    exclude 'org/sqlite/native/Linux-Android/**'
+    exclude 'org/sqlite/native/Linux-Musl/**'
+    exclude 'org/sqlite/native/Linux/arm/**'
+    exclude 'org/sqlite/native/Linux/armv6/**'
+    exclude 'org/sqlite/native/Linux/armv7/**'
+    exclude 'org/sqlite/native/Linux/ppc64/**'
+    exclude 'org/sqlite/native/Windows/armv7/**'
+    
+    // Exclude Netty native transports we don't need
+    exclude 'META-INF/native/libnetty_transport_native_epoll_aarch_64.so'
+    exclude 'META-INF/native/libnetty_transport_native_kqueue*.dylib'
+    exclude 'META-INF/native/libnetty_resolver_dns_native*.so'
+    
+    // Exclude duplicate license files
+    exclude 'META-INF/LICENSE.md'
+    exclude 'META-INF/NOTICE.md'
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+    
+    // Relocations to avoid conflicts
     relocate("dev.triumphteam.gui", "dev.triumphteam.gui")
     relocate 'net.objecthunter.exp4j', 'org.leralix.tan.libs.exp4j'
     relocate 'org.bstats', 'org.leralix.tan.bstat'
     relocate 'com.mysql', 'org.leralix.shadow.mysql'
     relocate 'com.zaxxer.hikari', 'org.leralix.shadow.hikari'
+    relocate 'com.google.gson', 'org.leralix.shadow.gson'
+    relocate 'io.prometheus', 'org.leralix.shadow.prometheus'
 }
 
 repositories {
@@ -124,9 +166,9 @@ dependencies {
     compileOnly "com.github.MilkBowl:VaultAPI:1.7.1"
     compileOnly 'me.clip:placeholderapi:2.11.5'
     compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.9'
-    // Nexo API - place Nexo.jar in tan-core/libs/ to enable
-    // compileOnly files('libs/Nexo.jar')
-    // API now fully integrated in local tan-api module - no external dependency needed
+    // Nexo API - Reflection-based integration (no compile-time dependency required)
+    // Add compileOnly "com.nexomc:nexo:1.1.0" if you want compile-time access
+    // For now, we use pure reflection to avoid version conflicts
     implementation 'org.bstats:bstats-bukkit:3.1.0'
     implementation 'net.objecthunter:exp4j:0.4.8'
     implementation("dev.triumphteam:triumph-gui:3.1.11")
@@ -144,10 +186,10 @@ dependencies {
     implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.1.0'
     implementation 'io.github.resilience4j:resilience4j-core:2.1.0'
     
-    // IMPROVEMENT #7: Prometheus Monitoring
-    implementation 'io.prometheus:simpleclient:0.16.0'
-    implementation 'io.prometheus:simpleclient_httpserver:0.16.0'
-    implementation 'io.prometheus:simpleclient_hotspot:0.16.0'
+    // IMPROVEMENT #7: Prometheus Monitoring (optional - excluded from shadowJar)
+    compileOnly 'io.prometheus:simpleclient:0.16.0'
+    compileOnly 'io.prometheus:simpleclient_httpserver:0.16.0'
+    compileOnly 'io.prometheus:simpleclient_hotspot:0.16.0'
 
     testImplementation 'io.github.leralix:sphere-lib:0.6.0'
     testImplementation 'com.github.MockBukkit:MockBukkit:v4.72.9'
@@ -165,6 +207,9 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers:1.19.3'
     testImplementation 'org.testcontainers:mysql:1.19.3'
     testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
+    
+    // Redis client for tests (RedisTestBase uses Jedis)
+    testImplementation 'redis.clients:jedis:5.1.0'
 }
 
 // JaCoCo configuration for code coverage
@@ -195,6 +240,11 @@ test {
         // Include territory tests
         includeTestsMatching "org.leralix.tan.dataclass.territory.TownDataTest"
         includeTestsMatching "org.leralix.tan.dataclass.territory.RegionDataTest"
+        includeTestsMatching "org.leralix.tan.dataclass.territory.tax.TaxComponentTest"
+        includeTestsMatching "org.leralix.tan.dataclass.territory.treasury.TreasuryComponentTest"
+        includeTestsMatching "org.leralix.tan.dataclass.territory.cosmetic.CosmeticComponentTest"
+        includeTestsMatching "org.leralix.tan.dataclass.territory.diplomacy.DiplomacyComponentTest"
+        includeTestsMatching "org.leralix.tan.dataclass.territory.war.WarComponentTest"
 
         // Include fixed command tests
         includeTestsMatching "org.leralix.tan.commands.admin.AddMoneyTest"
@@ -221,8 +271,16 @@ test {
 
         // Include utility tests
         includeTestsMatching "org.leralix.tan.utils.commands.CommandExceptionHandlerTest"
+        includeTestsMatching "org.leralix.tan.utils.commands.RateLimiterTest"
+        includeTestsMatching "org.leralix.tan.utils.commands.RateLimitRegistryTest"
         includeTestsMatching "org.leralix.tan.utils.text.DateUtilTest"
         includeTestsMatching "org.leralix.tan.utils.text.StringUtilTest"
+        includeTestsMatching "org.leralix.tan.utils.FoliaSchedulerTest"
+
+        // Include storage tests (newly added - must come before storage.* exclusion)
+        includeTestsMatching "org.leralix.tan.storage.stored.DatabaseStorageTest"
+        includeTestsMatching "org.leralix.tan.storage.stored.PlayerDataStorageCoverageTest"
+        includeTestsMatching "org.leralix.tan.storage.stored.TownDataStorageCoverageTest"
 
         // Exclude tests that still require full plugin setup
         excludeTestsMatching "org.leralix.tan.api.external.*"
@@ -270,13 +328,17 @@ jacocoTestCoverageVerification {
     violationRules {
         rule {
             limit {
-                // Temporarily set to 0% since we're excluding most tests
-                // Will be increased once MockBukkit tests are fixed
-                minimum = 0.00
+                // Progressive coverage improvement roadmap:
+                // Phase 1 (Completed): 14% → 15% - Baseline with critical tests
+                // Phase 2: 20% - Expand storage and economy tests
+                // Phase 3: 35% - Cover command handlers
+                // Phase 4: 50% - Include GUI tests (currently excluded)
+                // Phase 5: 70%+ - Full coverage including legacy/deprecated (remove exclusions)
+                minimum = 0.14
             }
         }
     }
 }
 
-// Comment out for now to allow build to succeed
-// check.dependsOn jacocoTestCoverageVerification
+// Enable coverage verification - tests must pass coverage gate
+check.dependsOn jacocoTestCoverageVerification

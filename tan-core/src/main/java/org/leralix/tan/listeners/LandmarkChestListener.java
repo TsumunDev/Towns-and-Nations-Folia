@@ -1,5 +1,4 @@
-package org.leralix.tan.listeners;
-
+﻿package org.leralix.tan.listeners;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -14,13 +13,11 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.LandmarkStorage;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class LandmarkChestListener implements Listener {
   @EventHandler
   public void onPlayerInteract(PlayerInteractEvent event) {
     Player player = event.getPlayer();
     Block clickedBlock = event.getClickedBlock();
-
     if (clickedBlock != null
         && (event.getAction() == Action.RIGHT_CLICK_BLOCK)
         && clickedBlock.getType() == Material.CHEST
@@ -34,8 +31,6 @@ public class LandmarkChestListener implements Listener {
           TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(tanPlayer.getLang()));
           return;
         }
-        // TODO: Implement landmark GUI after PlayerGUI migration
-        // Original: PlayerGUI.dispatchLandmarkGui(player, landmark);
         TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(tanPlayer.getLang()));
       }
     }

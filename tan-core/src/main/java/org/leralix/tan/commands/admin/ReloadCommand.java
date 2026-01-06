@@ -1,5 +1,4 @@
-package org.leralix.tan.commands.admin;
-
+﻿package org.leralix.tan.commands.admin;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -17,33 +16,27 @@ import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.constants.EnabledPermissions;
 import org.leralix.tan.utils.text.NumberUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class ReloadCommand extends SubCommand {
   @Override
   public String getName() {
     return "reload";
   }
-
   @Override
   public String getDescription() {
     return Lang.ADMIN_RELOAD_COMMAND.getDefault();
   }
-
   public int getArguments() {
     return 1;
   }
-
   @Override
   public String getSyntax() {
-    return "/tanadmin reload";
+    return "/ccnadmin reload";
   }
-
   @Override
   public List<String> getTabCompleteSuggestions(
       CommandSender player, String lowerCase, String[] args) {
     return Collections.emptyList();
   }
-
   @Override
   public void perform(CommandSender commandSender, String[] args) {
     if (args.length == 1) {
@@ -51,20 +44,27 @@ public class ReloadCommand extends SubCommand {
       ConfigUtil.addCustomConfig(plugin, "config.yml", ConfigTag.MAIN);
       ConfigUtil.addCustomConfig(plugin, "upgrades.yml", ConfigTag.UPGRADE);
       ConfigUtil.addCustomConfig(plugin, "lang.yml", ConfigTag.LANG);
-
       String lang = ConfigUtil.getCustomConfig(ConfigTag.LANG).getString("language");
       File langFolder = new File(TownsAndNations.getPlugin().getDataFolder(), "lang");
-
       Lang.loadTranslations(langFolder, lang);
       DynamicLang.loadTranslations(langFolder, lang);
-
       Constants.init(ConfigUtil.getCustomConfig(ConfigTag.MAIN));
-
       MobChunkSpawnStorage.init();
       ClaimBlacklistStorage.init();
       NumberUtil.init();
       EnabledPermissions.getInstance().init();
-
+      try {
+        org.leralix.tan.gui.cosmetic.LayoutManager.reload();
+        commandSender.sendMessage("§6COCO§eNATION §f§l» §a✓ Layouts rechargés avec succès !");
+      } catch (Exception e) {
+        commandSender.sendMessage("§6COCO§eNATION §f§l» §c✖ Erreur lors du rechargement des layouts: " + e.getMessage());
+      }
+      try {
+        org.leralix.tan.gui.cosmetic.IconManager.reload();
+        commandSender.sendMessage("§6COCO§eNATION §f§l» §a✓ Icônes rechargées avec succès !");
+      } catch (Exception e) {
+        commandSender.sendMessage("§6COCO§eNATION §f§l» §c✖ Erreur lors du rechargement des icônes: " + e.getMessage());
+      }
       TanChatUtils.message(commandSender, Lang.RELOAD_SUCCESS);
       TanChatUtils.message(commandSender, Lang.LANGUAGE_SUCCESSFULLY_LOADED);
     } else {

@@ -1,5 +1,4 @@
-package org.leralix.tan.economy;
-
+﻿package org.leralix.tan.economy;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.milkbowl.vault.economy.Economy;
@@ -8,13 +7,10 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.utils.constants.Constants;
-
 public class VaultManager {
-
   public static void setupVault() {
     AbstractTanEcon tanEcon;
     Logger logger = Bukkit.getLogger();
-
     if (Constants.useStandaloneEconomy()) {
       TanEconomyVault tanEconomyVault = new TanEconomyVault();
       EconomyUtil.register(tanEconomyVault);

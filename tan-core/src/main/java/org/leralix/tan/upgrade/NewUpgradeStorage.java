@@ -1,5 +1,4 @@
-package org.leralix.tan.upgrade;
-
+﻿package org.leralix.tan.upgrade;
 import java.util.*;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -18,22 +17,16 @@ import org.leralix.tan.upgrade.rewards.list.BiomeStat;
 import org.leralix.tan.upgrade.rewards.list.PermissionList;
 import org.leralix.tan.upgrade.rewards.numeric.*;
 import org.leralix.tan.upgrade.rewards.percentage.LandmarkBonus;
-
 public class NewUpgradeStorage {
-
   private final Map<String, Upgrade> townUpgrades;
   private final Map<String, Upgrade> regionUpgrades;
-
   public NewUpgradeStorage() {
-
     this.townUpgrades = new HashMap<>();
     this.regionUpgrades = new HashMap<>();
-
     FileConfiguration upgradeConfig = ConfigUtil.getCustomConfig(ConfigTag.UPGRADE);
     setUpUpgrades(townUpgrades, upgradeConfig.getConfigurationSection("upgrades"));
     setUpUpgrades(regionUpgrades, upgradeConfig.getConfigurationSection("region_upgrades"));
   }
-
   private void setUpUpgrades(
       Map<String, Upgrade> upgradeMap, ConfigurationSection upgradesSection) {
     if (upgradesSection != null) {
@@ -43,13 +36,9 @@ public class NewUpgradeStorage {
         String itemCode = upgradesSection.getString(key + ".itemCode", "BARRIER");
         Material icon = Material.valueOf(itemCode.toUpperCase());
         int maxLevel = upgradesSection.getInt(key + ".maxLevel");
-
-        // Prerequisites
         List<UpgradeRequirement> newPrerequisites = new ArrayList<>();
-
         List<Integer> cost = upgradesSection.getIntegerList(key + ".cost");
         newPrerequisites.add(new UpgradeCostRequirement(cost));
-
         ConfigurationSection prerequisiteSection =
             upgradesSection.getConfigurationSection(key + ".prerequisites");
         if (prerequisiteSection != null) {
@@ -63,7 +52,6 @@ public class NewUpgradeStorage {
             }
           }
         }
-
         ConfigurationSection resourcesSection =
             upgradesSection.getConfigurationSection(key + ".resources");
         if (resourcesSection != null) {
@@ -85,17 +73,13 @@ public class NewUpgradeStorage {
             }
           }
         }
-
-        // Benefits
         ConfigurationSection benefitsSection =
             upgradesSection.getConfigurationSection(key + ".benefits");
         List<IndividualStat> rewards = new ArrayList<>();
         if (benefitsSection != null) {
           for (String benefitKey : benefitsSection.getKeys(false)) {
-
             boolean isUnlimited = isInfiniteValue(benefitsSection, benefitKey);
             int intValue = parseIntValue(benefitsSection, benefitKey);
-
             switch (benefitKey) {
               case "PROPERTY_CAP" -> rewards.add(new PropertyCap(intValue, isUnlimited));
               case "PLAYER_CAP" -> rewards.add(new TownPlayerCap(intValue, isUnlimited));
@@ -117,47 +101,38 @@ public class NewUpgradeStorage {
             }
           }
         }
-
         upgradeMap.put(key, new Upgrade(row, col, key, icon, maxLevel, newPrerequisites, rewards));
       }
     }
   }
-
   private static boolean isInfiniteValue(ConfigurationSection section, String path) {
     String raw = section.getString(path);
     if (raw == null) return false;
-
     raw = raw.trim().toLowerCase();
     return raw.equals("infinity")
         || raw.equals("inf")
         || raw.equals("∞")
         || raw.equals("unlimited");
   }
-
   private static int parseIntValue(ConfigurationSection section, String path) {
     String raw = section.getString(path);
     if (raw == null) return 0;
-
     raw = raw.trim().toLowerCase();
     if (raw.equals("infinity") || raw.equals("inf") || raw.equals("∞") || raw.equals("unlimited")) {
-      return 0; // valeur ignorée, on gère via isUnlimited = true
+      return 0;
     }
-
     try {
-      // On supporte aussi les valeurs écrites comme "+3"
       return Integer.parseInt(raw.replace("+", ""));
     } catch (NumberFormatException e) {
       return 0;
     }
   }
-
   public Upgrade getUpgradeByName(TerritoryData territoryData, String name) {
     if (territoryData instanceof RegionData) {
       return regionUpgrades.get(name);
     }
     return townUpgrades.get(name);
   }
-
   public Collection<Upgrade> getUpgrades(StatsType statsType) {
     return switch (statsType) {
       case REGION -> regionUpgrades.values();
@@ -165,7 +140,6 @@ public class NewUpgradeStorage {
       case null -> townUpgrades.values();
     };
   }
-
   public Collection<Upgrade> getUpgrades(TerritoryData territoryData) {
     if (territoryData instanceof RegionData) {
       return getUpgrades(StatsType.REGION);

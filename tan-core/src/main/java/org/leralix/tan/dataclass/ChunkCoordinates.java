@@ -1,25 +1,12 @@
-package org.leralix.tan.dataclass;
-
+﻿package org.leralix.tan.dataclass;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
-
-public class ChunkCoordinates {
-  private final int x;
-  private final int z;
-  private final String worldID;
-
-  private ChunkCoordinates(int x, int y, String worldID) {
-    this.x = x;
-    this.z = y;
-    this.worldID = worldID;
-  }
-
+public record ChunkCoordinates(int x, int z, String worldID) {
   public ChunkCoordinates(Chunk chunk) {
     this(chunk.getX(), chunk.getZ(), chunk.getWorld().getUID().toString());
   }
-
   public Chunk getChunk() {
     World world = Bukkit.getWorld(UUID.fromString(worldID));
     if (world == null) {

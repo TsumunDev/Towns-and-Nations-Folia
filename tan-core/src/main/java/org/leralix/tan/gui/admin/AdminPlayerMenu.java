@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.admin;
-
+﻿package org.leralix.tan.gui.admin;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -13,13 +12,10 @@ import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.gui.user.player.PlayerMenu;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
-
 public class AdminPlayerMenu extends IteratorGUI {
-
   private AdminPlayerMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, "Admin - Players List", 6);
   }
-
   public static void open(Player player) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -28,7 +24,6 @@ public class AdminPlayerMenu extends IteratorGUI {
               new AdminPlayerMenu(player, tanPlayer).open();
             });
   }
-
   @Override
   public void open() {
     GuiUtil.createIterator(
@@ -39,23 +34,17 @@ public class AdminPlayerMenu extends IteratorGUI {
         p -> AdminMainMenu.open(player),
         p -> nextPage(),
         p -> previousPage());
-
     gui.open(player);
   }
-
   private List<GuiItem> getAllPlayers() {
     List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
-
     List<GuiItem> guiItems = new ArrayList<>();
     for (Player targetPlayer : onlinePlayers) {
       ITanPlayer tanPlayerData = PlayerDataStorage.getInstance().get(targetPlayer).join();
-
       String townInfo =
           tanPlayerData.hasTown() ? tanPlayerData.getTownSync().getColoredName() : "No Town";
-
       String regionInfo =
           tanPlayerData.hasRegion() ? tanPlayerData.getRegionSync().getColoredName() : "No Region";
-
       guiItems.add(
           ItemBuilder.from(Material.PLAYER_HEAD)
               .name(Component.text(targetPlayer.getName()))
@@ -65,7 +54,6 @@ public class AdminPlayerMenu extends IteratorGUI {
                     PlayerMenu.open(targetPlayer);
                   }));
     }
-
     return guiItems;
   }
 }

@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,18 +11,14 @@ import org.leralix.tan.enums.permissions.ChunkPermissionType;
 import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-
 public class TerritoryChunkSettingsMenu extends IteratorGUI {
-
   private final TerritoryData territoryData;
-
   public TerritoryChunkSettingsMenu(
       Player player, ITanPlayer tanPlayer, TerritoryData territoryData) {
     super(player, tanPlayer, Lang.HEADER_CHUNK_PERMISSION.get(player), 4);
     this.territoryData = territoryData;
     open();
   }
-
   public static void open(Player player, TerritoryData territoryData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -32,7 +27,6 @@ public class TerritoryChunkSettingsMenu extends IteratorGUI {
               new TerritoryChunkSettingsMenu(player, tanPlayer, territoryData).open();
             });
   }
-
   @Override
   public void open() {
     iterator(
@@ -41,12 +35,10 @@ public class TerritoryChunkSettingsMenu extends IteratorGUI {
         Material.LIME_STAINED_GLASS_PANE);
     gui.open(player);
   }
-
   private List<GuiItem> getChunkPermission() {
     List<GuiItem> guiItems = new ArrayList<>();
     for (ChunkPermissionType type : ChunkPermissionType.values()) {
       RelationPermission permission = territoryData.getPermission(type).getOverallPermission();
-
       GuiItem item =
           iconManager
               .get(type.getIconKey())
@@ -66,7 +58,6 @@ public class TerritoryChunkSettingsMenu extends IteratorGUI {
                     }
                   })
               .asGuiItem(player, langType);
-
       guiItems.add(item);
     }
     return guiItems;

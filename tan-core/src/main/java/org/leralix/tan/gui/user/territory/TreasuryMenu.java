@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,18 +20,14 @@ import org.leralix.tan.listeners.chat.events.RetrieveMoney;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class TreasuryMenu extends BasicGui {
-
   protected final TerritoryData territoryData;
   protected final Budget budget;
-
   private TreasuryMenu(Player player, ITanPlayer tanPlayer, TerritoryData territoryData) {
     super(player, tanPlayer, Lang.HEADER_ECONOMY.get(tanPlayer.getLang()), 5);
     this.territoryData = territoryData;
     this.budget = territoryData.getBudget();
   }
-
   public static void open(Player player, TerritoryData territoryData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -41,37 +36,28 @@ public class TreasuryMenu extends BasicGui {
               new TreasuryMenu(player, tanPlayer, territoryData).open();
             });
   }
-
   @Override
   public void open() {
     budget.createGui(gui, player, langType);
-
     gui.setItem(1, 5, getBudgetIcon(langType));
     gui.getFiller().fillTop(GuiUtil.getUnnamedItem(Material.YELLOW_STAINED_GLASS_PANE));
-
     gui.setItem(2, 8, getMiscSpendingsIcon());
-
     gui.setItem(3, 2, getDonationButton());
     gui.setItem(3, 4, getRetrieveButton());
-
     gui.setItem(5, 1, GuiUtil.createBackArrow(player, p -> territoryData.openMainMenu(player)));
-
     gui.open(player);
   }
-
   protected GuiItem getBudgetIcon(LangType langType) {
     List<FilledLang> description = new ArrayList<>();
     description.add(
         Lang.GUI_TREASURY_STORAGE_DESC1.get(Double.toString(territoryData.getBalance())));
     description.addAll(budget.createLore());
-
     return iconManager
         .get(IconKey.BUDGET_ICON)
         .setName(Lang.GUI_TREASURY_STORAGE.get(tanPlayer))
         .setDescription(description)
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getMiscSpendingsIcon() {
     return iconManager
         .get(IconKey.MISCELLANEOUS_SPENDING_ICON)
@@ -83,7 +69,6 @@ public class TreasuryMenu extends BasicGui {
                     player, territoryData, TransactionHistoryEnum.MISCELLANEOUS))
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getDonationButton() {
     return iconManager
         .get(IconKey.DONATION_ICON)
@@ -103,7 +88,6 @@ public class TreasuryMenu extends BasicGui {
             Lang.GUI_GENERIC_CLICK_TO_OPEN_HISTORY, Lang.GUI_TOWN_TREASURY_RIGHT_CLICK_TO_DONATE)
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getRetrieveButton() {
     return iconManager
         .get(IconKey.RETRIEVE_MONEY_ICON)

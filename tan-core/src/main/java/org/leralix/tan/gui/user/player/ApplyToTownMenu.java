@@ -1,7 +1,5 @@
-package org.leralix.tan.gui.user.player;
-
+﻿package org.leralix.tan.gui.user.player;
 import static org.leralix.lib.data.SoundEnum.NOT_ALLOWED;
-
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -18,13 +16,10 @@ import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class ApplyToTownMenu extends IteratorGUI {
-
   private ApplyToTownMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, Lang.HEADER_TOWN_LIST.get(tanPlayer.getLang()), 6);
   }
-
   public static void open(Player player) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -33,19 +28,14 @@ public class ApplyToTownMenu extends IteratorGUI {
               new ApplyToTownMenu(player, tanPlayer).open();
             });
   }
-
   @Override
   public void open() {
-
     GuiUtil.createIterator(
         gui, getTowns(), page, player, NoTownMenu::open, p -> nextPage(), p -> previousPage());
-
     gui.open(player);
   }
-
   public List<GuiItem> getTowns() {
     ArrayList<GuiItem> towns = new ArrayList<>();
-
     for (TownData specificTownData : TownDataStorage.getInstance().getAllSync().values()) {
       ItemStack townIcon = specificTownData.getIconWithInformations(tanPlayer.getLang());
       HeadUtils.addLore(
@@ -62,9 +52,7 @@ public class ApplyToTownMenu extends IteratorGUI {
               .asGuiItem(
                   event -> {
                     event.setCancelled(true);
-
                     if (event.isLeftClick()) {
-
                       if (!player.hasPermission("tan.base.town.join")) {
                         TanChatUtils.message(
                             player, Lang.PLAYER_NO_PERMISSION.get(tanPlayer), NOT_ALLOWED);

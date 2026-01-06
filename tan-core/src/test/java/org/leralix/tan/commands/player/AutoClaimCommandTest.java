@@ -49,7 +49,7 @@ class AutoClaimCommandTest {
 
   @Test
   void getSyntax_returnsCorrectSyntax() {
-    assertEquals("/tan autoclaim <chunk type>", command.getSyntax());
+    assertEquals("/ccn autoclaim <chunk type>", command.getSyntax());
   }
 
   @Test

@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -17,16 +16,12 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class SelectNewOwnerForTownMenu extends IteratorGUI {
-
   private final TownData townData;
-
   private SelectNewOwnerForTownMenu(Player player, ITanPlayer tanPlayer, TownData townData) {
     super(player, tanPlayer, Lang.HEADER_CHANGE_OWNERSHIP.get(tanPlayer.getLang()), 3);
     this.townData = townData;
   }
-
   public static void open(Player player, TownData townData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -35,19 +30,15 @@ public class SelectNewOwnerForTownMenu extends IteratorGUI {
               new SelectNewOwnerForTownMenu(player, tanPlayer, townData).open();
             });
   }
-
   @Override
   public void open() {
     iterator(getCandidates(), p -> TownSettingsMenu.open(p, townData));
     gui.open(player);
   }
-
   private List<GuiItem> getCandidates() {
     List<GuiItem> guiItems = new ArrayList<>();
     for (String playerUUID : townData.getPlayerIDList()) {
-
       OfflinePlayer townPlayer = Bukkit.getServer().getOfflinePlayer(UUID.fromString(playerUUID));
-
       ItemStack playerHead =
           HeadUtils.getPlayerHead(
               townPlayer.getName(),
@@ -55,13 +46,11 @@ public class SelectNewOwnerForTownMenu extends IteratorGUI {
               Lang.GUI_TOWN_SETTINGS_TRANSFER_OWNERSHIP_TO_SPECIFIC_PLAYER_DESC1.get(
                   tanPlayer, player.getName()),
               Lang.GUI_TOWN_SETTINGS_TRANSFER_OWNERSHIP_TO_SPECIFIC_PLAYER_DESC2.get(tanPlayer));
-
       GuiItem playerHeadIcon =
           ItemBuilder.from(playerHead)
               .asGuiItem(
                   event -> {
                     event.setCancelled(true);
-
                     ConfirmMenu.open(
                         player,
                         Lang.GUI_CONFIRM_CHANGE_TOWN_LEADER.get(),

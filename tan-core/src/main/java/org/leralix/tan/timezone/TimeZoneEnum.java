@@ -1,9 +1,7 @@
-package org.leralix.tan.timezone;
-
+﻿package org.leralix.tan.timezone;
 import java.time.ZoneOffset;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
-
 public enum TimeZoneEnum {
   UTC_MINUS_12(Lang.UTC_MINUS_12, -12),
   UTC_MINUS_11(Lang.UTC_MINUS_11, -11),
@@ -30,26 +28,21 @@ public enum TimeZoneEnum {
   UTC_PLUS_10(Lang.UTC_PLUS_10, 10),
   UTC_PLUS_11(Lang.UTC_PLUS_11, 11),
   UTC_PLUS_12(Lang.UTC_PLUS_12, 12);
-
   private final Lang name;
   private final int offset;
-
   TimeZoneEnum(Lang name, int offset) {
     this.name = name;
     this.offset = offset;
   }
-
   public ZoneOffset toZoneOffset() {
     return ZoneOffset.ofHours(offset);
   }
-
   public static TimeZoneEnum fromOffset(int offset) {
     for (TimeZoneEnum zone : values()) {
       if (zone.offset == offset) return zone;
     }
     throw new IllegalArgumentException("Invalid UTC offset: " + offset);
   }
-
   public String getName(LangType langType) {
     return name.get(langType);
   }

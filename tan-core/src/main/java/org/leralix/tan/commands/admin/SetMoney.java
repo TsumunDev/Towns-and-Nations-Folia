@@ -1,5 +1,4 @@
-package org.leralix.tan.commands.admin;
-
+﻿package org.leralix.tan.commands.admin;
 import java.util.List;
 import java.util.Optional;
 import org.bukkit.OfflinePlayer;
@@ -13,70 +12,52 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.utils.commands.CommandExceptionHandler;
 import org.leralix.tan.utils.file.FileUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class SetMoney extends SubCommand {
-
   @Override
   public String getName() {
     return "setmoney";
   }
-
   @Override
   public String getDescription() {
     return Lang.ADMIN_SET_PLAYER_MONEY_BALANCE.getDefault();
   }
-
   @Override
   public int getArguments() {
     return 2;
   }
-
   @Override
   public String getSyntax() {
-    return "/tanadmin setmoney <player> <amount>";
+    return "/ccnadmin setmoney <player> <amount>";
   }
-
   public List<String> getTabCompleteSuggestions(
       CommandSender player, String lowerCase, String[] args) {
     return payPlayerSuggestion(args);
   }
-
   @Override
   public void perform(CommandSender player, String[] args) {
-    // Validate argument count
     if (!CommandExceptionHandler.validateArgCount(player, args, 3, getSyntax())) {
       return;
     }
-
-    // Find the target player
     Optional<OfflinePlayer> offlinePlayerOpt = CommandExceptionHandler.findPlayer(player, args[1]);
     if (offlinePlayerOpt.isEmpty()) {
       return;
     }
-
-    // Get TAN player data
     Optional<ITanPlayer> targetOpt =
         CommandExceptionHandler.getTanPlayer(player, offlinePlayerOpt.get());
     if (targetOpt.isEmpty()) {
       return;
     }
-
     setMoney(player, args, targetOpt.get());
   }
-
   static void setMoney(CommandSender commandSender, String[] args, ITanPlayer target) {
-    // Parse amount with error handling
     Optional<Double> amountOpt =
         CommandExceptionHandler.parseDouble(commandSender, args[2], "amount");
     if (amountOpt.isEmpty()) {
       return;
     }
-
     double amount = amountOpt.get();
-
     try {
       executeSetMoney(target, amount);
-
       TanChatUtils.message(
           commandSender,
           Lang.SET_MONEY_COMMAND_SUCCESS.get(Double.toString(amount), target.getNameStored()));
@@ -88,14 +69,6 @@ public class SetMoney extends SubCommand {
       CommandExceptionHandler.logCommandExecution(commandSender, "setmoney", args);
     }
   }
-
-  /**
-   * Executes the set money operation.
-   *
-   * @param target The player to set money for
-   * @param amount The amount to set
-   * @throws EconomyException If the economy operation fails
-   */
   private static void executeSetMoney(ITanPlayer target, double amount) throws EconomyException {
     try {
       EconomyUtil.setBalance(target, amount);

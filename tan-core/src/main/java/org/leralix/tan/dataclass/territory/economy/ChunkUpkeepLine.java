@@ -1,5 +1,4 @@
-package org.leralix.tan.dataclass.territory.economy;
-
+﻿package org.leralix.tan.dataclass.territory.economy;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.entity.Player;
@@ -13,26 +12,21 @@ import org.leralix.tan.lang.LangType;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.StringUtil;
-
 public class ChunkUpkeepLine extends ProfitLine {
   private final double totalUpkeep;
-
   public ChunkUpkeepLine(TerritoryData territoryData) {
     super(territoryData);
     this.totalUpkeep =
         territoryData.getNumberOfClaimedChunk() * -Constants.getUpkeepCost(territoryData);
   }
-
   @Override
   protected double getMoney() {
     return totalUpkeep;
   }
-
   @Override
   public FilledLang getLine() {
     return Lang.TERRITORY_UPKEEP_LINE.get(StringUtil.getColoredMoney(getMoney()));
   }
-
   @Override
   public void addItems(Gui gui, Player player, LangType lang) {
     ItemStack chunkSpending =
@@ -53,7 +47,6 @@ public class ChunkUpkeepLine extends ProfitLine {
                     player, territoryData, TransactionHistoryEnum.CHUNK_SPENDING));
     gui.setItem(2, 7, chunkSpendingItem);
   }
-
   @Override
   public boolean isRecurrent() {
     return true;

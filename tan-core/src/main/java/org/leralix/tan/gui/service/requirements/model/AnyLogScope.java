@@ -1,11 +1,8 @@
-package org.leralix.tan.gui.service.requirements.model;
-
+﻿package org.leralix.tan.gui.service.requirements.model;
 import org.bukkit.Material;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
-
 public class AnyLogScope extends ItemScope {
-
   @Override
   public boolean isInScope(Material material) {
     return material == Material.ACACIA_LOG
@@ -19,7 +16,6 @@ public class AnyLogScope extends ItemScope {
         || material == Material.CRIMSON_STEM
         || material == Material.WARPED_STEM;
   }
-
   @Override
   public String getName(LangType langType) {
     return Lang.ANY_LOG_SCOPE_NAME.get(langType);

@@ -1,12 +1,10 @@
-package org.leralix.tan.lang;
-
+﻿package org.leralix.tan.lang;
 import java.util.HashMap;
 import java.util.Map;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.HeadUtils;
-
 public enum LangType {
   AFRIKAANS(
       "af",
@@ -101,39 +99,30 @@ public enum LangType {
   CHINESE_TRADITIONAL(
       "zh-TW",
       "https://textures.minecraft.net/texture/702a4afb2e1e2e3a1894a8b74272f95cfa994ce53907f9ac140bd3c932f9f");
-
   private static final Map<String, LangType> CODE_MAP = new HashMap<>();
-
   static {
     for (LangType lang : values()) {
       CODE_MAP.put(lang.code, lang);
     }
   }
-
   private final String code;
   private final String url;
-
   LangType(String code, String url) {
     this.code = code;
     this.url = url;
   }
-
   public static LangType of(Player player) {
     return PlayerDataStorage.getInstance().getSync(player).getLang();
   }
-
   public String getCode() {
     return code;
   }
-
   public static LangType fromCode(String code) {
     return CODE_MAP.get(code);
   }
-
   public String getName() {
     return name().toLowerCase();
   }
-
   public ItemStack getIcon(LangType langType) {
     return HeadUtils.makeSkullURL(
         getName(),

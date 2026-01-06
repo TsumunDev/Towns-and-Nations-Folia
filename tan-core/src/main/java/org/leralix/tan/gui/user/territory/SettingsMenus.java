@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,21 +19,15 @@ import org.leralix.tan.listeners.chat.events.ChangeTerritoryDescription;
 import org.leralix.tan.listeners.chat.events.ChangeTerritoryName;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public abstract class SettingsMenus extends BasicGui {
-
   protected final TerritoryData territoryData;
-
   protected SettingsMenus(
       Player player, ITanPlayer tanPlayer, String title, TerritoryData territoryData, int nbRows) {
     super(player, tanPlayer, title, nbRows);
     this.territoryData = territoryData;
   }
-
   protected GuiItem getTerritoryInfo() {
-
     LangType langType = tanPlayer.getLang();
-
     List<FilledLang> lore = new ArrayList<>();
     lore.add(Lang.GUI_TOWN_INFO_DESC0.get(territoryData.getDescription()));
     lore.add(Lang.GUI_TOWN_INFO_DESC1.get(territoryData.getLeaderNameSync()));
@@ -49,18 +42,14 @@ public abstract class SettingsMenus extends BasicGui {
             .orElseGet(Lang.GUI_TOWN_INFO_DESC5_NO_REGION::get));
     lore.add(Lang.GUI_TOWN_INFO_CHANGE_ICON.get());
     lore.add(Lang.RIGHT_CLICK_TO_SELECT_MEMBER_HEAD.get());
-
     return IconManager.getInstance()
         .get(IconKey.TERRITORY_ICON)
         .setName(Lang.GUI_TOWN_NAME.get(langType, territoryData.getName()))
         .setDescription(lore)
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getRenameButton() {
-
     int cost = Constants.getChangeTerritoryNameCost(territoryData);
-
     return iconManager
         .get(IconKey.TERRITORY_RENAME_ICON)
         .setName(Lang.GUI_SETTINGS_CHANGE_TERRITORY_NAME.get(tanPlayer))
@@ -79,7 +68,6 @@ public abstract class SettingsMenus extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getChangeDescriptionButton() {
     return iconManager
         .get(IconKey.TERRITORY_DESCRIPTION_ICON)
@@ -98,7 +86,6 @@ public abstract class SettingsMenus extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getChangeColorButton() {
     return iconManager
         .get(IconKey.TERRITORY_CHANGE_COLOR_ICON)

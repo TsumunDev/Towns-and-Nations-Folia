@@ -1,7 +1,5 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import static org.leralix.lib.data.SoundEnum.NOT_ALLOWED;
-
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -22,13 +20,10 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class OpenPlayerListForChunkPermission extends IteratorGUI {
-
   private final TerritoryData territoryData;
   private final ChunkPermissionType chunkPermissionType;
   private final BasicGui backMenu;
-
   public OpenPlayerListForChunkPermission(
       Player player,
       ITanPlayer tanPlayer,
@@ -39,10 +34,7 @@ public class OpenPlayerListForChunkPermission extends IteratorGUI {
     this.territoryData = territoryData;
     this.chunkPermissionType = type;
     this.backMenu = backMenu;
-    // open() doit être appelé explicitement après la construction pour respecter le modèle
-    // asynchrone
   }
-
   public static void open(
       Player player, TerritoryData territoryData, ChunkPermissionType type, BasicGui backMenu) {
     PlayerDataStorage.getInstance()
@@ -53,23 +45,17 @@ public class OpenPlayerListForChunkPermission extends IteratorGUI {
                   .open();
             });
   }
-
   @Override
   public void open() {
     iterator(getAuthorizedPlayer(), p -> backMenu.open());
-
     gui.setItem(6, 4, getAddButton());
-
     gui.open(player);
   }
-
   private @NotNull GuiItem getAddButton() {
-
     ItemStack addIcon =
         HeadUtils.makeSkullB64(
             Lang.GUI_GENERIC_ADD_BUTTON.get(tanPlayer),
             "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWZmMzE0MzFkNjQ1ODdmZjZlZjk4YzA2NzU4MTA2ODFmOGMxM2JmOTZmNTFkOWNiMDdlZDc4NTJiMmZmZDEifX19");
-
     return ItemBuilder.from(addIcon)
         .asGuiItem(
             event -> {
@@ -79,14 +65,11 @@ public class OpenPlayerListForChunkPermission extends IteratorGUI {
                 TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(tanPlayer), NOT_ALLOWED);
                 return;
               }
-              // Use static factory method instead of constructor
               AddPlayerForChunkPermission.open(player, territoryData, chunkPermissionType, this);
             });
   }
-
   private List<GuiItem> getAuthorizedPlayer() {
     List<GuiItem> guiItems = new ArrayList<>();
-
     for (String authorizedPlayerID :
         territoryData.getPermission(chunkPermissionType).getAuthorizedPlayers()) {
       OfflinePlayer authorizedPlayer = Bukkit.getOfflinePlayer(UUID.fromString(authorizedPlayerID));
@@ -95,7 +78,6 @@ public class OpenPlayerListForChunkPermission extends IteratorGUI {
               authorizedPlayer.getName(),
               authorizedPlayer,
               Lang.GUI_TOWN_MEMBER_DESC3.get(tanPlayer));
-
       GuiItem guiItem =
           ItemBuilder.from(icon)
               .asGuiItem(

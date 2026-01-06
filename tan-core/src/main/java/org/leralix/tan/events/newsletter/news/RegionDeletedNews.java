@@ -1,5 +1,4 @@
-package org.leralix.tan.events.newsletter.news;
-
+﻿package org.leralix.tan.events.newsletter.news;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
@@ -17,37 +16,29 @@ import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.tan.api.interfaces.TanPlayer;
 import org.tan.api.interfaces.TanRegion;
-
 public class RegionDeletedNews extends Newsletter {
-
   private final String playerID;
   private final String regionName;
-
   public RegionDeletedNews(TanRegion regionData, TanPlayer player) {
     super();
     this.playerID = player.getUUID().toString();
     this.regionName = regionData.getName();
   }
-
   public RegionDeletedNews(UUID id, long date, String playerID, String oldRegionName) {
     super(id, date);
     this.playerID = playerID;
     this.regionName = oldRegionName;
   }
-
   public String getPlayerID() {
     return playerID;
   }
-
   public String getRegionName() {
     return regionName;
   }
-
   @Override
   public NewsletterType getType() {
     return NewsletterType.REGION_DELETED;
   }
-
   @Override
   public void broadcast(Player player) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
@@ -57,12 +48,10 @@ public class RegionDeletedNews extends Newsletter {
         Lang.REGION_DELETED_NEWSLETTER.get(player, tanPlayer.getNameStored(), regionName),
         SoundEnum.GOOD);
   }
-
   @Override
   public void broadcastConcerned(Player player) {
     broadcast(player);
   }
-
   @Override
   public GuiItem createGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
@@ -75,7 +64,6 @@ public class RegionDeletedNews extends Newsletter {
                 lang, TimeZoneManager.getInstance().getRelativeTimeDescription(lang, getDate())),
             Lang.REGION_DELETED_NEWSLETTER.get(lang, tanPlayer.getNameStored(), regionName),
             Lang.NEWSLETTER_RIGHT_CLICK_TO_MARK_AS_READ.get(lang));
-
     return ItemBuilder.from(itemStack)
         .asGuiItem(
             event -> {
@@ -86,12 +74,10 @@ public class RegionDeletedNews extends Newsletter {
               }
             });
   }
-
   @Override
   public GuiItem createConcernedGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     return createGuiItem(player, lang, onClick);
   }
-
   @Override
   public boolean shouldShowToPlayer(Player player) {
     return true;

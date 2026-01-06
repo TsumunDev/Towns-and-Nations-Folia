@@ -1,7 +1,5 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import static org.leralix.lib.data.SoundEnum.NOT_ALLOWED;
-
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.ITanPlayer;
@@ -17,15 +15,10 @@ import org.leralix.tan.storage.stored.RegionDataStorage;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class NoRegionMenu extends BasicGui {
-
   private NoRegionMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, Lang.HEADER_NO_REGION.get(player), 3);
-    // open() doit être appelé explicitement après la construction pour respecter le modèle
-    // asynchrone
   }
-
   public static void open(Player player) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -34,21 +27,15 @@ public class NoRegionMenu extends BasicGui {
               new NoRegionMenu(player, tanPlayer).open();
             });
   }
-
   @Override
   public void open() {
-
     gui.setItem(2, 3, getCreateRegionButton());
     gui.setItem(2, 7, getBrowseRegionsButton());
     gui.setItem(3, 1, GuiUtil.createBackArrow(player, p -> MainMenu.open(player)));
-
     gui.open(player);
   }
-
   private GuiItem getCreateRegionButton() {
-
     int regionCost = Constants.getRegionCost();
-
     return iconManager
         .get(IconKey.CREATE_REGION_ICON)
         .setName(Lang.GUI_REGION_CREATE.get(tanPlayer))
@@ -61,12 +48,10 @@ public class NoRegionMenu extends BasicGui {
                 TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(tanPlayer), NOT_ALLOWED);
                 return;
               }
-
               if (!tanPlayer.hasTown()) {
                 TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(tanPlayer), NOT_ALLOWED);
                 return;
               }
-              // OPTIMIZATION: Use async to avoid blocking on player click
               tanPlayer
                   .getTown()
                   .thenAccept(
@@ -89,7 +74,6 @@ public class NoRegionMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getBrowseRegionsButton() {
     return iconManager
         .get(IconKey.BROWSE_REGION_ICON)

@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.player;
-
+﻿package org.leralix.tan.gui.user.player;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,18 +14,14 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.FoliaScheduler;
 import org.leralix.tan.utils.deprecated.GuiUtil;
-
 public class NewsletterMenu extends IteratorGUI {
-
   NewsletterScope scope;
   private List<GuiItem> cachedNewsletters = new ArrayList<>();
   private boolean isLoaded = false;
-
   private NewsletterMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, Lang.HEADER_NEWSLETTER.get(tanPlayer.getLang()), 6);
     this.scope = NewsletterScope.SHOW_ONLY_UNREAD;
   }
-
   public static void open(Player player) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -35,10 +30,8 @@ public class NewsletterMenu extends IteratorGUI {
               new NewsletterMenu(player, tanPlayer).open();
             });
   }
-
   @Override
   public void open() {
-    // Show loading screen immediately with current cached data
     GuiUtil.createIterator(
         gui,
         cachedNewsletters,
@@ -47,29 +40,21 @@ public class NewsletterMenu extends IteratorGUI {
         PlayerMenu::open,
         p -> nextPage(),
         p -> previousPage());
-
     gui.setItem(6, 4, getMarkAllAsReadButton());
     gui.setItem(6, 5, getCheckScopeGui());
-
     gui.open(player);
-
-    // Load newsletters asynchronously ONLY if not already loaded
     if (!isLoaded) {
       loadNewslettersAsync();
     }
   }
-
   private void loadNewslettersAsync() {
     FoliaScheduler.runTaskAsynchronously(
         org.leralix.tan.TownsAndNations.getPlugin(),
         () -> {
-          // This runs on async thread - safe to do blocking DB calls
           List<GuiItem> newsletters =
               NewsletterStorage.getInstance().getNewsletterForPlayer(player, scope, p -> refresh());
           cachedNewsletters = newsletters;
           isLoaded = true;
-
-          // Refresh menu on main thread with loaded data
           FoliaScheduler.runTask(
               org.leralix.tan.TownsAndNations.getPlugin(),
               () -> {
@@ -79,9 +64,7 @@ public class NewsletterMenu extends IteratorGUI {
               });
         });
   }
-
   private void refresh() {
-    // Just update the GUI without triggering another load
     GuiUtil.createIterator(
         gui,
         cachedNewsletters,
@@ -92,11 +75,9 @@ public class NewsletterMenu extends IteratorGUI {
         p -> previousPage());
     gui.update();
   }
-
   private List<GuiItem> getNewsletters() {
     return cachedNewsletters;
   }
-
   private GuiItem getMarkAllAsReadButton() {
     return IconManager.getInstance()
         .get(IconKey.MARK_ALL_AS_READ_ICON)
@@ -105,12 +86,11 @@ public class NewsletterMenu extends IteratorGUI {
         .setAction(
             event -> {
               NewsletterStorage.getInstance().markAllAsReadForPlayer(player);
-              isLoaded = false; // Force reload
+              isLoaded = false;
               open();
             })
         .asGuiItem(player, langType);
   }
-
   private GuiItem getCheckScopeGui() {
     return IconManager.getInstance()
         .get(IconKey.CHANGE_NEWSLETTER_SCOPE_ICON)
@@ -120,12 +100,11 @@ public class NewsletterMenu extends IteratorGUI {
         .setAction(
             event -> {
               scope = scope.getNextScope();
-              isLoaded = false; // Force reload with new scope
+              isLoaded = false;
               open();
             })
         .asGuiItem(player, langType);
   }
-
   public BasicGui setScope(NewsletterScope newsletterScope) {
     this.scope = newsletterScope;
     return this;

@@ -1,5 +1,4 @@
-package org.leralix.tan.upgrade;
-
+﻿package org.leralix.tan.upgrade;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import net.objecthunter.exp4j.Expression;
@@ -18,20 +17,16 @@ import org.leralix.tan.upgrade.rewards.list.PermissionList;
 import org.leralix.tan.upgrade.rewards.numeric.*;
 import org.leralix.tan.upgrade.rewards.percentage.LandmarkBonus;
 import org.leralix.tan.utils.constants.Constants;
-
 public class TerritoryStats {
-
   private int mainLevel;
   private Map<String, Integer> level;
   private final StatsType statsType;
-
   public TerritoryStats(StatsType statsType) {
     this.mainLevel = 1;
     this.level = new HashMap<>();
-    this.level.put("CITY_HALL", 1); // Default upgrade
+    this.level.put("CITY_HALL", 1);
     this.statsType = statsType;
   }
-
   public int getLevel(Upgrade upgrade) {
     if (level == null) {
       level = new HashMap<>();
@@ -41,7 +36,6 @@ public class TerritoryStats {
     }
     return level.get(upgrade.getID());
   }
-
   public void levelUp(Upgrade townUpgrade) {
     String key = townUpgrade.getID();
     if (!level.containsKey(key)) {
@@ -50,28 +44,23 @@ public class TerritoryStats {
     }
     level.put(key, level.get(key) + 1);
   }
-
   public int getMainLevel() {
     return mainLevel;
   }
-
   public void levelUpMain() {
     mainLevel++;
   }
-
   public <T extends IndividualStat & AggregatableStat<T>> T getStat(Class<T> rewardClass) {
     List<T> stats = new ArrayList<>();
     for (Upgrade upgrade : Constants.getUpgradeStorage().getUpgrades(statsType)) {
       int currentLevel = getLevel(upgrade);
       if (currentLevel == 0) continue;
-
       for (IndividualStat reward : upgrade.getRewards()) {
         if (rewardClass.isInstance(reward)) {
           stats.add(rewardClass.cast(reward).scale(currentLevel));
         }
       }
     }
-
     if (stats.isEmpty()) {
       try {
         return rewardClass.getDeclaredConstructor().newInstance();
@@ -83,16 +72,12 @@ public class TerritoryStats {
             "Failed to create default instance of " + rewardClass.getName(), e);
       }
     }
-
     return stats.getFirst().aggregate(stats);
   }
-
   public Collection<IndividualStat> getAllStats() {
-
     List<IndividualStat> allStats = new ArrayList<>();
     allStats.add(getStat(ChunkCap.class));
     allStats.add(getStat(ChunkCost.class));
-    // Town only stats.
     if (statsType == StatsType.TOWN) {
       allStats.add(getStat(LandmarkCap.class));
       allStats.add(getStat(PropertyCap.class));
@@ -105,22 +90,18 @@ public class TerritoryStats {
     allStats.add(getStat(BiomeStat.class));
     return allStats;
   }
-
   public int getMoneyRequiredForLevelUp() {
     return getRequiredMoney(mainLevel);
   }
-
   private int getRequiredMoney(int level) {
     FileConfiguration fg = ConfigUtil.getCustomConfig(ConfigTag.UPGRADE);
     ConfigurationSection section = fg.getConfigurationSection("townLevelExpression");
     String expressionString = section.getString("LevelExpression");
     String squareMultName = "squareMultiplier";
     String flatMultName = "flatMultiplier";
-
     double squareMultiplier = section.getDouble(squareMultName);
     double flatMultiplier = section.getDouble(flatMultName);
     double base = section.getDouble("base");
-
     Expression expression =
         new ExpressionBuilder(expressionString)
             .variable("level")

@@ -1,23 +1,17 @@
-package org.leralix.tan.upgrade.rewards.numeric;
-
+﻿package org.leralix.tan.upgrade.rewards.numeric;
 import java.util.List;
 import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.upgrade.rewards.AggregatableStat;
-
 public class ChunkCap extends NumericStat implements AggregatableStat<ChunkCap> {
-
-  /** Default constructor Needed to create an empty stat. Do not remove */
   @SuppressWarnings("unused")
   public ChunkCap() {
     super(0, false);
   }
-
   public ChunkCap(int maxAmount, boolean isUnlimited) {
     super(maxAmount, isUnlimited);
   }
-
   public String getMaxNumberOfChunks() {
     if (isUnlimited) {
       return "∞";
@@ -25,10 +19,8 @@ public class ChunkCap extends NumericStat implements AggregatableStat<ChunkCap> 
       return Integer.toString(maxAmount);
     }
   }
-
   @Override
   public ChunkCap aggregate(List<ChunkCap> stats) {
-
     int totalCap = 0;
     boolean unlimitedFound = false;
     for (ChunkCap stat : stats) {
@@ -39,17 +31,14 @@ public class ChunkCap extends NumericStat implements AggregatableStat<ChunkCap> 
     }
     return new ChunkCap(totalCap, unlimitedFound);
   }
-
   @Override
   public ChunkCap scale(int factor) {
     return new ChunkCap(maxAmount * factor, isUnlimited);
   }
-
   @Override
   public FilledLang getStatReward(LangType langType, int level, int maxLevel) {
     return getStatReward(langType, level, maxLevel, Lang.CHUNK_CAP);
   }
-
   @Override
   public FilledLang getStatReward(LangType langType) {
     return getStatReward(langType, Lang.CHUNK_CAP);

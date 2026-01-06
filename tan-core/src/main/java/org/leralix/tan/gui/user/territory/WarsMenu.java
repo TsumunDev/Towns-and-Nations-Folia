@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,18 +15,14 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.WarStorage;
 import org.leralix.tan.utils.gui.AsyncGuiHelper;
 import org.leralix.tan.wars.War;
-
 public class WarsMenu extends IteratorGUI {
-
   private final TerritoryData territoryData;
   private List<GuiItem> cachedWars = new ArrayList<>();
   private boolean isLoaded = false;
-
   private WarsMenu(Player player, ITanPlayer tanPlayer, TerritoryData territoryData) {
     super(player, tanPlayer, "War Menu", 4);
     this.territoryData = territoryData;
   }
-
   public static void open(Player player, TerritoryData territoryData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -36,20 +31,16 @@ public class WarsMenu extends IteratorGUI {
               new WarsMenu(player, tanPlayer, territoryData).open();
             });
   }
-
   @Override
   public void open() {
-    // Show immediate loading screen with cached data
     iterator(cachedWars, p -> territoryData.openMainMenu(player));
     gui.setItem(4, 4, getAttackButton(territoryData));
     gui.open(player);
-
-    // Load data asynchronously if not already loaded
     if (!isLoaded) {
       AsyncGuiHelper.loadAsync(
           player,
-          () -> getWars(territoryData), // Async supplier - loads war data
-          items -> { // Main thread consumer - updates GUI
+          () -> getWars(territoryData),
+          items -> {
             cachedWars = items;
             isLoaded = true;
             iterator(items, p -> territoryData.openMainMenu(player));
@@ -58,11 +49,8 @@ public class WarsMenu extends IteratorGUI {
           });
     }
   }
-
   private List<GuiItem> getWars(TerritoryData territoryData) {
-
     List<War> wars = WarStorage.getInstance().getWarsOfTerritory(territoryData);
-
     List<GuiItem> guiItems = new ArrayList<>();
     for (War war : wars) {
       guiItems.add(
@@ -75,10 +63,8 @@ public class WarsMenu extends IteratorGUI {
               .setAction(event -> WarMenu.open(player, territoryData, war))
               .asGuiItem(player, langType));
     }
-
     return guiItems;
   }
-
   private @NotNull GuiItem getAttackButton(TerritoryData territoryData) {
     return iconManager
         .get(new ItemStack(Material.BOW))

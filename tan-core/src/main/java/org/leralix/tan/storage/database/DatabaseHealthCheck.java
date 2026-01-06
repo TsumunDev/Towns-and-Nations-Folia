@@ -1,81 +1,54 @@
-package org.leralix.tan.storage.database;
-
+﻿package org.leralix.tan.storage.database;
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.utils.FoliaScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-/**
- * Database health check and automatic reconnection manager P3.3: Automated database health
- * monitoring
- *
- * <p>Monitors database connectivity and attempts automatic reconnection when connection is lost.
- * Runs every 20 seconds on the async scheduler.
- */
 public class DatabaseHealthCheck {
-
   private static final Logger logger = LoggerFactory.getLogger(DatabaseHealthCheck.class);
-  private static final long CHECK_INTERVAL_TICKS = 400L; // 20 seconds
-
+  private static final long CHECK_INTERVAL_TICKS = 400L;
   private final DatabaseHandler databaseHandler;
   private final TownsAndNations plugin;
   private boolean wasConnected = true;
   private volatile boolean isRunning = false;
-
   public DatabaseHealthCheck(DatabaseHandler databaseHandler, TownsAndNations plugin) {
     this.databaseHandler = databaseHandler;
     this.plugin = plugin;
   }
-
-  /** Start the periodic health check */
   public void start() {
     if (isRunning) {
-      return; // Already started
+      return;
     }
-
     isRunning = true;
     logger.info("[TaN] Starting database health check (interval: 20 seconds)");
     scheduleNextCheck();
   }
-
-  /** Stop the periodic health check */
   public void stop() {
     isRunning = false;
     logger.info("[TaN] Database health check stopped");
   }
-
-  /** Schedule the next health check */
   private void scheduleNextCheck() {
     if (!isRunning) {
       return;
     }
-
     FoliaScheduler.runTaskLaterAsynchronously(
         plugin,
         () -> {
           checkDatabaseHealth();
-          scheduleNextCheck(); // Reschedule
+          scheduleNextCheck();
         },
         CHECK_INTERVAL_TICKS);
   }
-
-  /** Check database health and attempt recovery if needed */
   private void checkDatabaseHealth() {
     try {
       boolean isConnected = databaseHandler.isConnectionValid();
-
       if (!isConnected && wasConnected) {
-        // Connection was lost
         logger.error("[TaN] ⚠️  DATABASE CONNECTION LOST!");
         wasConnected = false;
         attemptReconnection();
       } else if (isConnected && !wasConnected) {
-        // Connection was restored
         logger.info("[TaN] ✅ DATABASE CONNECTION RESTORED!");
         wasConnected = true;
       }
-
-      // Log pool metrics if MySQL
       if (isConnected && databaseHandler instanceof MySqlHandler) {
         logPoolMetrics();
       }
@@ -83,16 +56,12 @@ public class DatabaseHealthCheck {
       logger.error("[TaN] Error in health check: " + e.getMessage(), e);
     }
   }
-
-  /** Attempt automatic reconnection to the database */
   private void attemptReconnection() {
     try {
       if (databaseHandler instanceof MySqlHandler) {
         MySqlHandler mySqlHandler = (MySqlHandler) databaseHandler;
         logger.warn("[TaN] Attempting automatic database reconnection...");
         mySqlHandler.reconnect();
-
-        // Verify reconnection was successful
         if (databaseHandler.isConnectionValid()) {
           logger.info("[TaN] ✅ Automatic reconnection successful!");
           wasConnected = true;
@@ -104,20 +73,15 @@ public class DatabaseHealthCheck {
       logger.error("[TaN] Error during automatic reconnection: " + e.getMessage(), e);
     }
   }
-
-  /** Log database connection pool metrics */
   private void logPoolMetrics() {
     try {
       if (databaseHandler.getDataSource() instanceof com.zaxxer.hikari.HikariDataSource) {
         com.zaxxer.hikari.HikariDataSource hikari =
             (com.zaxxer.hikari.HikariDataSource) databaseHandler.getDataSource();
         var mxBean = hikari.getHikariPoolMXBean();
-
         int active = mxBean.getActiveConnections();
         int idle = mxBean.getIdleConnections();
         int total = mxBean.getTotalConnections();
-
-        // Log warning if too many active connections
         if (active > 20) {
           logger.warn(
               String.format(
@@ -130,16 +94,9 @@ public class DatabaseHealthCheck {
         }
       }
     } catch (Exception e) {
-      // Silently ignore - metrics are not critical
       logger.trace("[TaN] Error logging pool metrics: " + e.getMessage());
     }
   }
-
-  /**
-   * Get the current connection status
-   *
-   * @return true if database is connected, false otherwise
-   */
   public boolean isConnected() {
     return wasConnected && databaseHandler.isConnectionValid();
   }

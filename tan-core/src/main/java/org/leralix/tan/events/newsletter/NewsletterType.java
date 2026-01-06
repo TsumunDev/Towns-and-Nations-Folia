@@ -1,8 +1,6 @@
-package org.leralix.tan.events.newsletter;
-
+﻿package org.leralix.tan.events.newsletter;
 import org.leralix.lib.utils.config.ConfigTag;
 import org.leralix.lib.utils.config.ConfigUtil;
-
 public enum NewsletterType {
   TOWN_CREATED("player_create_town_newsletter"),
   TOWN_DELETED("player_delete_town_newsletter"),
@@ -22,16 +20,12 @@ public enum NewsletterType {
   ATTACK_CANCELLED("attack_cancelled_newsletter"),
   LANDMARK_CLAIMED("landmark_claimed_newsletter"),
   LANDMARK_UNCLAIMED("landmark_unclaimed_newsletter");
-
   private final String databaseName;
-
   NewsletterType(String databaseName) {
     this.databaseName = databaseName;
   }
-
   private EventScope newsletter;
   private EventScope broadcast;
-
   public static void init() {
     for (NewsletterType type : values()) {
       type.newsletter =
@@ -44,15 +38,12 @@ public enum NewsletterType {
                   .getString("events." + type.name() + ".NEWSLETTER", "NONE"));
     }
   }
-
   public EventScope getNewsletterScope() {
     return newsletter;
   }
-
   public EventScope getBroadcastGlobal() {
     return broadcast;
   }
-
   public static boolean isValidEnumValue(String value) {
     for (NewsletterType type : NewsletterType.values()) {
       if (type.name().equalsIgnoreCase(value)) {
@@ -61,7 +52,6 @@ public enum NewsletterType {
     }
     return false;
   }
-
   public String getDatabaseName() {
     return databaseName;
   }

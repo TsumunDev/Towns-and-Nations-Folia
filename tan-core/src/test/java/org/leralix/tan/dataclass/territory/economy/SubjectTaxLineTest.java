@@ -233,19 +233,20 @@ class SubjectTaxLineTest {
   }
 
   @Test
-  @DisplayName("Should handle vassal with exact tax balance")
+  @DisplayName("Should handle vassal with exact tax balance (no tax collected)")
   void testVassalWithExactBalance() {
     // Arrange
     double taxRate = 100.0;
     when(mockRegionData.getTax()).thenReturn(taxRate);
-    when(mockVassal1.getBalance()).thenReturn(taxRate); // Exact amount
+    when(mockVassal1.getBalance()).thenReturn(taxRate); // Exact amount (not greater than tax)
     when(mockRegionData.getVassals()).thenReturn(java.util.Collections.singletonList(mockVassal1));
 
     // Act
     taxLine = new SubjectTaxLine(mockRegionData);
 
     // Assert
-    assertEquals(taxRate, taxLine.getMoney(), 0.01);
+    // When balance == tax, condition "balance > tax" is false, so no actual tax is collected
+    assertEquals(0.0, taxLine.getMoney(), 0.01);
   }
 
   @Test

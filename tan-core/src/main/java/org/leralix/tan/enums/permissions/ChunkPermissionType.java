@@ -1,10 +1,8 @@
-package org.leralix.tan.enums.permissions;
-
+﻿package org.leralix.tan.enums.permissions;
 import org.bukkit.entity.Player;
 import org.leralix.tan.gui.cosmetic.IconKey;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
-
 public enum ChunkPermissionType {
   INTERACT_CHEST(IconKey.GUI_MANAGE_CHEST_ACCESS_ICON, Lang.GUI_TOWN_CLAIM_SETTINGS_CHEST),
   INTERACT_DOOR(IconKey.GUI_INTERACT_DOORS_ACCESS_ICON, Lang.GUI_TOWN_CLAIM_SETTINGS_DOOR),
@@ -29,27 +27,21 @@ public enum ChunkPermissionType {
   USE_BONE_MEAL(IconKey.GUI_INTERACT_BONE_MEAL_ICON, Lang.GUI_TOWN_CLAIM_SETTINGS_USE_BONE_MEAL),
   INTERACT_BERRIES(
       IconKey.GUI_INTERACT_GATHER_BERRIES_ICON, Lang.GUI_TOWN_CLAIM_SETTINGS_GATHER_BERRIES);
-
   private final IconKey iconKey;
   private final Lang label;
-
   ChunkPermissionType(IconKey iconKey, Lang label) {
     this.iconKey = iconKey;
     this.label = label;
   }
-
   public String getLabel(Player player) {
     return label.get(player);
   }
-
   public String getLabel(LangType langType) {
     return label.get(langType);
   }
-
   public IconKey getIconKey() {
     return iconKey;
   }
-
   public Lang getName() {
     return label;
   }

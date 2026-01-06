@@ -1,11 +1,8 @@
-package org.leralix.tan.storage.typeadapter;
-
+﻿package org.leralix.tan.storage.typeadapter;
 import com.google.gson.*;
 import java.lang.reflect.Type;
 import org.leralix.tan.wars.legacy.wargoals.*;
-
 public class WargoalTypeAdapter implements JsonDeserializer<WarGoal>, JsonSerializer<WarGoal> {
-
   @Override
   public WarGoal deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
       throws JsonParseException {
@@ -39,7 +36,6 @@ public class WargoalTypeAdapter implements JsonDeserializer<WarGoal>, JsonSerial
       default -> throw new JsonParseException("Unknown type: " + type);
     };
   }
-
   @Override
   public JsonElement serialize(WarGoal src, Type typeOfSrc, JsonSerializationContext context) {
     JsonObject result = context.serialize(src, src.getClass()).getAsJsonObject();

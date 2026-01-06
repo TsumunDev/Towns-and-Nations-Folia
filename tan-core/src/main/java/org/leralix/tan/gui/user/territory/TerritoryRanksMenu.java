@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,16 +20,12 @@ import org.leralix.tan.listeners.chat.events.CreateRank;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class TerritoryRanksMenu extends IteratorGUI {
-
   private final TerritoryData territoryData;
-
   private TerritoryRanksMenu(Player player, ITanPlayer tanPlayer, TerritoryData territoryData) {
     super(player, tanPlayer, Lang.HEADER_TERRITORY_RANKS.get(tanPlayer.getLang()), 4);
     this.territoryData = territoryData;
   }
-
   public static void open(Player player, TerritoryData territoryData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -39,10 +34,8 @@ public class TerritoryRanksMenu extends IteratorGUI {
               new TerritoryRanksMenu(player, tanPlayer, territoryData).open();
             });
   }
-
   @Override
   public void open() {
-
     GuiUtil.createIterator(
         gui,
         getRanks(),
@@ -51,16 +44,11 @@ public class TerritoryRanksMenu extends IteratorGUI {
         p -> territoryData.openMainMenu(player),
         p -> nextPage(),
         p -> previousPage());
-
     gui.setItem(4, 5, getCreateNewRoleButton());
-
     gui.open(player);
   }
-
   private GuiItem getCreateNewRoleButton() {
-
     int nbRanks = ConfigUtil.getCustomConfig(ConfigTag.MAIN).getInt("townMaxRank", 8);
-
     return iconManager
         .get(IconKey.NEW_RANK_ICON)
         .setName(Lang.GUI_TOWN_MEMBERS_ADD_NEW_ROLES.get(tanPlayer))
@@ -69,7 +57,6 @@ public class TerritoryRanksMenu extends IteratorGUI {
         .setAction(
             event -> {
               event.setCancelled(true);
-
               if (!territoryData.doesPlayerHavePermission(tanPlayer, RolePermission.CREATE_RANK)) {
                 TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(tanPlayer));
                 return;
@@ -84,7 +71,6 @@ public class TerritoryRanksMenu extends IteratorGUI {
             })
         .asGuiItem(player, langType);
   }
-
   private List<GuiItem> getRanks() {
     List<GuiItem> res = new ArrayList<>();
     for (RankData rank : territoryData.getAllRanksSorted()) {
@@ -92,7 +78,6 @@ public class TerritoryRanksMenu extends IteratorGUI {
     }
     return res;
   }
-
   private GuiItem getSingleRankButton(RankData rank) {
     return iconManager
         .get(rank.getRankIcon())

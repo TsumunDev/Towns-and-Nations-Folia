@@ -1,5 +1,4 @@
-package org.leralix.tan.dataclass.chunk;
-
+﻿package org.leralix.tan.dataclass.chunk;
 public enum ChunkType {
   WILDERNESS,
   TOWN,

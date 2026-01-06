@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory.upgrade;
-
+﻿package org.leralix.tan.gui.user.territory.upgrade;
 import dev.triumphteam.gui.components.util.GuiFiller;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -24,13 +23,10 @@ import org.leralix.tan.upgrade.rewards.IndividualStat;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class UpgradeMenu extends BasicGui {
-
   private final TerritoryData territoryData;
   private int scrollIndex;
   private final int maxLevel;
-
   public UpgradeMenu(Player player, ITanPlayer tanPlayer, TerritoryData territoryData) {
     super(player, tanPlayer, Lang.HEADER_TOWN_UPGRADE.get(player), 6);
     this.territoryData = territoryData;
@@ -38,7 +34,6 @@ public class UpgradeMenu extends BasicGui {
     this.maxLevel = ConfigUtil.getCustomConfig(ConfigTag.MAIN).getInt("TownMaxLevel", 10);
     open();
   }
-
   public static void open(Player player, TerritoryData territoryData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -47,24 +42,16 @@ public class UpgradeMenu extends BasicGui {
               new UpgradeMenu(player, tanPlayer, territoryData).open();
             });
   }
-
   @Override
   public void open() {
-
     generateMenuPart();
     generateUpgrades();
-
     gui.open(player);
   }
-
   private void generateUpgrades() {
-
     gui.setItem(1, 1, getTerritoryStats(territoryData));
-
     TerritoryStats territoryStats = territoryData.getNewLevel();
     int townLevel = territoryStats.getMainLevel();
-    // Fill the 5 rows of colored due to town level.
-
     var unlockedFiller = GuiUtil.getUnnamedItem(Material.LIME_STAINED_GLASS_PANE);
     var unlockedLevels = iconManager.get(Material.GREEN_STAINED_GLASS_PANE);
     var lockedFiller =
@@ -73,7 +60,6 @@ public class UpgradeMenu extends BasicGui {
             .setName(Lang.LEVEL_LOCKED.get(langType))
             .asGuiItem(player, langType);
     var lockedLevels = iconManager.get(Material.RED_STAINED_GLASS_PANE);
-
     for (int i = 2; i < 10; i++) {
       int adaptedCursor = i - 3 + scrollIndex;
       if (adaptedCursor > townLevel) {
@@ -97,18 +83,14 @@ public class UpgradeMenu extends BasicGui {
                 .asGuiItem(player, langType));
       }
     }
-
     for (Upgrade upgrade : Constants.getUpgradeStorage().getUpgrades(territoryData)) {
-
       int row = upgrade.getRow() + 1;
       int column = upgrade.getColumn() + 2 - scrollIndex;
-
       if (column > 9 || column < 2 || row > 4 || row < 1) {
         continue;
       }
       int levelOfUpgrade = territoryStats.getLevel(upgrade);
       int maxLevelOfUpgrade = upgrade.getMaxLevel();
-
       List<FilledLang> desc = new ArrayList<>();
       desc.add(
           Lang.UPGRADE_CURRENT_LEVEL.get(
@@ -118,7 +100,6 @@ public class UpgradeMenu extends BasicGui {
       for (IndividualStat individualStat : upgrade.getRewards()) {
         desc.add(individualStat.getStatReward(langType, levelOfUpgrade, maxLevelOfUpgrade));
       }
-
       gui.setItem(
           row,
           column,
@@ -143,42 +124,32 @@ public class UpgradeMenu extends BasicGui {
               .asGuiItem(player, langType));
     }
   }
-
   private @NotNull GuiItem getTerritoryStats(TerritoryData territoryData) {
-
     List<FilledLang> desc = new ArrayList<>();
     desc.add(Lang.EMPTY.get());
-
     for (IndividualStat stat : territoryData.getNewLevel().getAllStats()) {
       desc.add(stat.getStatReward(langType));
     }
-
     return iconManager
         .get(territoryData.getIcon())
         .setName(territoryData.getName())
         .setDescription(desc)
         .asGuiItem(player, langType);
   }
-
   private void generateMenuPart() {
     gui.getFiller().fillBottom(GuiUtil.getUnnamedItem(Material.GRAY_STAINED_GLASS_PANE));
     gui.getFiller()
         .fillSide(
             GuiFiller.Side.LEFT,
             Collections.singletonList(GuiUtil.getUnnamedItem(Material.GRAY_STAINED_GLASS_PANE)));
-
     gui.setItem(6, 8, getRightButton());
     gui.setItem(6, 7, getLeftButton());
-
     gui.setItem(6, 1, GuiUtil.createBackArrow(player, territoryData::openMainMenu));
   }
-
   private @NotNull GuiItem getUpgradeTownButton() {
-
     TerritoryStats level = territoryData.getNewLevel();
     int currentLevel = level.getMainLevel();
     int nextLevelPrice = level.getMoneyRequiredForLevelUp();
-
     return iconManager
         .get(IconKey.LEVEL_UP_ICON)
         .setName(Lang.GUI_TOWN_LEVEL_UP.get(langType))
@@ -195,7 +166,6 @@ public class UpgradeMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   private @NotNull GuiItem getRightButton() {
     return iconManager
         .get(IconKey.RIGHT_ARROW)
@@ -209,7 +179,6 @@ public class UpgradeMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   private @NotNull GuiItem getLeftButton() {
     return iconManager
         .get(IconKey.LEFT_ARROW)

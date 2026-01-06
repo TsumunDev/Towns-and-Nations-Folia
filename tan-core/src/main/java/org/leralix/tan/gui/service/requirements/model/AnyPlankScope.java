@@ -1,11 +1,8 @@
-package org.leralix.tan.gui.service.requirements.model;
-
+﻿package org.leralix.tan.gui.service.requirements.model;
 import org.bukkit.Material;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
-
 public class AnyPlankScope extends ItemScope {
-
   @Override
   public boolean isInScope(Material material) {
     return material == Material.ACACIA_PLANKS
@@ -19,7 +16,6 @@ public class AnyPlankScope extends ItemScope {
         || material == Material.CRIMSON_PLANKS
         || material == Material.WARPED_PLANKS;
   }
-
   @Override
   public String getName(LangType langType) {
     return Lang.ANY_PLANK_SCOPE_NAME.get(langType);

@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.player;
-
+﻿package org.leralix.tan.gui.user.player;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -17,13 +16,10 @@ import org.leralix.tan.lang.LangType;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class LangMenu extends IteratorGUI {
-
   private LangMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, Lang.HEADER_SELECT_LANGUAGE.get(tanPlayer.getLang()), 3);
   }
-
   public static void open(Player player) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -32,18 +28,13 @@ public class LangMenu extends IteratorGUI {
               new LangMenu(player, tanPlayer).open();
             });
   }
-
   @Override
   public void open() {
-
     GuiUtil.createIterator(
         gui, getLangItems(), page, player, PlayerMenu::open, p -> nextPage(), p -> previousPage());
-
     gui.setItem(3, 6, getPlayerGUI());
-
     gui.open(player);
   }
-
   private List<GuiItem> getLangItems() {
     List<GuiItem> guiItems = new ArrayList<>();
     for (LangType lang : LangType.values()) {
@@ -61,7 +52,6 @@ public class LangMenu extends IteratorGUI {
     }
     return guiItems;
   }
-
   private GuiItem getPlayerGUI() {
     return IconManager.getInstance()
         .get(IconKey.HELP_TRANSLATION_ICON)

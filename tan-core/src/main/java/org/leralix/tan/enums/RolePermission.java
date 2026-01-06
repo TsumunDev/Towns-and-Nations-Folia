@@ -1,11 +1,9 @@
-package org.leralix.tan.enums;
-
+﻿package org.leralix.tan.enums;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.dataclass.territory.TownData;
 import org.leralix.tan.gui.cosmetic.IconKey;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
-
 public enum RolePermission {
   MANAGE_TAXES(
       false, IconKey.GUI_MANAGE_TAXES_ICON, Lang.GUI_TOWN_MEMBERS_ROLE_PRIORITY_MANAGE_TAXES),
@@ -28,7 +26,7 @@ public enum RolePermission {
   MANAGE_TOWN_RELATION(
       false,
       IconKey.GUI_MANAGE_DIPLOMACY_ICON,
-      Lang.GUI_TOWN_MEMBERS_ROLE_PRIORITY_MANAGE_TOWN_RELATION), // Diplomacy
+      Lang.GUI_TOWN_MEMBERS_ROLE_PRIORITY_MANAGE_TOWN_RELATION),
   MANAGE_WARS(false, IconKey.GUI_MANAGE_WAR_ICON, Lang.GUI_TOWN_MEMBERS_ROLE_PRIORITY_MANAGE_WAR),
   MANAGE_MOB_SPAWN(
       true,
@@ -39,36 +37,30 @@ public enum RolePermission {
   MANAGE_PROPERTY(
       false,
       IconKey.GUI_MANAGE_PROPERTY_ICON,
-      Lang.GUI_TOWN_MEMBERS_ROLE_PRIORITY_MANAGE_PROPERTY), // Manage all buildings
+      Lang.GUI_TOWN_MEMBERS_ROLE_PRIORITY_MANAGE_PROPERTY),
   TOWN_ADMINISTRATOR(
       true, IconKey.GUI_ADMINISTRATOR_ICON, Lang.GUI_TOWN_MEMBERS_ROLE_PRIORITY_TOWN_ADMINISTRATOR),
   ;
-
   private final boolean onlyTown;
   private final IconKey iconKey;
   private final Lang name;
-
   RolePermission(boolean onlyTown, IconKey iconKey, Lang name) {
     this.onlyTown = onlyTown;
     this.iconKey = iconKey;
     this.name = name;
   }
-
   public boolean isForTerritory(TerritoryData territoryData) {
     if (territoryData instanceof TownData) {
       return true;
     }
     return !onlyTown;
   }
-
   public IconKey getIconKey() {
     return iconKey;
   }
-
   public Lang getName() {
     return name;
   }
-
   public String getName(LangType langType) {
     return name.get(langType);
   }

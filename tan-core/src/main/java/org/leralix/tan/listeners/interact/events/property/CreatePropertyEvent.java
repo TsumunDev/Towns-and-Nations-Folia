@@ -1,5 +1,4 @@
-package org.leralix.tan.listeners.interact.events.property;
-
+﻿package org.leralix.tan.listeners.interact.events.property;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -22,42 +21,33 @@ import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.text.NumberUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public abstract class CreatePropertyEvent extends RightClickListenerEvent {
-
   protected final Player player;
   protected final TownData townData;
   protected final ITanPlayer tanPlayer;
   protected Vector3D position1;
   protected Vector3D position2;
   protected double cost;
-
   protected CreatePropertyEvent(Player player) {
     this.player = player;
     this.townData = TownDataStorage.getInstance().getSync(player);
     this.tanPlayer = PlayerDataStorage.getInstance().getSync(player);
   }
-
   @Override
   public ListenerState execute(PlayerInteractEvent event) {
-
     LangType langType = tanPlayer.getLang();
-
     Block block = event.getClickedBlock();
     if (block == null) return ListenerState.CONTINUE;
-
     ClaimedChunk2 claimedChunk = NewClaimedChunkStorage.getInstance().get(block.getChunk());
     if (!(claimedChunk instanceof TownClaimedChunk townClaimedChunk
         && townClaimedChunk.getTown().isPlayerIn(player))) {
       TanChatUtils.message(player, Lang.POSITION_NOT_IN_CLAIMED_CHUNK.get(langType));
       return ListenerState.FAILURE;
     }
-
     if (!tanPlayer.hasTown()) {
       TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(langType));
       return ListenerState.FAILURE;
     }
-
     if (position1 == null) {
       position1 =
           new Vector3D(
@@ -67,11 +57,9 @@ public abstract class CreatePropertyEvent extends RightClickListenerEvent {
     }
     if (position2 == null) {
       int maxPropertySize = Constants.getMaxPropertySize();
-
       Vector3D vector3D =
           new Vector3D(
               block.getX(), block.getY(), block.getZ(), block.getWorld().getUID().toString());
-
       if (Math.abs(position1.getX() - vector3D.getX())
               * Math.abs(position1.getY() - vector3D.getY())
               * Math.abs(position1.getZ() - vector3D.getZ())
@@ -81,7 +69,6 @@ public abstract class CreatePropertyEvent extends RightClickListenerEvent {
         return ListenerState.FAILURE;
       }
       position2 = vector3D;
-
       cost = NumberUtil.roundWithDigits(getTotalCost());
       if (tanPlayer.getBalance() < cost) {
         TanChatUtils.message(
@@ -90,12 +77,10 @@ public abstract class CreatePropertyEvent extends RightClickListenerEvent {
                 langType, Double.toString(cost - tanPlayer.getBalance())));
         return ListenerState.SUCCESS;
       }
-
       TanChatUtils.message(player, Lang.PLAYER_SECOND_POINT_SET.get(langType, vector3D.toString()));
       TanChatUtils.message(player, Lang.PLAYER_PLACE_SIGN.get(langType));
       return ListenerState.CONTINUE;
     }
-
     int margin = Constants.getMaxPropertySignMargin();
     if (!isNearProperty(block.getLocation(), position1, position2, margin)) {
       TanChatUtils.message(
@@ -104,22 +89,17 @@ public abstract class CreatePropertyEvent extends RightClickListenerEvent {
           SoundEnum.NOT_ALLOWED);
       return ListenerState.CONTINUE;
     }
-
     PropertyData property = createProperty();
     property.createPropertySign(player, block, event.getBlockFace());
     property.updateSign();
-
     TanChatUtils.message(player, Lang.PLAYER_PROPERTY_CREATED.get(langType), SoundEnum.MINOR_GOOD);
     return ListenerState.SUCCESS;
   }
-
   protected abstract PropertyData createProperty();
-
   private double getTotalCost() {
     double costPerBlock = townData.getTaxOnCreatingProperty();
     return costPerBlock * position1.getArea(position2);
   }
-
   boolean isNearProperty(Location blockLocation, Vector3D p1, Vector3D p2, int margin) {
     int minX = Math.min(p1.getX(), p2.getX()) - margin;
     int minY = Math.min(p1.getY(), p2.getY()) - margin;
@@ -127,11 +107,9 @@ public abstract class CreatePropertyEvent extends RightClickListenerEvent {
     int maxX = Math.max(p1.getX(), p2.getX()) + margin;
     int maxY = Math.max(p1.getY(), p2.getY()) + margin;
     int maxZ = Math.max(p1.getZ(), p2.getZ()) + margin;
-
     double blockX = blockLocation.getX();
     double blockY = blockLocation.getY();
     double blockZ = blockLocation.getZ();
-
     return blockX >= minX
         && blockX <= maxX
         && blockY >= minY
@@ -139,14 +117,12 @@ public abstract class CreatePropertyEvent extends RightClickListenerEvent {
         && blockZ >= minZ
         && blockZ <= maxZ;
   }
-
   public static BlockFace getTopDirection(Location blockLocation, Location playerLocation) {
     double dx = playerLocation.getX() - blockLocation.getX();
     double dz = playerLocation.getZ() - blockLocation.getZ();
     double angle = Math.toDegrees(Math.atan2(dz, dx)) + 180;
     return getClosestCardinalDirection(angle);
   }
-
   private static BlockFace getClosestCardinalDirection(double angle) {
     if (angle < 45 || angle >= 315) {
       return BlockFace.WEST;

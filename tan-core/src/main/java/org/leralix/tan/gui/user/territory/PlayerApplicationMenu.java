@@ -1,7 +1,5 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import static org.leralix.lib.data.SoundEnum.NOT_ALLOWED;
-
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -24,12 +22,9 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class PlayerApplicationMenu extends IteratorGUI {
-
   TownData townData;
   Map<String, ITanPlayer> applicantsData;
-
   private PlayerApplicationMenu(
       Player player,
       ITanPlayer tanPlayer,
@@ -39,28 +34,16 @@ public class PlayerApplicationMenu extends IteratorGUI {
     this.townData = townData;
     this.applicantsData = applicantsData;
   }
-
-  /**
-   * Opens the player application menu asynchronously.
-   *
-   * @param player The player viewing the menu
-   * @param townData The town data containing applications
-   */
   public static void open(Player player, TownData townData) {
     PlayerDataStorage storage = PlayerDataStorage.getInstance();
-
-    // Load viewer data
     storage
         .get(player)
         .thenCompose(
             tanPlayer -> {
-              // Load all applicants data in parallel
               List<CompletableFuture<ITanPlayer>> applicantFutures = new ArrayList<>();
               for (String playerUUID : townData.getPlayerJoinRequestSet()) {
                 applicantFutures.add(storage.get(playerUUID));
               }
-
-              // Wait for all applicants to load
               return CompletableFuture.allOf(applicantFutures.toArray(new CompletableFuture[0]))
                   .thenApply(
                       v -> {
@@ -81,10 +64,8 @@ public class PlayerApplicationMenu extends IteratorGUI {
               new PlayerApplicationMenu(player, tanPlayer, townData, applicantsData).open();
             });
   }
-
   @Override
   public void open() {
-
     GuiUtil.createIterator(
         gui,
         getApplicationList(),
@@ -96,20 +77,16 @@ public class PlayerApplicationMenu extends IteratorGUI {
         Material.LIME_STAINED_GLASS_PANE);
     gui.open(player);
   }
-
   private List<GuiItem> getApplicationList() {
     List<GuiItem> guiItems = new ArrayList<>();
     for (String playerUUID : townData.getPlayerJoinRequestSet()) {
-
       OfflinePlayer playerIterate = Bukkit.getOfflinePlayer(UUID.fromString(playerUUID));
       ITanPlayer playerIterateData = applicantsData.get(playerUUID);
-
       ItemStack playerHead =
           HeadUtils.getPlayerHead(
               playerIterate,
               Lang.GUI_PLAYER_ASK_JOIN_PROFILE_DESC2.get(tanPlayer),
               Lang.GUI_PLAYER_ASK_JOIN_PROFILE_DESC3.get(tanPlayer));
-
       GuiItem playerButton =
           ItemBuilder.from(playerHead)
               .asGuiItem(

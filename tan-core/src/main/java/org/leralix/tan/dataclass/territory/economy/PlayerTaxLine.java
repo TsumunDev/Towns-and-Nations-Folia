@@ -1,5 +1,4 @@
-package org.leralix.tan.dataclass.territory.economy;
-
+﻿package org.leralix.tan.dataclass.territory.economy;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
@@ -26,12 +25,9 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.StringUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class PlayerTaxLine extends ProfitLine {
-
   double actualTaxes = 0;
   double missingTaxes = 0;
-
   public PlayerTaxLine(TownData townData) {
     super(townData);
     double flatTax = townData.getTax();
@@ -45,12 +41,10 @@ public class PlayerTaxLine extends ProfitLine {
       else actualTaxes += flatTax;
     }
   }
-
   @Override
   protected double getMoney() {
     return actualTaxes;
   }
-
   @Override
   public FilledLang getLine() {
     if (missingTaxes > 0)
@@ -58,12 +52,9 @@ public class PlayerTaxLine extends ProfitLine {
           StringUtil.getColoredMoney(getMoney()), StringUtil.formatMoney(missingTaxes));
     else return Lang.PLAYER_TAX_LINE.get(StringUtil.getColoredMoney(getMoney()));
   }
-
   @Override
   public void addItems(Gui gui, Player player, LangType lang) {
-
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-
     ItemStack lowerTax =
         HeadUtils.makeSkullB64(
             Lang.GUI_TREASURY_LOWER_TAX.get(lang),
@@ -84,7 +75,6 @@ public class PlayerTaxLine extends ProfitLine {
                 lang, StringUtil.formatMoney(territoryData.getTax())),
             Lang.GUI_GENERIC_CLICK_TO_OPEN_HISTORY.get(lang),
             Lang.RIGHT_CLICK_TO_SET_TAX.get(lang));
-
     GuiItem lowerTaxButton =
         ItemBuilder.from(lowerTax)
             .asGuiItem(
@@ -95,16 +85,13 @@ public class PlayerTaxLine extends ProfitLine {
                     TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(lang));
                     return;
                   }
-
                   double currentTax = territoryData.getTax();
                   int amountToRemove = event.isShiftClick() && currentTax > 9 ? 10 : 1;
-
                   if (currentTax <= 0) {
                     TanChatUtils.message(player, Lang.GUI_TREASURY_CANT_TAX_LESS.get(lang));
                     return;
                   }
                   SoundUtil.playSound(player, SoundEnum.REMOVE);
-
                   territoryData.addToTax(-amountToRemove);
                   TreasuryMenu.open(player, territoryData);
                 });
@@ -134,25 +121,20 @@ public class PlayerTaxLine extends ProfitLine {
             .asGuiItem(
                 event -> {
                   event.setCancelled(true);
-
                   if (!territoryData.doesPlayerHavePermission(
                       tanPlayer, RolePermission.MANAGE_TAXES)) {
                     TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(lang));
                     return;
                   }
-
                   int amountToAdd = event.isShiftClick() ? 10 : 1;
-
                   territoryData.addToTax(amountToAdd);
                   SoundUtil.playSound(player, SoundEnum.ADD);
                   TreasuryMenu.open(player, territoryData);
                 });
-
     gui.setItem(2, 2, lowerTaxButton);
     gui.setItem(2, 3, taxInfo);
     gui.setItem(2, 4, increaseTaxButton);
   }
-
   @Override
   public boolean isRecurrent() {
     return true;

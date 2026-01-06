@@ -1,5 +1,4 @@
-package org.leralix.tan.listeners.interact.events;
-
+﻿package org.leralix.tan.listeners.interact.events;
 import java.util.function.Consumer;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -12,33 +11,24 @@ import org.leralix.tan.dataclass.territory.TownData;
 import org.leralix.tan.listeners.interact.ListenerState;
 import org.leralix.tan.listeners.interact.RightClickListenerEvent;
 import org.leralix.tan.storage.stored.NewClaimedChunkStorage;
-
 public class ChangeCapital extends RightClickListenerEvent {
-
   private final TownData townData;
   private final Consumer<Player> fallbackGui;
-
   public ChangeCapital(TownData townData, Consumer<Player> fallBackGui) {
     this.townData = townData;
     this.fallbackGui = fallBackGui;
   }
-
   @Override
   public ListenerState execute(PlayerInteractEvent event) {
-
     Block block = event.getClickedBlock();
     if (block == null) {
       return ListenerState.CONTINUE;
     }
-
     ClaimedChunk2 claimedChunk2 = NewClaimedChunkStorage.getInstance().get(block.getChunk());
-
     if (claimedChunk2 instanceof TownClaimedChunk townClaimedChunk
         && townData.getID().equals(townClaimedChunk.getOwnerID())) {
-
       townData.setCapitalLocation(claimedChunk2.getVector2D());
       Player player = event.getPlayer();
-
       openGui(fallbackGui, player);
       SoundUtil.playSound(player, SoundEnum.MINOR_GOOD);
       return ListenerState.SUCCESS;

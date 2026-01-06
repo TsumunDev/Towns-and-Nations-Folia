@@ -1,5 +1,4 @@
-package org.leralix.tan.listeners.chat.events;
-
+﻿package org.leralix.tan.listeners.chat.events;
 import org.bukkit.entity.Player;
 import org.leralix.lib.data.SoundEnum;
 import org.leralix.tan.dataclass.territory.TerritoryData;
@@ -7,23 +6,18 @@ import org.leralix.tan.economy.EconomyUtil;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.listeners.chat.ChatListenerEvent;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class RetrieveMoney extends ChatListenerEvent {
   TerritoryData territoryData;
-
   public RetrieveMoney(TerritoryData territoryData) {
     this.territoryData = territoryData;
   }
-
   @Override
   public boolean execute(Player player, String message) {
-
     Double amount = parseStringToDouble(message);
     if (amount == null) {
       TanChatUtils.message(player, Lang.SYNTAX_ERROR_AMOUNT.get(player));
       return false;
     }
-
     if (amount > territoryData.getBalance()) {
       TanChatUtils.message(
           player,
@@ -35,7 +29,6 @@ public class RetrieveMoney extends ChatListenerEvent {
     }
     territoryData.removeFromBalance(amount);
     EconomyUtil.addFromBalance(player, amount);
-
     TanChatUtils.message(
         player,
         Lang.TOWN_RETRIEVE_MONEY_SUCCESS.get(player, Double.toString(amount)),

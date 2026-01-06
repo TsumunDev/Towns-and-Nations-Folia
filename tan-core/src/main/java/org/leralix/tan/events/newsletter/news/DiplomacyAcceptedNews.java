@@ -1,5 +1,4 @@
-package org.leralix.tan.events.newsletter.news;
-
+﻿package org.leralix.tan.events.newsletter.news;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
@@ -21,13 +20,11 @@ import org.leralix.tan.utils.gameplay.TerritoryUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.tan.api.enums.EDiplomacyState;
 import org.tan.api.interfaces.TanTerritory;
-
 public class DiplomacyAcceptedNews extends Newsletter {
   private final String proposingTerritoryID;
   private final String receivingTerritoryID;
   private final TownRelation wantedRelation;
   private final boolean isRelationWorse;
-
   public DiplomacyAcceptedNews(
       UUID id,
       long date,
@@ -41,7 +38,6 @@ public class DiplomacyAcceptedNews extends Newsletter {
     this.wantedRelation = wantedRelation;
     this.isRelationWorse = isRelationWorse;
   }
-
   public DiplomacyAcceptedNews(
       TanTerritory proposingTerritory,
       TanTerritory receivingTerritory,
@@ -53,38 +49,29 @@ public class DiplomacyAcceptedNews extends Newsletter {
     this.wantedRelation = TownRelation.fromAPI(newRelation);
     this.isRelationWorse = !isRelationBetter;
   }
-
   @Override
   public NewsletterType getType() {
     return NewsletterType.DIPLOMACY_ACCEPTED;
   }
-
   public String getProposingTerritoryID() {
     return proposingTerritoryID;
   }
-
   public String getReceivingTerritoryID() {
     return receivingTerritoryID;
   }
-
   public TownRelation getWantedRelation() {
     return wantedRelation;
   }
-
   public boolean isRelationWorse() {
     return isRelationWorse;
   }
-
   @Override
   public void broadcast(Player player) {
     TerritoryData proposingTerritory = TerritoryUtil.getTerritory(proposingTerritoryID);
     if (proposingTerritory == null) return;
     TerritoryData receivingTerritory = TerritoryUtil.getTerritory(receivingTerritoryID);
     if (receivingTerritory == null) return;
-
     LangType lang = PlayerDataStorage.getInstance().getSync(player).getLang();
-
-    // BUGFIX: Convert Adventure Component to legacy text properly
     if (isRelationWorse) {
       TanChatUtils.message(
           player,
@@ -109,16 +96,12 @@ public class DiplomacyAcceptedNews extends Newsletter {
           SoundEnum.GOOD);
     }
   }
-
   @Override
   public GuiItem createGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
-
     TerritoryData proposingTerritory = TerritoryUtil.getTerritory(proposingTerritoryID);
     if (proposingTerritory == null) return null;
     TerritoryData receivingTerritory = TerritoryUtil.getTerritory(receivingTerritoryID);
     if (receivingTerritory == null) return null;
-
-    // BUGFIX: Convert Adventure Component to legacy text properly
     ItemStack itemStack =
         HeadUtils.makeSkullURL(
             Lang.DIPLOMACY_ACCEPT_NEWSLETTER_TITLE.get(lang),
@@ -133,7 +116,6 @@ public class DiplomacyAcceptedNews extends Newsletter {
                     .serialize(receivingTerritory.getCustomColoredName()),
                 wantedRelation.getColoredName(lang)),
             Lang.NEWSLETTER_RIGHT_CLICK_TO_MARK_AS_READ.get(lang));
-
     return ItemBuilder.from(itemStack)
         .asGuiItem(
             e -> {
@@ -144,12 +126,10 @@ public class DiplomacyAcceptedNews extends Newsletter {
               }
             });
   }
-
   @Override
   public GuiItem createConcernedGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     return createGuiItem(player, lang, onClick);
   }
-
   @Override
   public boolean shouldShowToPlayer(Player player) {
     TerritoryData proposingTerritory = TerritoryUtil.getTerritory(proposingTerritoryID);
@@ -159,7 +139,6 @@ public class DiplomacyAcceptedNews extends Newsletter {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
     return receivingTerritory.isPlayerIn(tanPlayer) || proposingTerritory.isPlayerIn(tanPlayer);
   }
-
   @Override
   public void broadcastConcerned(Player player) {
     broadcast(player);

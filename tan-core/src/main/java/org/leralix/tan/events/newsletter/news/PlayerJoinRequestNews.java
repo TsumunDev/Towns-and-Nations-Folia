@@ -1,5 +1,4 @@
-package org.leralix.tan.events.newsletter.news;
-
+﻿package org.leralix.tan.events.newsletter.news;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
@@ -22,41 +21,32 @@ import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.tan.api.interfaces.TanPlayer;
 import org.tan.api.interfaces.TanTown;
-
 public class PlayerJoinRequestNews extends Newsletter {
-
   String playerID;
   String townID;
-
   public PlayerJoinRequestNews(UUID id, long date, String playerID, String townID) {
     super(id, date);
     this.playerID = playerID;
     this.townID = townID;
   }
-
   public PlayerJoinRequestNews(TanPlayer player, TanTown townData) {
     super();
     this.playerID = player.getUUID().toString();
     this.townID = townData.getID();
   }
-
   @Override
   public NewsletterType getType() {
     return NewsletterType.PLAYER_APPLICATION;
   }
-
   private TownData getTownData() {
     return TownDataStorage.getInstance().getSync(townID);
   }
-
   public String getPlayerID() {
     return playerID;
   }
-
   public String getTownID() {
     return townID;
   }
-
   @Override
   public void broadcast(Player player) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
@@ -69,17 +59,13 @@ public class PlayerJoinRequestNews extends Newsletter {
             player, tanPlayer.getNameStored(), townData.getBaseColoredName()),
         SoundEnum.MINOR_GOOD);
   }
-
   @Override
   public GuiItem createGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
-
     TownData townData = getTownData();
     if (townData == null) {
       return null;
     }
-
     OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(UUID.fromString(playerID));
-
     ItemStack itemStack =
         HeadUtils.getPlayerHead(
             Lang.NEWSLETTER_PLAYER_APPLICATION.get(lang, offlinePlayer.getName()),
@@ -89,7 +75,6 @@ public class PlayerJoinRequestNews extends Newsletter {
             Lang.NEWSLETTER_PLAYER_APPLICATION_DESC1.get(
                 lang, offlinePlayer.getName(), getTownData().getBaseColoredName()),
             Lang.NEWSLETTER_RIGHT_CLICK_TO_MARK_AS_READ.get(lang));
-
     return ItemBuilder.from(itemStack)
         .asGuiItem(
             event -> {
@@ -100,12 +85,9 @@ public class PlayerJoinRequestNews extends Newsletter {
               }
             });
   }
-
   @Override
   public GuiItem createConcernedGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
-
     OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(UUID.fromString(playerID));
-
     ItemStack itemStack =
         HeadUtils.getPlayerHead(
             Lang.NEWSLETTER_PLAYER_APPLICATION.get(lang, offlinePlayer.getName()),
@@ -116,7 +98,6 @@ public class PlayerJoinRequestNews extends Newsletter {
                 TownDataStorage.getInstance().getSync(townID).getBaseColoredName()),
             Lang.NEWSLETTER_PLAYER_APPLICATION_DESC2.get(lang),
             Lang.NEWSLETTER_RIGHT_CLICK_TO_MARK_AS_READ.get(lang));
-
     return ItemBuilder.from(itemStack)
         .asGuiItem(
             event -> {
@@ -130,7 +111,6 @@ public class PlayerJoinRequestNews extends Newsletter {
               }
             });
   }
-
   @Override
   public boolean shouldShowToPlayer(Player player) {
     TownData townData = getTownData();
@@ -139,7 +119,6 @@ public class PlayerJoinRequestNews extends Newsletter {
     }
     return townData.isPlayerIn(player);
   }
-
   @Override
   public void broadcastConcerned(Player player) {
     broadcast(player);

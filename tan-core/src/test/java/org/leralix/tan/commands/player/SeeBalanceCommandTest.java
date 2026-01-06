@@ -45,7 +45,7 @@ class SeeBalanceCommandTest {
 
   @Test
   void getSyntax_returnsCorrectSyntax() {
-    assertEquals("/tan balance", command.getSyntax());
+    assertEquals("/ccn balance", command.getSyntax());
   }
 
   @Test

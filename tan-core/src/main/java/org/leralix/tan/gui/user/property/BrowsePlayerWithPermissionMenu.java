@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.property;
-
+﻿package org.leralix.tan.gui.user.property;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -18,13 +17,10 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.PermissionManager;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.HeadUtils;
-
 public class BrowsePlayerWithPermissionMenu extends IteratorGUI {
-
   private final PermissionManager permissionManager;
   private final ChunkPermissionType chunkPermission;
   private final BasicGui returnMenu;
-
   private BrowsePlayerWithPermissionMenu(
       Player player,
       ITanPlayer tanPlayer,
@@ -36,7 +32,6 @@ public class BrowsePlayerWithPermissionMenu extends IteratorGUI {
     this.chunkPermission = permission;
     this.returnMenu = returnMenu;
   }
-
   public static void open(
       Player player,
       PermissionManager permissionManager,
@@ -51,16 +46,12 @@ public class BrowsePlayerWithPermissionMenu extends IteratorGUI {
                   .open();
             });
   }
-
   @Override
   public void open() {
     iterator(getAuthorizedPlayers(), p -> returnMenu.open());
-
     gui.setItem(3, 5, getAddPlayerButton());
-
     gui.open(player);
   }
-
   private GuiItem getAddPlayerButton() {
     return iconManager
         .get(IconKey.ADD_PLAYER_ICON)
@@ -72,10 +63,8 @@ public class BrowsePlayerWithPermissionMenu extends IteratorGUI {
             })
         .asGuiItem(player, langType);
   }
-
   private List<GuiItem> getAuthorizedPlayers() {
     List<GuiItem> guiItems = new ArrayList<>();
-
     for (String authorizedPlayerID :
         permissionManager.get(chunkPermission).getAuthorizedPlayers()) {
       OfflinePlayer authorizedPlayer = Bukkit.getOfflinePlayer(UUID.fromString(authorizedPlayerID));
@@ -84,13 +73,11 @@ public class BrowsePlayerWithPermissionMenu extends IteratorGUI {
               authorizedPlayer.getName(),
               authorizedPlayer,
               Lang.GUI_TOWN_MEMBER_DESC3.get(tanPlayer));
-
       GuiItem guiItem =
           ItemBuilder.from(icon)
               .asGuiItem(
                   event -> {
                     event.setCancelled(true);
-
                     if (event.isRightClick()) {
                       permissionManager
                           .get(chunkPermission)

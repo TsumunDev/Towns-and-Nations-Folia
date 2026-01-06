@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.ranks;
-
+﻿package org.leralix.tan.gui.user.ranks;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,19 +12,15 @@ import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class ManageRankPermissionMenu extends IteratorGUI {
-
   private final TerritoryData territoryData;
   private final RankData rankData;
-
   private ManageRankPermissionMenu(
       Player player, ITanPlayer tanPlayer, TerritoryData territoryData, RankData rankData) {
     super(player, tanPlayer, Lang.HEADER_RANK_PERMISSIONS.get(tanPlayer.getLang()), 4);
     this.territoryData = territoryData;
     this.rankData = rankData;
   }
-
   public static void open(Player player, TerritoryData territoryData, RankData rankData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -34,14 +29,11 @@ public class ManageRankPermissionMenu extends IteratorGUI {
               new ManageRankPermissionMenu(player, tanPlayer, territoryData, rankData).open();
             });
   }
-
   @Override
   public void open() {
     iterator(getItems(), p -> RankManagerMenu.open(p, territoryData, rankData));
-
     gui.open(player);
   }
-
   public List<GuiItem> getItems() {
     List<GuiItem> guiItems = new ArrayList<>();
     for (RolePermission permission : RolePermission.values()) {

@@ -1,34 +1,27 @@
-package org.leralix.tan.commands.debug;
-
+﻿package org.leralix.tan.commands.debug;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.entity.Player;
 import org.leralix.lib.commands.PlayerSubCommand;
 import org.leralix.lib.data.SoundEnum;
 import org.leralix.lib.utils.SoundUtil;
-
 public class PlaySound extends PlayerSubCommand {
-
   @Override
   public String getName() {
     return "playsound";
   }
-
   @Override
   public String getDescription() {
     return "Play sounds used in the plugin";
   }
-
   @Override
   public int getArguments() {
     return 0;
   }
-
   @Override
   public String getSyntax() {
-    return "/tandebug playsound";
+    return "/ccndebug playsound";
   }
-
   public List<String> getTabCompleteSuggestions(Player player, String lowerCase, String[] args) {
     List<String> suggestions = new ArrayList<>();
     if (args.length == 2) {
@@ -44,11 +37,9 @@ public class PlaySound extends PlayerSubCommand {
     }
     return suggestions;
   }
-
   @Override
   public void perform(Player player, String[] args) {
     if (args.length != 2) return;
-
     if (args[1].equalsIgnoreCase("levelup")) {
       SoundUtil.playSound(player, SoundEnum.LEVEL_UP);
     }

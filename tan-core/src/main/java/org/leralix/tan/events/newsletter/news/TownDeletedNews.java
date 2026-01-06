@@ -1,5 +1,4 @@
-package org.leralix.tan.events.newsletter.news;
-
+﻿package org.leralix.tan.events.newsletter.news;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
@@ -17,37 +16,29 @@ import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.tan.api.interfaces.TanPlayer;
 import org.tan.api.interfaces.TanTown;
-
 public class TownDeletedNews extends Newsletter {
-
   private final String playerID;
   private final String oldTownName;
-
   public TownDeletedNews(TanTown town, TanPlayer player) {
     super();
     this.playerID = player.getUUID().toString();
     this.oldTownName = town.getName();
   }
-
   public TownDeletedNews(UUID id, long date, String playerID, String oldTownName) {
     super(id, date);
     this.playerID = playerID;
     this.oldTownName = oldTownName;
   }
-
   public String getPlayerID() {
     return playerID;
   }
-
   public String getOldTownName() {
     return oldTownName;
   }
-
   @Override
   public GuiItem createGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
     if (tanPlayer == null) return null;
-
     ItemStack itemStack =
         HeadUtils.makeSkullB64(
             Lang.TOWN_DELETED_NEWSLETTER_TITLE.get(lang),
@@ -56,7 +47,6 @@ public class TownDeletedNews extends Newsletter {
                 lang, TimeZoneManager.getInstance().getRelativeTimeDescription(lang, getDate())),
             Lang.TOWN_DELETED_NEWSLETTER.get(lang, tanPlayer.getNameStored(), oldTownName),
             Lang.NEWSLETTER_RIGHT_CLICK_TO_MARK_AS_READ.get(lang));
-
     return ItemBuilder.from(itemStack)
         .asGuiItem(
             event -> {
@@ -67,33 +57,27 @@ public class TownDeletedNews extends Newsletter {
               }
             });
   }
-
   @Override
   public GuiItem createConcernedGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     return createGuiItem(player, lang, onClick);
   }
-
   @Override
   public boolean shouldShowToPlayer(Player player) {
     return true;
   }
-
   @Override
   public NewsletterType getType() {
     return NewsletterType.TOWN_DELETED;
   }
-
   @Override
   public void broadcast(Player player) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
     if (tanPlayer == null) return;
-
     TanChatUtils.message(
         player,
         Lang.TOWN_DELETED_NEWSLETTER.get(player, tanPlayer.getNameStored(), oldTownName),
         SoundEnum.BAD);
   }
-
   @Override
   public void broadcastConcerned(Player player) {
     broadcast(player);

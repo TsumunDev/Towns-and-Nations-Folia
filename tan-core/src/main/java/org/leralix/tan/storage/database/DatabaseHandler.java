@@ -1,5 +1,4 @@
-package org.leralix.tan.storage.database;
-
+﻿package org.leralix.tan.storage.database;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,24 +10,11 @@ import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.newhistory.TransactionHistory;
 import org.leralix.tan.dataclass.newhistory.TransactionHistoryEnum;
 import org.leralix.tan.dataclass.territory.TerritoryData;
-
 public abstract class DatabaseHandler {
-
   protected DataSource dataSource;
-
-  // OPTIMIZATION: Query batch executor to reduce database load for high-player servers
   protected QueryBatchExecutor queryBatchExecutor;
-
   public abstract void connect() throws SQLException;
-
-  /** Close the database connection and clean up resources Called during plugin shutdown */
   public abstract void close();
-
-  /**
-   * Check if the database connection is valid
-   *
-   * @return true if connection is valid, false otherwise
-   */
   public boolean isConnectionValid() {
     try {
       if (dataSource == null) {
@@ -41,7 +27,6 @@ public abstract class DatabaseHandler {
       return false;
     }
   }
-
   public void addTransactionHistory(TransactionHistory transactionHistory) {
     org.leralix.tan.utils.FoliaScheduler.runTaskAsynchronously(
         TownsAndNations.getPlugin(),
@@ -52,7 +37,6 @@ public abstract class DatabaseHandler {
                 INSERT INTO territoryTransactionHistory (date, type, territoryDataID, transactionParty, amount)
                 VALUES (?, ?, ?, ?, ?)
             """;
-
           try (Connection conn = dataSource.getConnection();
               PreparedStatement preparedStatement = conn.prepareStatement(insertSQL)) {
             preparedStatement.setString(1, transactionHistory.getDate());
@@ -60,7 +44,6 @@ public abstract class DatabaseHandler {
             preparedStatement.setString(3, transactionHistory.getTerritoryDataID());
             preparedStatement.setString(4, transactionHistory.getTransactionParty());
             preparedStatement.setDouble(5, transactionHistory.getAmount());
-
             preparedStatement.executeUpdate();
           } catch (SQLException e) {
             TownsAndNations.getPlugin()
@@ -69,7 +52,6 @@ public abstract class DatabaseHandler {
           }
         });
   }
-
   public List<List<TransactionHistory>> getTransactionHistory(
       TerritoryData territoryData, TransactionHistoryEnum type) {
     String selectSQL =
@@ -79,15 +61,11 @@ public abstract class DatabaseHandler {
         WHERE territoryDataID = ? AND type = ?
         ORDER BY date
     """;
-
-    // Map pour regrouper les transactions par date
     Map<String, List<TransactionHistory>> groupedByDate = new HashMap<>();
-
     try (Connection conn = dataSource.getConnection();
         PreparedStatement preparedStatement = conn.prepareStatement(selectSQL)) {
       preparedStatement.setString(1, territoryData.getID());
       preparedStatement.setString(2, type.toString());
-
       try (ResultSet resultSet = preparedStatement.executeQuery()) {
         while (resultSet.next()) {
           String date = resultSet.getString("date");
@@ -96,11 +74,9 @@ public abstract class DatabaseHandler {
           String territoryDataID = resultSet.getString("territoryDataID");
           String transactionParty = resultSet.getString("transactionParty");
           double amount = resultSet.getDouble("amount");
-
           TransactionHistory transactionHistory =
               transactionHistoryEnum.createTransactionHistory(
                   date, territoryDataID, transactionParty, amount);
-
           groupedByDate.computeIfAbsent(date, k -> new ArrayList<>()).add(transactionHistory);
         }
       }
@@ -109,23 +85,12 @@ public abstract class DatabaseHandler {
     }
     return new ArrayList<>(groupedByDate.values());
   }
-
-  /**
-   * Get transaction history asynchronously P3.6: Async transaction history for non-blocking GUI
-   * loading
-   *
-   * @param territoryData The territory data
-   * @param type The transaction type
-   * @return CompletableFuture that completes with the transaction history list
-   */
   public CompletableFuture<List<List<TransactionHistory>>> getTransactionHistoryAsync(
       TerritoryData territoryData, TransactionHistoryEnum type) {
     return CompletableFuture.supplyAsync(() -> getTransactionHistory(territoryData, type));
   }
-
   public void deleteOldHistory(int nbDays, TransactionHistoryEnum type) {
     String deleteSQL;
-
     if (isMySQL()) {
       deleteSQL =
           """
@@ -141,7 +106,6 @@ public abstract class DatabaseHandler {
             AND type = ?
         """;
     }
-
     try (Connection conn = dataSource.getConnection();
         PreparedStatement preparedStatement = conn.prepareStatement(deleteSQL)) {
       preparedStatement.setInt(1, nbDays);
@@ -153,7 +117,6 @@ public abstract class DatabaseHandler {
           .severe("Error while deleting old history : " + e.getMessage());
     }
   }
-
   protected void checkIfHistoryDbExists() {
     try (Connection conn = dataSource.getConnection();
         Statement statement = conn.createStatement()) {
@@ -173,52 +136,23 @@ public abstract class DatabaseHandler {
           .severe("Error while creating history table : " + e.getMessage());
     }
   }
-
   public void initialize() {
     checkIfHistoryDbExists();
   }
-
   public abstract void createMetadataTable();
-
   public abstract int getNextTownId();
-
   public abstract void updateNextTownId(int newId);
-
   public abstract int getNextRegionId();
-
   public abstract void updateNextRegionId(int newId);
-
   public DataSource getDataSource() {
     return dataSource;
   }
-
-  /**
-   * Check if the database is MySQL
-   *
-   * @return true if MySQL, false if SQLite
-   */
   public boolean isMySQL() {
     return this instanceof MySqlHandler;
   }
-
-  /**
-   * Validate table name to prevent SQL injection
-   *
-   * @param tableName The table name to validate
-   * @return true if valid, false otherwise
-   */
   private boolean isValidTableName(String tableName) {
-    // Table names should only contain alphanumeric characters and underscores
     return tableName != null && tableName.matches("^[a-zA-Z0-9_]+$");
   }
-
-  /**
-   * Get the appropriate UPSERT SQL statement based on database type
-   *
-   * @param tableName The table name
-   * @return The UPSERT SQL statement
-   * @throws IllegalArgumentException if table name is invalid
-   */
   public String getUpsertSQL(String tableName) {
     if (!isValidTableName(tableName)) {
       throw new IllegalArgumentException("Invalid table name: " + tableName);
@@ -231,13 +165,6 @@ public abstract class DatabaseHandler {
       return "INSERT OR REPLACE INTO " + tableName + " (id, data) VALUES (?, ?)";
     }
   }
-
-  /**
-   * Initialize the query batch executor. Call this during database connection setup.
-   *
-   * @param batchSize Number of queries to batch together (default: 50)
-   * @param delayMs Maximum delay before flushing a batch in milliseconds (default: 100)
-   */
   public void initializeQueryBatcher(int batchSize, int delayMs) {
     this.queryBatchExecutor = new QueryBatchExecutor(batchSize, delayMs);
     TownsAndNations.getPlugin()
@@ -249,20 +176,9 @@ public abstract class DatabaseHandler {
                 + delayMs
                 + "ms");
   }
-
-  /**
-   * Get the query batch executor (if initialized).
-   *
-   * @return QueryBatchExecutor or null if not initialized
-   */
   public QueryBatchExecutor getQueryBatchExecutor() {
     return queryBatchExecutor;
   }
-
-  /**
-   * Shutdown the query batch executor. Call this during plugin shutdown to cleanly shut down the
-   * batch executor thread.
-   */
   public void shutdownQueryBatcher() {
     if (queryBatchExecutor != null) {
       queryBatchExecutor.shutdown();

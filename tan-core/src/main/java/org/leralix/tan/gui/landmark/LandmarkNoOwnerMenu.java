@@ -1,7 +1,5 @@
-package org.leralix.tan.gui.landmark;
-
+﻿package org.leralix.tan.gui.landmark;
 import static org.leralix.lib.data.SoundEnum.GOOD;
-
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -27,31 +25,20 @@ import org.leralix.tan.upgrade.rewards.numeric.LandmarkCap;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.deprecated.HeadUtils;
-
 public class LandmarkNoOwnerMenu extends BasicGui {
-
   private final Landmark landmark;
   @Nullable private final TownData playerTown;
-
   private LandmarkNoOwnerMenu(
       Player player, ITanPlayer tanPlayer, Landmark landmark, @Nullable TownData playerTown) {
     super(player, tanPlayer, Lang.HEADER_LANDMARK_UNCLAIMED.get(tanPlayer.getLang()), 3);
     this.landmark = landmark;
     this.playerTown = playerTown;
   }
-
-  /**
-   * Opens the landmark no owner menu asynchronously.
-   *
-   * @param player The player viewing the menu
-   * @param landmark The landmark without an owner
-   */
   public static void open(Player player, Landmark landmark) {
     PlayerDataStorage.getInstance()
         .get(player)
         .thenCompose(
             tanPlayer -> {
-              // Pre-load player's town if they have one
               if (tanPlayer.hasTown()) {
                 return tanPlayer.getTown().thenApply(town -> new Object[] {tanPlayer, town});
               } else {
@@ -66,38 +53,28 @@ public class LandmarkNoOwnerMenu extends BasicGui {
               new LandmarkNoOwnerMenu(player, tanPlayer, landmark, playerTown).open();
             });
   }
-
   @Override
   public void open() {
-
     gui.setItem(1, 5, getLandmarkIcon(landmark));
-
     gui.setItem(2, 5, getClaimButton());
-
     gui.setItem(3, 1, GuiUtil.createBackArrow(player, Player::closeInventory));
-
     GuiItem panelGui =
         ItemBuilder.from(HeadUtils.createCustomItemStack(Material.GRAY_STAINED_GLASS_PANE, ""))
             .asGuiItem(event -> event.setCancelled(true));
     gui.getFiller().fillBottom(panelGui);
     gui.open(player);
   }
-
   private @NotNull GuiItem getLandmarkIcon(Landmark landmark) {
     LangType lang = tanPlayer.getLang();
     return ItemBuilder.from(landmark.getIcon(lang)).asGuiItem(event -> event.setCancelled(true));
   }
-
   private @NotNull GuiItem getClaimButton() {
     double cost = Constants.getClaimLandmarkCost();
     List<FilledLang> description = new ArrayList<>();
-
     if (cost > 0.0) {
       description.add(Lang.GUI_LANDMARK_CLAIM_COST.get(String.valueOf(cost)));
     }
-
     boolean isRequirementsMet = playerTown != null;
-
     if (playerTown != null) {
       LandmarkCap landmarkCap = playerTown.getNewLevel().getStat(LandmarkCap.class);
       int currentLandmarkCount = LandmarkStorage.getInstance().getLandmarkOf(playerTown).size();
@@ -105,12 +82,10 @@ public class LandmarkNoOwnerMenu extends BasicGui {
         isRequirementsMet = false;
         description.add(Lang.GUI_LANDMARK_TOWN_FULL.get());
       }
-
       if (Constants.isLandmarkClaimRequiresEncirclement() && !landmark.isEncircledBy(playerTown)) {
         isRequirementsMet = false;
         description.add(Lang.GUI_LANDMARK_NOT_ENCIRCLED.get());
       }
-
       if (cost > playerTown.getBalance()) {
         isRequirementsMet = false;
         description.add(
@@ -118,19 +93,15 @@ public class LandmarkNoOwnerMenu extends BasicGui {
                 Double.toString(Constants.getClaimLandmarkCost())));
       }
     }
-
     if (isRequirementsMet) {
       description.add(Lang.GUI_LANDMARK_LEFT_CLICK_TO_CLAIM.get());
     }
-
     IconKey iconKey =
         isRequirementsMet
             ? IconKey.GUI_CONFIRM_CLAIM_LANDMARK_REQUIREMENTS_MET_ICON
             : IconKey.GUI_CONFIRM_CLAIM_LANDMARK_REQUIREMENTS_UNMET_ICON;
-
     final boolean requirementMet = isRequirementsMet;
     final TownData finalPlayerTown = playerTown;
-
     return iconManager
         .get(iconKey)
         .setName(Lang.GUI_TOWN_RELATION_ADD_TOWN.get(tanPlayer))
@@ -141,7 +112,6 @@ public class LandmarkNoOwnerMenu extends BasicGui {
                 SoundUtil.playSound(player, SoundEnum.NOT_ALLOWED);
                 return;
               }
-
               ConfirmMenu.open(
                   player,
                   Lang.GUI_LANDMARK_LEFT_CLICK_TO_CLAIM.get(),

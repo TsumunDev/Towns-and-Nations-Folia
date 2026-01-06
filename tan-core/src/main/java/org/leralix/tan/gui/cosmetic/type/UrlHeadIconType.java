@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.cosmetic.type;
-
+﻿package org.leralix.tan.gui.cosmetic.type;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,30 +10,22 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
-
 public class UrlHeadIconType extends IconType {
-
   private final String headUrl;
-
   private static final Map<String, PlayerProfile> profileCache = new HashMap<>();
-
   public UrlHeadIconType(String headUrl) {
     this.headUrl = headUrl;
   }
-
   @Override
   protected ItemStack getItemStack(Player player) {
     PlayerProfile playerProfile = getProfile(getUrl());
     return createSkull(playerProfile);
   }
-
   private URL getUrl() {
     try {
-      // P4.1: Use URI.toURL() instead of deprecated URL constructor
       return java.net.URI.create(headUrl).toURL();
     } catch (Exception e) {
       try {
-        // P4.1: Use URI.toURL() instead of deprecated URL constructor
         return java.net
             .URI
             .create(
@@ -45,23 +36,18 @@ public class UrlHeadIconType extends IconType {
       }
     }
   }
-
   private static PlayerProfile getProfile(URL url) {
     String key = url.toString();
-
     if (profileCache.containsKey(key)) {
       return profileCache.get(key);
     }
-
     PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
     PlayerTextures textures = profile.getTextures();
     textures.setSkin(url);
     profile.setTextures(textures);
-
     profileCache.put(key, profile);
     return profile;
   }
-
   private ItemStack createSkull(PlayerProfile playerProfile) {
     ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
     SkullMeta meta = (SkullMeta) skull.getItemMeta();
@@ -69,7 +55,6 @@ public class UrlHeadIconType extends IconType {
     skull.setItemMeta(meta);
     return skull;
   }
-
   public static void clearCache() {
     profileCache.clear();
   }

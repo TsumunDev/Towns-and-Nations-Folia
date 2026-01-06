@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.admin;
-
+﻿package org.leralix.tan.gui.admin;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -12,13 +11,10 @@ import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
-
 public class AdminBrowseTownMenu extends IteratorGUI {
-
   private AdminBrowseTownMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, "Admin - Towns List", 6);
   }
-
   public static void open(Player player) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -27,7 +23,6 @@ public class AdminBrowseTownMenu extends IteratorGUI {
               new AdminBrowseTownMenu(player, tanPlayer).open();
             });
   }
-
   @Override
   public void open() {
     GuiUtil.createIterator(
@@ -38,15 +33,11 @@ public class AdminBrowseTownMenu extends IteratorGUI {
         p -> AdminMainMenu.open(player),
         p -> nextPage(),
         p -> previousPage());
-
     gui.open(player);
   }
-
   private List<GuiItem> getTowns() {
     List<TownData> townList = new ArrayList<>(TownDataStorage.getInstance().getAllSync().values());
-
     ArrayList<GuiItem> townGuiItems = new ArrayList<>();
-
     for (TownData townData : townList) {
       ItemStack townIcon = townData.getIconWithInformationAndRelation(null, tanPlayer.getLang());
       GuiItem townGUI =
@@ -55,7 +46,6 @@ public class AdminBrowseTownMenu extends IteratorGUI {
                   event -> {
                     townData.openMainMenu(player);
                   });
-
       townGuiItems.add(townGUI);
     }
     return townGuiItems;

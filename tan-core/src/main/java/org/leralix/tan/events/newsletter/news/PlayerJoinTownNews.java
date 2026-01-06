@@ -1,5 +1,4 @@
-package org.leralix.tan.events.newsletter.news;
-
+﻿package org.leralix.tan.events.newsletter.news;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
@@ -21,37 +20,29 @@ import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.tan.api.interfaces.TanPlayer;
 import org.tan.api.interfaces.TanTown;
-
 public class PlayerJoinTownNews extends Newsletter {
-
   String playerID;
   String townID;
-
   public PlayerJoinTownNews(TanPlayer tanPlayer, TanTown townData) {
     super();
     playerID = tanPlayer.getUUID().toString();
     townID = townData.getID();
   }
-
   public PlayerJoinTownNews(UUID id, long date, String playerID, String townID) {
     super(id, date);
     this.playerID = playerID;
     this.townID = townID;
   }
-
   @Override
   public NewsletterType getType() {
     return NewsletterType.PLAYER_JOIN_TOWN;
   }
-
   public String getPlayerID() {
     return playerID;
   }
-
   public String getTownID() {
     return townID;
   }
-
   @Override
   public void broadcast(Player player) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
@@ -64,15 +55,12 @@ public class PlayerJoinTownNews extends Newsletter {
             player, tanPlayer.getNameStored(), townData.getBaseColoredName()),
         SoundEnum.MINOR_GOOD);
   }
-
   @Override
   public GuiItem createGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
     if (tanPlayer == null) return null;
     TownData townData = TownDataStorage.getInstance().getSync(townID);
     if (townData == null) return null;
-
-    // BUGFIX: Convert Adventure Component to legacy text properly
     ItemStack itemStack =
         HeadUtils.makeSkullURL(
             Lang.PLAYER_JOINED_TOWN_NEWSLETTER_TITLE.get(lang),
@@ -85,7 +73,6 @@ public class PlayerJoinTownNews extends Newsletter {
                 LegacyComponentSerializer.legacySection()
                     .serialize(townData.getCustomColoredName())),
             Lang.NEWSLETTER_RIGHT_CLICK_TO_MARK_AS_READ.get(lang));
-
     return ItemBuilder.from(itemStack)
         .asGuiItem(
             event -> {
@@ -96,19 +83,16 @@ public class PlayerJoinTownNews extends Newsletter {
               }
             });
   }
-
   @Override
   public GuiItem createConcernedGuiItem(Player player, LangType lang, Consumer<Player> onClick) {
     return createGuiItem(player, lang, onClick);
   }
-
   @Override
   public boolean shouldShowToPlayer(Player player) {
     TownData townData = TownDataStorage.getInstance().getSync(townID);
     if (townData == null) return false;
     return townData.doesPlayerHavePermission(player, RolePermission.INVITE_PLAYER);
   }
-
   @Override
   public void broadcastConcerned(Player player) {
     broadcast(player);

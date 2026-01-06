@@ -44,7 +44,7 @@ class OpenNewsletterCommandTest {
 
   @Test
   void getSyntax_returnsCorrectSyntax() {
-    assertEquals("/tan newsletter", command.getSyntax());
+    assertEquals("/ccn newsletter", command.getSyntax());
   }
 
   @Test

@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.ranks;
-
+﻿package org.leralix.tan.gui.user.ranks;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -21,13 +20,10 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class AssignPlayerToRankMenu extends IteratorGUI {
-
   private final TerritoryData territoryData;
   private final RankData rankData;
   private final Map<String, ITanPlayer> playersData;
-
   private AssignPlayerToRankMenu(
       Player player,
       ITanPlayer tanPlayer,
@@ -39,10 +35,8 @@ public class AssignPlayerToRankMenu extends IteratorGUI {
     this.rankData = rankData;
     this.playersData = playersData;
   }
-
   public static void open(Player player, TerritoryData territoryData, RankData rankData) {
     PlayerDataStorage storage = PlayerDataStorage.getInstance();
-
     storage
         .get(player)
         .thenCompose(
@@ -51,7 +45,6 @@ public class AssignPlayerToRankMenu extends IteratorGUI {
               for (String playerID : territoryData.getPlayerIDList()) {
                 playerFutures.add(storage.get(playerID));
               }
-
               return CompletableFuture.allOf(playerFutures.toArray(new CompletableFuture[0]))
                   .thenApply(
                       v -> {
@@ -72,7 +65,6 @@ public class AssignPlayerToRankMenu extends IteratorGUI {
                   .open();
             });
   }
-
   @Override
   public void open() {
     GuiUtil.createIterator(
@@ -83,15 +75,12 @@ public class AssignPlayerToRankMenu extends IteratorGUI {
         p -> RankManagerMenu.open(p, territoryData, rankData),
         p -> nextPage(),
         p -> previousPage());
-
     gui.open(player);
   }
-
   private List<GuiItem> getAvailablePlayers() {
     List<GuiItem> playersToAdd = new ArrayList<>();
     for (String otherPlayerUUID : territoryData.getPlayerIDList()) {
       ITanPlayer otherITanPlayer = playersData.get(otherPlayerUUID);
-
       if (Objects.equals(otherITanPlayer.getRankID(territoryData), rankData.getID())) {
         continue;
       }
@@ -111,7 +100,6 @@ public class AssignPlayerToRankMenu extends IteratorGUI {
                           player, Lang.PLAYER_NO_PERMISSION_RANK_DIFFERENCE.get(tanPlayer));
                       return;
                     }
-
                     ITanPlayer playerStat = playersData.get(otherPlayerUUID);
                     territoryData.setPlayerRank(playerStat, rankData);
                     RankManagerMenu.open(player, territoryData, rankData);

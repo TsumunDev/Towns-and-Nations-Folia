@@ -1,8 +1,6 @@
-package org.leralix.tan.gui.user.property;
-
+﻿package org.leralix.tan.gui.user.property;
 import static org.leralix.lib.data.SoundEnum.MINOR_BAD;
 import static org.leralix.lib.data.SoundEnum.MINOR_GOOD;
-
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -21,17 +19,13 @@ import org.leralix.tan.listeners.chat.events.ChangePropertySalePrice;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.NumberUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public abstract class PropertyMenus extends BasicGui {
-
   protected final PropertyData propertyData;
-
   protected PropertyMenus(
       Player player, ITanPlayer tanPlayer, String title, int rows, PropertyData propertyData) {
     super(player, tanPlayer, title, rows);
     this.propertyData = propertyData;
   }
-
   protected GuiItem getPropertyIcon() {
     return iconManager
         .get(propertyData.getIcon())
@@ -39,7 +33,6 @@ public abstract class PropertyMenus extends BasicGui {
         .setDescription(propertyData.getBasicDescription())
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getRenameButton() {
     return iconManager
         .get(IconKey.PROPERTY_RENAME_ICON)
@@ -54,7 +47,6 @@ public abstract class PropertyMenus extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getDescriptionButton() {
     return iconManager
         .get(IconKey.PROPERTY_DESCRIPTION_ICON)
@@ -70,7 +62,6 @@ public abstract class PropertyMenus extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getBoundariesButton() {
     return iconManager
         .get(IconKey.PROPERTY_BOUNDS_ICON)
@@ -83,21 +74,17 @@ public abstract class PropertyMenus extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   protected GuiItem forSaleButton() {
-
     IconKey iconKey =
         propertyData.isForSale()
             ? IconKey.SELL_PROPERTY_ICON_FOR_SALE
             : IconKey.SELL_PROPERTY_ICON_NOT_FOR_SALE;
     Lang name =
         propertyData.isForSale() ? Lang.GUI_PROPERTY_FOR_SALE : Lang.GUI_PROPERTY_NOT_FOR_SALE;
-
     double price = propertyData.getSalePrice();
     double taxPrice =
         NumberUtil.roundWithDigits(price * propertyData.getTown().getTaxOnBuyingProperty());
     double total = NumberUtil.roundWithDigits(price + taxPrice);
-
     return iconManager
         .get(iconKey)
         .setName(name.get(langType))
@@ -125,21 +112,17 @@ public abstract class PropertyMenus extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   protected GuiItem forRentButton() {
-
     IconKey iconKey =
         propertyData.isForRent()
             ? IconKey.RENT_PROPERTY_ICON_FOR_RENT
             : IconKey.RENT_PROPERTY_ICON_NOT_FOR_RENT;
     Lang name =
         propertyData.isForRent() ? Lang.GUI_PROPERTY_FOR_RENT : Lang.GUI_PROPERTY_NOT_FOR_RENT;
-
     double price = propertyData.getBaseRentPrice();
     double taxPrice =
         NumberUtil.roundWithDigits(price * propertyData.getTown().getTaxOnRentingProperty());
     double total = propertyData.getRentPrice();
-
     return iconManager
         .get(iconKey)
         .setName(name.get(langType))
@@ -167,7 +150,6 @@ public abstract class PropertyMenus extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getDeleteButton() {
     return iconManager
         .get(IconKey.DELETE_PROPERTY_ICON)
@@ -186,12 +168,9 @@ public abstract class PropertyMenus extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getAuthorizedPlayersButton() {
-
     boolean isRentedAndPlayerIsNotRenter =
         propertyData.isRented() && !propertyData.getRenter().equals(tanPlayer);
-
     return iconManager
         .get(IconKey.AUTHORIZED_PLAYERS_ICON)
         .setName(Lang.GUI_PROPERTY_PLAYER_LIST.get(langType))
@@ -211,7 +190,6 @@ public abstract class PropertyMenus extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   protected GuiItem getKickRenterButton() {
     return iconManager
         .get(new ItemStack(HeadUtils.getPlayerHead(propertyData.getOfflineRenter())))
@@ -221,17 +199,14 @@ public abstract class PropertyMenus extends BasicGui {
         .setAction(
             event -> {
               event.setCancelled(true);
-
               Player renter = propertyData.getRenterPlayer();
               propertyData.expelRenter(false);
-
               TanChatUtils.message(
                   player, Lang.PROPERTY_RENTER_EXPELLED_OWNER_SIDE.get(langType), MINOR_GOOD);
               TanChatUtils.message(
                   renter,
                   Lang.PROPERTY_RENTER_EXPELLED_RENTER_SIDE.get(renter, propertyData.getName()),
                   MINOR_BAD);
-
               open();
             })
         .asGuiItem(player, langType);

@@ -1,5 +1,4 @@
-package org.leralix.tan.dataclass.territory.components;
-
+﻿package org.leralix.tan.dataclass.territory.components;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -9,16 +8,12 @@ import org.leralix.lib.position.Vector3D;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.PropertyData;
 import org.leralix.tan.dataclass.territory.TerritoryData;
-
 public class TownPropertyComponent {
-
   private final String townId;
   private Map<String, PropertyData> propertyDataMap;
-
   public TownPropertyComponent(String townId) {
     this.townId = townId;
   }
-
   public Map<String, PropertyData> getPropertyDataMap() {
     if (this.propertyDataMap == null) {
       synchronized (this) {
@@ -29,16 +24,13 @@ public class TownPropertyComponent {
     }
     return this.propertyDataMap;
   }
-
   public Collection<PropertyData> getProperties() {
     return getPropertyDataMap().values();
   }
-
   public String nextPropertyID() {
     if (getPropertyDataMap().isEmpty()) {
       return "P0";
     }
-
     int maxID = -1;
     for (PropertyData propertyData : getPropertyDataMap().values()) {
       try {
@@ -56,7 +48,6 @@ public class TownPropertyComponent {
     }
     return "P" + (maxID + 1);
   }
-
   private PropertyData createAndStoreProperty(Vector3D p1, Vector3D p2, Object owner) {
     String propertyID = nextPropertyID();
     String id = this.townId + "_" + propertyID;
@@ -71,21 +62,17 @@ public class TownPropertyComponent {
     this.propertyDataMap.put(propertyID, newProperty);
     return newProperty;
   }
-
   public PropertyData registerNewProperty(Vector3D p1, Vector3D p2, TerritoryData owner) {
     return createAndStoreProperty(p1, p2, owner);
   }
-
   public PropertyData registerNewProperty(Vector3D p1, Vector3D p2, ITanPlayer owner) {
     PropertyData newProperty = createAndStoreProperty(p1, p2, owner);
     owner.addProperty(newProperty);
     return newProperty;
   }
-
   public PropertyData getProperty(String id) {
     return getPropertyDataMap().get(id);
   }
-
   public PropertyData getProperty(Location location) {
     for (PropertyData propertyData : getProperties()) {
       if (propertyData.containsLocation(location)) {
@@ -94,11 +81,9 @@ public class TownPropertyComponent {
     }
     return null;
   }
-
   public void removeProperty(PropertyData propertyData) {
     this.propertyDataMap.remove(propertyData.getPropertyID());
   }
-
   public void removeAllProperties() {
     Iterator<PropertyData> iterator = getProperties().iterator();
     while (iterator.hasNext()) {

@@ -50,7 +50,7 @@ class UnclaimCommandTest {
 
   @Test
   void getSyntax_returnsCorrectSyntax() {
-    assertEquals("/tan unclaim", command.getSyntax());
+    assertEquals("/ccn unclaim", command.getSyntax());
   }
 
   @Test

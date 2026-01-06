@@ -1,5 +1,4 @@
-package org.leralix.tan.listeners;
-
+﻿package org.leralix.tan.listeners;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
@@ -25,19 +24,16 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class PropertySignListener implements Listener {
   @EventHandler
   public void onPlayerInteract(PlayerInteractEvent event) {
     Player player = event.getPlayer();
     Block clickedBlock = event.getClickedBlock();
-
     if (clickedBlock != null
         && (event.getAction() == Action.RIGHT_CLICK_BLOCK
             || event.getAction() == Action.LEFT_CLICK_BLOCK)
         && (clickedBlock.getType() == Material.OAK_SIGN
             || clickedBlock.getType() == Material.OAK_WALL_SIGN)) {
-
       Sign sign = (Sign) clickedBlock.getState();
       if (sign.hasMetadata("propertySign")) {
         event.setCancelled(true);
@@ -47,10 +43,8 @@ public class PropertySignListener implements Listener {
           PropertyData propertyData =
               TownDataStorage.getInstance().getSync(ids[0]).getProperty(ids[1]);
           if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-
             ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
             LangType langType = tanPlayer.getLang();
-
             if (!canPlayerOpenMenu(player, clickedBlock)) {
               TanChatUtils.message(player, Lang.NO_TRADE_ALLOWED_EMBARGO.get(langType));
               return;
@@ -74,7 +68,6 @@ public class PropertySignListener implements Listener {
       }
     }
   }
-
   private boolean canPlayerOpenMenu(Player player, Block clickedBlock) {
     ClaimedChunk2 claimedChunk2 = NewClaimedChunkStorage.getInstance().get(clickedBlock.getChunk());
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);

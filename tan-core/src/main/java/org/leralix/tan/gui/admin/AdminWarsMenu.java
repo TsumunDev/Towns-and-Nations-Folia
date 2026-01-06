@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.admin;
-
+﻿package org.leralix.tan.gui.admin;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,16 +12,12 @@ import org.leralix.tan.storage.stored.WarStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.gui.AsyncGuiHelper;
 import org.leralix.tan.wars.War;
-
 public class AdminWarsMenu extends IteratorGUI {
-
   private List<GuiItem> cachedWars = new ArrayList<>();
   private boolean isLoaded = false;
-
   private AdminWarsMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, "Admin - Wars List", 6);
   }
-
   public static void open(Player player) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -31,10 +26,8 @@ public class AdminWarsMenu extends IteratorGUI {
               new AdminWarsMenu(player, tanPlayer).open();
             });
   }
-
   @Override
   public void open() {
-    // Show immediate loading screen with cached data
     GuiUtil.createIterator(
         gui,
         cachedWars,
@@ -44,13 +37,11 @@ public class AdminWarsMenu extends IteratorGUI {
         p -> nextPage(),
         p -> previousPage());
     gui.open(player);
-
-    // Load data asynchronously if not already loaded
     if (!isLoaded) {
       AsyncGuiHelper.loadAsync(
           player,
-          this::getAllWars, // Async supplier - loads war data
-          items -> { // Main thread consumer - updates GUI
+          this::getAllWars,
+          items -> {
             cachedWars = items;
             isLoaded = true;
             GuiUtil.createIterator(
@@ -65,10 +56,8 @@ public class AdminWarsMenu extends IteratorGUI {
           });
     }
   }
-
   private List<GuiItem> getAllWars() {
     List<War> wars = new ArrayList<>(WarStorage.getInstance().getAllSync().values());
-
     List<GuiItem> guiItems = new ArrayList<>();
     for (War war : wars) {
       guiItems.add(
@@ -81,7 +70,6 @@ public class AdminWarsMenu extends IteratorGUI {
               .setAction(event -> WarMenu.open(player, null, war))
               .asGuiItem(player, langType));
     }
-
     return guiItems;
   }
 }

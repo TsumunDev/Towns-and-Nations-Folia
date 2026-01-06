@@ -1,5 +1,4 @@
-package org.leralix.tan.commands.server;
-
+﻿package org.leralix.tan.commands.server;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.command.CommandSender;
@@ -8,28 +7,23 @@ import org.leralix.tan.dataclass.Landmark;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.LandmarkStorage;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class LandmarkSetStoredLimitServer extends SubCommand {
   @Override
   public String getName() {
     return "landmarkSetStoredLimit";
   }
-
   @Override
   public String getDescription() {
     return Lang.LANDMARK_UPDATE_SERVER_DESC.getDefault();
   }
-
   @Override
   public int getArguments() {
     return 3;
   }
-
   @Override
   public String getSyntax() {
-    return "/tanserver landmarkSetStoredLimit <id> <value>";
+    return "/ccnserver landmarkSetStoredLimit <id> <value>";
   }
-
   @Override
   public List<String> getTabCompleteSuggestions(
       CommandSender commandSender, String s, String[] args) {
@@ -40,7 +34,6 @@ public class LandmarkSetStoredLimitServer extends SubCommand {
     }
     return Collections.emptyList();
   }
-
   @Override
   public void perform(CommandSender commandSender, String[] args) {
     if (args.length < 3) {
@@ -59,7 +52,6 @@ public class LandmarkSetStoredLimitServer extends SubCommand {
                   TanChatUtils.message(commandSender, Lang.INVALID_ARGUMENTS);
                   return;
                 }
-
                 landmark.setStoredLimit(Integer.parseInt(value));
                 TanChatUtils.message(
                     commandSender,

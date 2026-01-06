@@ -1,5 +1,4 @@
-package org.leralix.tan.dataclass.territory;
-
+﻿package org.leralix.tan.dataclass.territory;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -33,62 +32,48 @@ import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.gameplay.TerritoryUtil;
 import org.leralix.tan.utils.graphic.TeamUtils;
-
 public class RegionData extends TerritoryData {
-
   private String leaderID;
   private String capitalID;
   private String nationID;
   private final List<String> townsInRegion;
-
   public RegionData(String id, String name, ITanPlayer owner) {
     super(id, name, owner);
-    // getTownSync() retourne directement TownData (synchrone)
     TownData ownerTown = owner.getTownSync();
-
     this.capitalID = ownerTown.getID();
     this.nationID = null;
-
     this.townsInRegion = new ArrayList<>();
   }
-
   @Override
   protected void initUpgradesStatus() {
     this.upgradesStatus =
         new org.leralix.tan.upgrade.TerritoryStats(
             org.leralix.tan.upgrade.rewards.StatsType.REGION);
   }
-
   public int getHierarchyRank() {
     return 1;
   }
-
   @Override
   public String getBaseColoredName() {
     return "§b" + getName();
   }
-
   @Override
   public String getLeaderID() {
     if (leaderID == null) leaderID = getCapital().getLeaderID();
     return leaderID;
   }
-
   @Override
   public ITanPlayer getLeaderData() {
     return PlayerDataStorage.getInstance().getSync(getLeaderID());
   }
-
   @Override
   public void setLeaderID(String newLeaderID) {
     this.leaderID = newLeaderID;
   }
-
   @Override
   public boolean isLeader(String id) {
     return getLeaderID().equals(id);
   }
-
   @Override
   public Collection<String> getPlayerIDList() {
     ArrayList<String> playerList = new ArrayList<>();
@@ -97,19 +82,15 @@ public class RegionData extends TerritoryData {
     }
     return playerList;
   }
-
   @Override
   public Collection<ITanPlayer> getITanPlayerList() {
-    // PERFORMANCE FIX: Use batch loading instead of N+1 queries
     Map<String, ITanPlayer> playerMap =
         PlayerDataStorage.getInstance().getBatchSync(getPlayerIDList());
     return new ArrayList<>(playerMap.values());
   }
-
   @Override
   public ItemStack getIconWithName() {
     ItemStack icon = getIcon();
-
     ItemMeta meta = icon.getItemMeta();
     if (meta != null) {
       org.leralix.tan.utils.text.ComponentUtil.setDisplayName(meta, "§b" + getName());
@@ -117,15 +98,12 @@ public class RegionData extends TerritoryData {
     }
     return icon;
   }
-
   @Override
   public ItemStack getIconWithInformations(LangType langType) {
     ItemStack icon = getIcon();
-
     ItemMeta meta = icon.getItemMeta();
     if (meta != null) {
       org.leralix.tan.utils.text.ComponentUtil.setDisplayName(meta, "§b" + getName());
-
       List<String> lore = new ArrayList<>();
       lore.add(Lang.GUI_REGION_INFO_DESC0.get(langType, getDescription()));
       lore.add(Lang.GUI_REGION_INFO_DESC1.get(langType, getCapital().getName()));
@@ -133,13 +111,11 @@ public class RegionData extends TerritoryData {
       lore.add(Lang.GUI_REGION_INFO_DESC3.get(langType, Integer.toString(getTotalPlayerCount())));
       lore.add(
           Lang.GUI_REGION_INFO_DESC5.get(langType, Integer.toString(getNumberOfClaimedChunk())));
-
       org.leralix.tan.utils.text.ComponentUtil.setLore(meta, lore);
       icon.setItemMeta(meta);
     }
     return icon;
   }
-
   public int getTotalPlayerCount() {
     int count = 0;
     for (TerritoryData town : getSubjects()) {
@@ -147,24 +123,19 @@ public class RegionData extends TerritoryData {
     }
     return count;
   }
-
   @Override
   public boolean haveOverlord() {
     return nationID != null;
   }
-
   @Override
   public void abstractClaimChunk(Player player, Chunk chunk, boolean ignoreAdjacent) {
-
     removeFromBalance(getClaimCost());
     NewClaimedChunkStorage.getInstance().claimRegionChunk(chunk, getID());
   }
-
   @Override
   protected Collection<TerritoryData> getOverlords() {
     return new ArrayList<>();
   }
-
   public List<TerritoryData> getSubjects() {
     List<TerritoryData> towns = new ArrayList<>();
     for (String townID : townsInRegion) {
@@ -172,25 +143,19 @@ public class RegionData extends TerritoryData {
     }
     return towns;
   }
-
   public int getNumberOfTownsIn() {
     return townsInRegion.size();
   }
-
   @Override
   protected void addVassalPrivate(TerritoryData vassal) {
     townsInRegion.add(vassal.getID());
   }
-
   public void setCapital(String townID) {
     this.capitalID = townID;
   }
-
   @Override
   public void removeOverlordPrivate() {
-    // Kingdoms are not implemented yet
   }
-
   @Override
   protected void collectTaxes() {
     for (TerritoryData town : getVassals()) {
@@ -209,23 +174,17 @@ public class RegionData extends TerritoryData {
       }
     }
   }
-
   @Override
   protected void removeVassal(TerritoryData vassal) {
-
     EventManager.getInstance().callEvent(new TerritoryIndependanceInternalEvent(this, vassal));
-
     townsInRegion.remove(vassal.getID());
-
     TownData town = (TownData) vassal;
-
     for (RankData rank : getRanks().values()) {
       for (String playerID : town.getPlayerIDList()) {
         rank.removePlayer(playerID);
       }
     }
   }
-
   @Override
   public TerritoryData getCapital() {
     if (capitalID == null) {
@@ -233,12 +192,10 @@ public class RegionData extends TerritoryData {
     }
     return TerritoryUtil.getTerritory(capitalID);
   }
-
   @Override
   public void broadCastMessage(FilledLang message) {
     for (TerritoryData townData : getSubjects()) townData.broadCastMessage(message);
   }
-
   @Override
   public void broadcastMessageWithSound(
       FilledLang message, SoundEnum soundEnum, boolean addPrefix) {
@@ -246,57 +203,46 @@ public class RegionData extends TerritoryData {
       townData.broadcastMessageWithSound(message, soundEnum, addPrefix);
     }
   }
-
   @Override
   public void broadcastMessageWithSound(FilledLang message, SoundEnum soundEnum) {
     for (TerritoryData townData : getSubjects()) {
       townData.broadcastMessageWithSound(message, soundEnum);
     }
   }
-
   @Override
   public boolean haveNoLeader() {
-    return false; // Region always have a leader
+    return false;
   }
-
   @Override
   public synchronized void delete() {
     super.delete();
-
     TeamUtils.updateAllScoreboardColor();
     RegionDataStorage.getInstance().deleteRegion(this);
   }
-
   @Override
   public void openMainMenu(Player player) {
     RegionMenu.open(player, this);
   }
-
   @Override
   public boolean canHaveVassals() {
     return true;
   }
-
   @Override
   public boolean canHaveOverlord() {
     return true;
   }
-
   @Override
   public List<String> getVassalsID() {
     return townsInRegion;
   }
-
   @Override
   public boolean isVassal(String territoryID) {
     return townsInRegion.contains(territoryID);
   }
-
   @Override
   public Collection<TerritoryData> getPotentialVassals() {
     return new ArrayList<>(TownDataStorage.getInstance().getAllAsync().join().values());
   }
-
   @Override
   public RankData getRank(ITanPlayer tanPlayer) {
     if (!tanPlayer.hasRegion()) {
@@ -304,7 +250,6 @@ public class RegionData extends TerritoryData {
     }
     return getRank(tanPlayer.getRegionRankID());
   }
-
   @Override
   public List<GuiItem> getOrderedMemberList(ITanPlayer tanPlayer) {
     List<GuiItem> res = new ArrayList<>();
@@ -316,19 +261,16 @@ public class RegionData extends TerritoryData {
               playerIterate,
               Lang.GUI_TOWN_MEMBER_DESC1.get(
                   tanPlayer.getLang(), playerIterateData.getRegionRank().getColoredName()));
-
       GuiItem playerButton =
           ItemBuilder.from(playerHead).asGuiItem(event -> event.setCancelled(true));
       res.add(playerButton);
     }
     return res;
   }
-
   @Override
   protected void specificSetPlayerRank(ITanPlayer playerStat, int rankID) {
     playerStat.setRegionRankID(rankID);
   }
-
   @Override
   protected void addSpecificTaxes(Budget budget) {
     budget.addProfitLine(new SubjectTaxLine(this));

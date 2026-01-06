@@ -1,5 +1,4 @@
-package org.leralix.tan.dataclass.territory.economy;
-
+﻿package org.leralix.tan.dataclass.territory.economy;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
@@ -19,28 +18,21 @@ import org.leralix.tan.listeners.chat.events.treasury.SetCreatePropertyTax;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class PropertyCreationTaxLine extends ProfitLine {
-
   public PropertyCreationTaxLine(TownData townData) {
     super(townData);
   }
-
   @Override
   public double getMoney() {
     return 0;
   }
-
   @Override
   public FilledLang getLine() {
     return null;
   }
-
   @Override
   public void addItems(Gui gui, Player player, LangType lang) {
-
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-
     ItemStack tax =
         HeadUtils.makeSkullURL(
             Lang.GUI_TREASURY_CREATE_PROPERTY_TAX.get(lang),
@@ -49,7 +41,6 @@ public class PropertyCreationTaxLine extends ProfitLine {
                 lang, Double.toString(territoryData.getTaxOnCreatingProperty())),
             Lang.GUI_GENERIC_CLICK_TO_OPEN_HISTORY.get(lang),
             Lang.RIGHT_CLICK_TO_SET_TAX.get(lang));
-
     GuiItem taxInfo =
         ItemBuilder.from(tax)
             .asGuiItem(
@@ -71,10 +62,8 @@ public class PropertyCreationTaxLine extends ProfitLine {
                             territoryData, p -> TreasuryMenu.open(player, territoryData)));
                   }
                 });
-
     gui.setItem(4, 2, taxInfo);
   }
-
   @Override
   public boolean isRecurrent() {
     return false;

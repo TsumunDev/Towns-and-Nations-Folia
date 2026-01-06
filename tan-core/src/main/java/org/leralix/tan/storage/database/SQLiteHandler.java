@@ -1,25 +1,19 @@
-package org.leralix.tan.storage.database;
-
+﻿package org.leralix.tan.storage.database;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import org.leralix.tan.TownsAndNations;
-
 public class SQLiteHandler extends DatabaseHandler {
-
   private final String databasePath;
   private HikariDataSource hikariDataSource;
-
   public SQLiteHandler(String databasePath) {
     this.databasePath = databasePath;
   }
-
   @Override
   public void connect() throws SQLException {
     File dbFile = new File(databasePath);
-
     if (!dbFile.exists()) {
       try {
         if (dbFile.getParentFile() != null && !dbFile.getParentFile().exists()) {
@@ -32,32 +26,23 @@ public class SQLiteHandler extends DatabaseHandler {
         throw new SQLException("Error while creating SQLite database", e);
       }
     }
-
     HikariConfig config = new HikariConfig();
     config.setJdbcUrl("jdbc:sqlite:" + databasePath + "?journal_mode=WAL");
     config.setPoolName("TownsAndNations-SQLite-Pool");
-
-    // Connection pool configuration for SQLite with WAL mode
-    // WAL mode allows multiple concurrent readers (but still only 1 writer)
-    config.setMaximumPoolSize(10); // Increased to allow concurrent reads
-    config.setMinimumIdle(2); // Keep some connections ready
-    config.setConnectionTimeout(120000); // Increased from 30s to 120s
+    config.setMaximumPoolSize(10);
+    config.setMinimumIdle(2);
+    config.setConnectionTimeout(120000);
     config.setIdleTimeout(600000);
     config.setMaxLifetime(1800000);
-    config.setLeakDetectionThreshold(60000); // Warn if connection held > 60s
-
-    // SQLite-specific optimizations
+    config.setLeakDetectionThreshold(60000);
     config.addDataSourceProperty("cachePrepStmts", "true");
     config.addDataSourceProperty("prepStmtCacheSize", "250");
     config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-
     this.hikariDataSource = new HikariDataSource(config);
-
     this.dataSource = hikariDataSource;
     createMetadataTable();
     initialize();
   }
-
   @Override
   public void createMetadataTable() {
     String createTableSQL =
@@ -67,7 +52,6 @@ public class SQLiteHandler extends DatabaseHandler {
                 meta_value TEXT NOT NULL
             )
         """;
-
     try (Connection conn = dataSource.getConnection();
         Statement stmt = conn.createStatement()) {
       stmt.execute(createTableSQL);
@@ -77,7 +61,6 @@ public class SQLiteHandler extends DatabaseHandler {
           .severe("Error creating table tan_metadata: " + e.getMessage());
     }
   }
-
   @Override
   public int getNextTownId() {
     String selectSQL = "SELECT meta_value FROM tan_metadata WHERE meta_key = 'next_town_id'";
@@ -89,11 +72,9 @@ public class SQLiteHandler extends DatabaseHandler {
         }
       }
     } catch (SQLException | NumberFormatException e) {
-      // Ignore, we'll insert the default value
     }
     return 1;
   }
-
   @Override
   public void updateNextTownId(int newId) {
     String upsertSQL =
@@ -108,7 +89,6 @@ public class SQLiteHandler extends DatabaseHandler {
           .severe("Error updating next_town_id: " + e.getMessage());
     }
   }
-
   @Override
   public int getNextRegionId() {
     String selectSQL = "SELECT meta_value FROM tan_metadata WHERE meta_key = 'next_region_id'";
@@ -120,11 +100,9 @@ public class SQLiteHandler extends DatabaseHandler {
         }
       }
     } catch (SQLException | NumberFormatException e) {
-      // Ignore, we'll insert the default value
     }
     return 1;
   }
-
   @Override
   public void updateNextRegionId(int newId) {
     String upsertSQL =
@@ -139,11 +117,6 @@ public class SQLiteHandler extends DatabaseHandler {
           .severe("Error updating next_region_id: " + e.getMessage());
     }
   }
-
-  /**
-   * Close the HikariCP connection pool and clean up resources P3.2: Proper resource cleanup
-   * implementation
-   */
   @Override
   public void close() {
     if (hikariDataSource != null && !hikariDataSource.isClosed()) {

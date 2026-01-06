@@ -1,7 +1,5 @@
-package org.leralix.tan.gui.user.war;
-
+﻿package org.leralix.tan.gui.user.war;
 import static org.leralix.lib.data.SoundEnum.MINOR_GOOD;
-
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -24,13 +22,10 @@ import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.leralix.tan.wars.PlannedAttack;
 import org.leralix.tan.wars.legacy.WarRole;
-
 public class PlannedAttackMenu extends BasicGui {
-
   private final TerritoryData territoryData;
   private final PlannedAttack plannedAttack;
   private final WarRole warRole;
-
   private PlannedAttackMenu(
       Player player,
       ITanPlayer tanPlayer,
@@ -41,7 +36,6 @@ public class PlannedAttackMenu extends BasicGui {
     this.plannedAttack = plannedAttack;
     this.warRole = plannedAttack.getTerritoryRole(territoryData);
   }
-
   public static void open(Player player, TerritoryData territoryData, PlannedAttack plannedAttack) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -50,14 +44,11 @@ public class PlannedAttackMenu extends BasicGui {
               new PlannedAttackMenu(player, tanPlayer, territoryData, plannedAttack).open();
             });
   }
-
   @Override
   public void open() {
     gui.setItem(1, 5, getAttackIcon());
-
     gui.setItem(2, 2, getAttackingSideSidePanel());
     gui.setItem(2, 4, getDefendingSidePanel());
-
     if (warRole == WarRole.MAIN_ATTACKER) {
       ItemStack cancelAttack =
           HeadUtils.createCustomItemStack(
@@ -80,7 +71,6 @@ public class PlannedAttackMenu extends BasicGui {
                         MINOR_GOOD);
                     AttackMenu.open(player, territoryData);
                   });
-
       GuiItem renameButton =
           ItemBuilder.from(renameAttack)
               .asGuiItem(
@@ -90,16 +80,13 @@ public class PlannedAttackMenu extends BasicGui {
                     PlayerChatListenerStorage.register(
                         player, new ChangeAttackName(plannedAttack, p -> open()));
                   });
-
       gui.setItem(2, 6, renameButton);
       gui.setItem(2, 8, cancelButton);
     } else if (warRole == WarRole.MAIN_DEFENDER) {
-
       List<FilledLang> submitDescription = new ArrayList<>();
       submitDescription.add(Lang.SUBMIT_TO_REQUEST_DESC1.get());
       submitDescription.addAll(
           plannedAttack.getWar().generateWarGoalsDesciption(warRole, langType));
-
       gui.setItem(
           2,
           7,
@@ -132,11 +119,9 @@ public class PlannedAttackMenu extends BasicGui {
                   })
               .asGuiItem(player, langType));
     } else if (warRole == WarRole.NEUTRAL) {
-
       List<FilledLang> description = new ArrayList<>();
       description.add(Lang.GUI_JOIN_ATTACKING_SIDE_DESC1.get(territoryData.getBaseColoredName()));
       description.addAll(plannedAttack.getWar().generateWarGoalsDesciption(warRole, langType));
-
       gui.setItem(
           2,
           6,
@@ -150,7 +135,6 @@ public class PlannedAttackMenu extends BasicGui {
                     open();
                   })
               .asGuiItem(player, langType));
-
       gui.setItem(
           2,
           8,
@@ -166,19 +150,15 @@ public class PlannedAttackMenu extends BasicGui {
                   })
               .asGuiItem(player, langType));
     }
-
     gui.setItem(3, 1, GuiUtil.createBackArrow(player, p -> AttackMenu.open(p, territoryData)));
     gui.open(player);
   }
-
   private @NotNull GuiItem getDefendingSidePanel() {
     return ItemBuilder.from(plannedAttack.getDefendingIcon(langType)).asGuiItem();
   }
-
   private @NotNull GuiItem getAttackingSideSidePanel() {
     return ItemBuilder.from(plannedAttack.getAttackingIcon(langType)).asGuiItem();
   }
-
   private @NotNull GuiItem getAttackIcon() {
     return ItemBuilder.from(plannedAttack.getIcon(tanPlayer, territoryData)).asGuiItem();
   }

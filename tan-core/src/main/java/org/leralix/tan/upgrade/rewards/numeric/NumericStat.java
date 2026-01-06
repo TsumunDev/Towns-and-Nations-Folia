@@ -1,20 +1,15 @@
-package org.leralix.tan.upgrade.rewards.numeric;
-
+﻿package org.leralix.tan.upgrade.rewards.numeric;
 import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.upgrade.rewards.IndividualStat;
-
 public abstract class NumericStat extends IndividualStat {
-
   protected final int maxAmount;
   protected final boolean isUnlimited;
-
   protected NumericStat(int maxAmount, boolean isUnlimited) {
     this.maxAmount = maxAmount;
     this.isUnlimited = isUnlimited;
   }
-
   protected FilledLang getStatReward(LangType langType, int level, int maxLevel, Lang statName) {
     if (isUnlimited) {
       if (level == 0) {
@@ -32,7 +27,6 @@ public abstract class NumericStat extends IndividualStat {
       }
     }
   }
-
   protected FilledLang getStatReward(LangType langType, Lang statName) {
     if (isUnlimited) {
       return Lang.UPGRADE_LINE_INFINITY_UNLOCKED.get(statName.get(langType));
@@ -40,18 +34,15 @@ public abstract class NumericStat extends IndividualStat {
       return Lang.UPGRADE_LINE_INT_MAX.get(statName.get(langType), getMathSign(maxAmount));
     }
   }
-
   public boolean canDoAction(int value) {
     if (isUnlimited) {
       return true;
     }
     return value <= maxAmount;
   }
-
   public int getMaxAmount() {
     return maxAmount;
   }
-
   public boolean isUnlimited() {
     return isUnlimited;
   }

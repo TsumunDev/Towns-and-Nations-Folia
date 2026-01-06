@@ -1,5 +1,4 @@
-package org.leralix.tan.dataclass.chunk;
-
+﻿package org.leralix.tan.dataclass.chunk;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -17,24 +16,19 @@ import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.territory.ChunkUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class LandmarkClaimedChunk extends ClaimedChunk2 {
   public LandmarkClaimedChunk(Chunk chunk, String owner) {
     super(chunk, owner);
   }
-
   public LandmarkClaimedChunk(int x, int z, String worldUUID, String ownerID) {
     super(x, z, worldUUID, ownerID);
   }
-
   public String getName() {
     return TownDataStorage.getInstance().getSync(getOwnerID()).getName();
   }
-
   @Override
   protected boolean canPlayerDoInternal(
       Player player, ChunkPermissionType permissionType, Location location) {
-
     if (permissionType == ChunkPermissionType.INTERACT_CHEST
         || permissionType == ChunkPermissionType.INTERACT_DOOR
         || permissionType == ChunkPermissionType.ATTACK_PASSIVE_MOB
@@ -49,28 +43,22 @@ public class LandmarkClaimedChunk extends ClaimedChunk2 {
         || permissionType == ChunkPermissionType.USE_SHEARS) {
       return true;
     }
-
     TanChatUtils.message(player, Lang.CANNOT_DO_IN_LANDMARK.get(player));
     return false;
   }
-
   public Landmark getLandMark() {
     return LandmarkStorage.getInstance().getSync(ownerID);
   }
-
   public void unclaimChunk(Player player) {
     TanChatUtils.message(player, Lang.CANNOT_UNCLAIM_LANDMARK_CHUNK.get(player));
   }
-
   public void playerEnterClaimedArea(Player player, boolean displayTerritoryColor) {
     player.sendActionBar(Component.text(Lang.PLAYER_ENTER_LANDMARK_CHUNK.getDefault()));
   }
-
   @Override
   public boolean canEntitySpawn(EntityType entityType) {
     return true;
   }
-
   @Override
   public Component getMapIcon(LangType langType) {
     String hoverText =
@@ -86,58 +74,47 @@ public class LandmarkClaimedChunk extends ClaimedChunk2 {
         .color(NamedTextColor.GOLD)
         .hoverEvent(HoverEvent.showText(Component.text(hoverText)));
   }
-
   @Override
   public boolean canTerritoryClaim(TerritoryData territoryData) {
     return false;
   }
-
   @Override
   public boolean canTerritoryClaim(Player player, TerritoryData territoryData) {
     TanChatUtils.message(player, Lang.CANNOT_CLAIM_LANDMARK.get(player));
     return false;
   }
-
   @Override
   public boolean isClaimed() {
     return true;
   }
-
   @Override
   public boolean canExplosionGrief() {
     return false;
   }
-
   @Override
   public boolean canFireGrief() {
     return false;
   }
-
   @Override
   public boolean canPVPHappen() {
     return true;
   }
-
   @Override
   public boolean canMobGrief() {
     return false;
   }
-
   @Override
   public ChunkType getType() {
     return ChunkType.LANDMARK;
   }
-
   @Override
   public void notifyUpdate() {
     if (Constants.isLandmarkClaimRequiresEncirclement() || !isClaimed()) {
       removeIfNotEncircled();
     }
   }
-
   private void removeIfNotEncircled() {
     Landmark landmark = getLandMark();
-
     if (ChunkUtil.isChunkEncirecledBy(
         this, chunk -> chunk.getOwnerID().equals(landmark.getOwnerID()))) {
       return;

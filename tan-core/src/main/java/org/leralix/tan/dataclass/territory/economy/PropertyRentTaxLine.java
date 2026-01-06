@@ -1,5 +1,4 @@
-package org.leralix.tan.dataclass.territory.economy;
-
+﻿package org.leralix.tan.dataclass.territory.economy;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
@@ -20,33 +19,25 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.text.StringUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class PropertyRentTaxLine extends ProfitLine {
-
   double taxes = 0;
-
   public PropertyRentTaxLine(TownData townData) {
     super(townData);
     for (PropertyData propertyData : townData.getProperties()) {
       taxes += propertyData.getRentPrice() * townData.getTaxOnRentingProperty() / 100;
     }
   }
-
   @Override
   public double getMoney() {
     return taxes;
   }
-
   @Override
   public FilledLang getLine() {
     return Lang.PROPERTY_TAX_LINE.get(StringUtil.getColoredMoney(getMoney()));
   }
-
   @Override
   public void addItems(Gui gui, Player player, LangType lang) {
-
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-
     ItemStack tax =
         HeadUtils.makeSkullURL(
             Lang.GUI_TREASURY_RENT_PROPERTY_TAX.get(lang),
@@ -55,19 +46,16 @@ public class PropertyRentTaxLine extends ProfitLine {
                 lang, String.format("%.2f", territoryData.getTaxOnRentingProperty() * 100)),
             Lang.GUI_GENERIC_CLICK_TO_OPEN_HISTORY.get(lang),
             Lang.RIGHT_CLICK_TO_SET_TAX.get(lang));
-
     GuiItem taxInfo =
         ItemBuilder.from(tax)
             .asGuiItem(
                 event -> {
                   event.setCancelled(true);
-
                   if (!territoryData.doesPlayerHavePermission(
                       tanPlayer, RolePermission.MANAGE_TAXES)) {
                     TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(lang));
                     return;
                   }
-
                   if (event.isLeftClick()) {
                     EconomicHistoryMenu.open(
                         player, territoryData, TransactionHistoryEnum.PROPERTY_RENT_TAX);
@@ -77,10 +65,8 @@ public class PropertyRentTaxLine extends ProfitLine {
                         player, new SetRentPropertyRate(territoryData));
                   }
                 });
-
     gui.setItem(4, 3, taxInfo);
   }
-
   @Override
   public boolean isRecurrent() {
     return true;

@@ -1,5 +1,4 @@
-package org.leralix.tan.upgrade;
-
+﻿package org.leralix.tan.upgrade;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -11,9 +10,7 @@ import org.leralix.tan.gui.service.requirements.upgrade.UpgradeRequirement;
 import org.leralix.tan.lang.DynamicLang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.upgrade.rewards.IndividualStat;
-
 public class Upgrade {
-
   private final int row;
   private final int column;
   private final Material iconMaterial;
@@ -21,7 +18,6 @@ public class Upgrade {
   private final int maxLevel;
   private final List<UpgradeRequirement> upgradeRequirements;
   private final List<IndividualStat> rewards;
-
   public Upgrade(
       int row,
       int column,
@@ -38,41 +34,32 @@ public class Upgrade {
     this.upgradeRequirements = upgradeRequirements;
     this.rewards = rewards;
   }
-
   public Material getIconMaterial() {
     return iconMaterial;
   }
-
   public String getID() {
     return nameKey;
   }
-
   public String getName(LangType langType) {
     return DynamicLang.get(langType, nameKey);
   }
-
   public Collection<IndividualRequirement> getRequirements(
       TerritoryData territoryData, Player player) {
-
     List<IndividualRequirement> res = new ArrayList<>();
     for (UpgradeRequirement upgradeRequirement : upgradeRequirements) {
       res.add(upgradeRequirement.toIndividualRequirement(this, territoryData, player));
     }
     return res;
   }
-
   public int getRow() {
     return row;
   }
-
   public int getColumn() {
     return column;
   }
-
   public int getMaxLevel() {
     return maxLevel;
   }
-
   public Collection<IndividualStat> getRewards() {
     return rewards;
   }

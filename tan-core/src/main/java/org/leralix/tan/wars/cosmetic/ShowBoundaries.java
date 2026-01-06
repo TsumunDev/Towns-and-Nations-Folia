@@ -1,5 +1,4 @@
-package org.leralix.tan.wars.cosmetic;
-
+﻿package org.leralix.tan.wars.cosmetic;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.entity.Player;
@@ -16,11 +15,8 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.territory.ChunkUtil;
 import org.leralix.tan.wars.legacy.CurrentAttack;
-
 public class ShowBoundaries {
-
   public static void display(Player player) {
-
     PlayerDataStorage.getInstance()
         .get(player)
         .thenAccept(
@@ -35,9 +31,7 @@ public class ShowBoundaries {
                         double radius = Constants.getWarBoundaryRadius();
                         List<ClaimedChunk2> chunkInRange =
                             ChunkUtil.getChunksInRadius(player.getChunk(), radius);
-
                         List<ChunkLine> lines = sortChunkLines(chunkInRange, attacks);
-
                         drawLines(player, lines);
                       })
                   .exceptionally(
@@ -64,11 +58,8 @@ public class ShowBoundaries {
               return null;
             });
   }
-
   static void drawLines(Player player, List<ChunkLine> lines) {
-
     int y = (int) player.getLocation().getY() + 1;
-
     for (ChunkLine line : lines) {
       ParticleUtils.drawPane(
           TownsAndNations.getPlugin(),
@@ -87,16 +78,12 @@ public class ShowBoundaries {
           Constants.getWarBoundaryParticle());
     }
   }
-
   static List<ChunkLine> sortChunkLines(
       List<ClaimedChunk2> chunkInRange, List<CurrentAttack> attacks) {
     List<ChunkLine> res = new ArrayList<>();
-
     for (ClaimedChunk2 centerChunk : chunkInRange) {
       if (centerChunk instanceof TerritoryChunk territoryChunk) {
         Vector2D centerChunkPosition = centerChunk.getVector2D();
-
-        // NORTH
         ClaimedChunk2 northChunk =
             NewClaimedChunkStorage.getInstance()
                 .get(
@@ -106,8 +93,6 @@ public class ShowBoundaries {
         if (isFrontline(territoryChunk, northChunk, attacks)) {
           res.add(getChunkLine(centerChunkPosition, CardinalPoint.NORTH));
         }
-
-        // SOUTH
         ClaimedChunk2 southChunk =
             NewClaimedChunkStorage.getInstance()
                 .get(
@@ -117,8 +102,6 @@ public class ShowBoundaries {
         if (isFrontline(territoryChunk, southChunk, attacks)) {
           res.add(getChunkLine(centerChunkPosition, CardinalPoint.SOUTH));
         }
-
-        // EAST
         ClaimedChunk2 eastChunk =
             NewClaimedChunkStorage.getInstance()
                 .get(
@@ -128,8 +111,6 @@ public class ShowBoundaries {
         if (isFrontline(territoryChunk, eastChunk, attacks)) {
           res.add(getChunkLine(centerChunkPosition, CardinalPoint.EAST));
         }
-
-        // WEST
         ClaimedChunk2 westChunk =
             NewClaimedChunkStorage.getInstance()
                 .get(
@@ -143,14 +124,10 @@ public class ShowBoundaries {
     }
     return res;
   }
-
   static ChunkLine getChunkLine(Vector2D centerChunk, CardinalPoint dir) {
-
     int baseX = centerChunk.getX() * 16;
     int baseZ = centerChunk.getZ() * 16;
-
     String worldID = centerChunk.getWorldID().toString();
-
     Vector2D start, end;
     switch (dir) {
       case NORTH -> {
@@ -171,22 +148,15 @@ public class ShowBoundaries {
       }
       default -> throw new IllegalStateException("Unexpected value: " + dir);
     }
-
     return new ChunkLine(start, end);
   }
-
   private static boolean isFrontline(
       TerritoryChunk centerChunk, ClaimedChunk2 chunkToCompare, List<CurrentAttack> attacks) {
-
     if (chunkToCompare == null) {
       return false;
     }
-
     TerritoryData occupier = centerChunk.getOccupier();
-
     for (CurrentAttack attackData : attacks) {
-      // If chunk is at war, a frontline apprears if the other chunk is not occupied by the same
-      // town
       if (attackData.getAttackData().getWar().isMainDefender(occupier)) {
         if (chunkToCompare instanceof TerritoryChunk territoryChunk
             && territoryChunk.getOccupierID().equals(occupier.getID())) {
@@ -195,7 +165,6 @@ public class ShowBoundaries {
         return true;
       }
     }
-
     return false;
   }
 }

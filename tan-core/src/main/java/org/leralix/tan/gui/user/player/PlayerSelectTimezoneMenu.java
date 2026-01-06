@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.player;
-
+﻿package org.leralix.tan.gui.user.player;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,13 +9,10 @@ import org.leralix.tan.gui.cosmetic.IconKey;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.timezone.TimeZoneEnum;
-
 public class PlayerSelectTimezoneMenu extends IteratorGUI {
-
   private PlayerSelectTimezoneMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, Lang.HEADER_SELECT_TIMEZONE.get(tanPlayer.getLang()), 4);
   }
-
   public static void open(Player player) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -25,17 +21,13 @@ public class PlayerSelectTimezoneMenu extends IteratorGUI {
               new PlayerSelectTimezoneMenu(player, tanPlayer).open();
             });
   }
-
   @Override
   public void open() {
     iterator(getTimezones(), PlayerMenu::open);
-
     gui.open(player);
   }
-
   private List<GuiItem> getTimezones() {
     List<GuiItem> timezones = new ArrayList<>();
-
     for (TimeZoneEnum timeZoneEnum : TimeZoneEnum.values()) {
       timezones.add(
           iconManager

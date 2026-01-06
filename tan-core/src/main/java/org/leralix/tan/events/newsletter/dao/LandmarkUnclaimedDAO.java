@@ -1,5 +1,4 @@
-package org.leralix.tan.events.newsletter.dao;
-
+﻿package org.leralix.tan.events.newsletter.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,15 +6,11 @@ import java.sql.SQLException;
 import java.util.UUID;
 import javax.sql.DataSource;
 import org.leralix.tan.events.newsletter.news.LandmarkUnclaimedNewsletter;
-
 public class LandmarkUnclaimedDAO extends NewsletterSubDAO<LandmarkUnclaimedNewsletter> {
-
   private static final String TABLE_NAME = "landmark_unclaimed_newsletter";
-
   public LandmarkUnclaimedDAO(DataSource dataSource) {
     super(dataSource);
   }
-
   @Override
   protected void createTableIfNotExists() {
     String sql =
@@ -26,7 +21,6 @@ public class LandmarkUnclaimedDAO extends NewsletterSubDAO<LandmarkUnclaimedNews
             + "landmarkID VARCHAR(36) NOT NULL, "
             + "oldOwnerID VARCHAR(36) NOT NULL "
             + ")";
-
     try (Connection conn = dataSource.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.executeUpdate();
@@ -34,11 +28,9 @@ public class LandmarkUnclaimedDAO extends NewsletterSubDAO<LandmarkUnclaimedNews
       throw new RuntimeException("Failed to create diplomacy proposal newsletter table", e);
     }
   }
-
   @Override
   public void save(LandmarkUnclaimedNewsletter newsletter) throws SQLException {
     String sql = "INSERT INTO " + TABLE_NAME + " (id, landmarkID, oldOwnerID) VALUES (?, ?, ?)";
-
     try (Connection conn = dataSource.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, newsletter.getId().toString());
@@ -49,7 +41,6 @@ public class LandmarkUnclaimedDAO extends NewsletterSubDAO<LandmarkUnclaimedNews
       throw new RuntimeException("Failed to save diplomacy proposal newsletter", e);
     }
   }
-
   @Override
   public LandmarkUnclaimedNewsletter load(UUID id, long date) throws SQLException {
     String sql = "SELECT landmarkID, oldOwnerID FROM " + TABLE_NAME + " WHERE id = ?";
@@ -68,7 +59,6 @@ public class LandmarkUnclaimedDAO extends NewsletterSubDAO<LandmarkUnclaimedNews
     }
     return null;
   }
-
   @Override
   public void delete(UUID uuid) {
     String sql = "DELETE FROM " + TABLE_NAME + " WHERE id = ?";

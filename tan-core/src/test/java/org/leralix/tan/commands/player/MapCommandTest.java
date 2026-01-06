@@ -44,7 +44,7 @@ class MapCommandTest {
 
   @Test
   void getSyntax_returnsCorrectSyntax() {
-    assertEquals("/tan map", command.getSyntax());
+    assertEquals("/ccn map", command.getSyntax());
   }
 
   @Test

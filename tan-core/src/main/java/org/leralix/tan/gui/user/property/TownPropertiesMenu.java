@@ -1,7 +1,5 @@
-package org.leralix.tan.gui.user.property;
-
+﻿package org.leralix.tan.gui.user.property;
 import static org.leralix.lib.data.SoundEnum.NOT_ALLOWED;
-
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,16 +14,12 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.deprecated.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class TownPropertiesMenu extends IteratorGUI {
-
   private final TownData townData;
-
   private TownPropertiesMenu(Player player, ITanPlayer tanPlayer, TownData townData) {
     super(player, tanPlayer, Lang.HEADER_PLAYER_PROPERTIES.get(tanPlayer.getLang()), 3);
     this.townData = townData;
   }
-
   public static void open(Player player, TownData townData) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -34,10 +28,8 @@ public class TownPropertiesMenu extends IteratorGUI {
               new TownPropertiesMenu(player, tanPlayer, townData).open();
             });
   }
-
   @Override
   public void open() {
-
     GuiUtil.createIterator(
         gui,
         getProperties(),
@@ -46,15 +38,11 @@ public class TownPropertiesMenu extends IteratorGUI {
         p -> TownMenu.open(p, townData),
         p -> nextPage(),
         p -> previousPage());
-
     gui.open(player);
   }
-
   private List<GuiItem> getProperties() {
     List<GuiItem> res = new ArrayList<>();
-
     for (PropertyData townProperty : townData.getProperties()) {
-
       res.add(
           iconManager
               .get(townProperty.getIcon())

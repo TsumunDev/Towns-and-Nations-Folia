@@ -1,7 +1,5 @@
-package org.leralix.tan.gui.user.war;
-
+﻿package org.leralix.tan.gui.user.war;
 import static org.leralix.lib.data.SoundEnum.REMOVE;
-
 import dev.triumphteam.gui.guis.GuiItem;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -28,14 +26,11 @@ import org.leralix.tan.utils.text.DateUtil;
 import org.leralix.tan.wars.War;
 import org.leralix.tan.wars.legacy.CreateAttackData;
 import org.leralix.tan.wars.legacy.WarRole;
-
 public class CreateAttackMenu extends BasicGui {
-
   private final CreateAttackData attackData;
   private final TerritoryData territoryData;
   private final War war;
   private final WarRole warRole;
-
   private CreateAttackMenu(
       Player player, ITanPlayer tanPlayer, TerritoryData territoryData, War war, WarRole warRole) {
     super(
@@ -48,7 +43,6 @@ public class CreateAttackMenu extends BasicGui {
     this.warRole = warRole;
     this.attackData = new CreateAttackData(war, warRole);
   }
-
   public static void open(Player player, TerritoryData territoryData, War war, WarRole warRole) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -57,29 +51,22 @@ public class CreateAttackMenu extends BasicGui {
               new CreateAttackMenu(player, tanPlayer, territoryData, war, warRole).open();
             });
   }
-
   @Override
   public void open() {
     gui.setItem(2, 2, getRemoveTimeButton());
     gui.setItem(2, 3, getTimeIcon());
     gui.setItem(2, 4, getAddTimeButton());
-
     gui.setItem(2, 8, getConfirmButton());
     gui.setItem(
         3, 1, GuiUtil.createBackArrow(player, e -> WarMenu.open(player, territoryData, war)));
-
     gui.open(player);
   }
-
   private @NotNull GuiItem getConfirmButton() {
-
     boolean isOutsideOfSlots = isIsOutsideOfSlots();
-
     IconKey iconKey =
         isOutsideOfSlots
             ? IconKey.CONFIRM_WAR_START_ICON
             : IconKey.CONFIRM_WAR_START_IMPOSSIBLE_ICON;
-
     return iconManager
         .get(iconKey)
         .setName(Lang.GUI_CONFIRM_ATTACK.get(tanPlayer))
@@ -90,28 +77,23 @@ public class CreateAttackMenu extends BasicGui {
         .setAction(
             event -> {
               event.setCancelled(true);
-
               if (!isOutsideOfSlots) {
                 SoundUtil.playSound(player, REMOVE);
                 return;
               }
-
               EventManager.getInstance()
                   .callEvent(
                       new AttackDeclaredInternalEvent(
                           war.getTerritory(warRole.opposite()), war.getTerritory(warRole)));
-
               PlannedAttackStorage.getInstance().newAttack(attackData);
               AttackMenu.open(player, war.getTerritory(warRole));
             })
         .asGuiItem(player, langType);
   }
-
   private boolean isIsOutsideOfSlots() {
     Instant warStart = Instant.now().plusSeconds(attackData.getSelectedTime() * 60L);
     return !Constants.getWarTimeSlot().canWarBeDeclared(warStart);
   }
-
   private @NotNull GuiItem getAddTimeButton() {
     return iconManager
         .get(IconKey.ADD_WAR_START_TIME_ICON)
@@ -122,7 +104,6 @@ public class CreateAttackMenu extends BasicGui {
             event -> {
               event.setCancelled(true);
               SoundUtil.playSound(player, REMOVE);
-
               if (event.isShiftClick()) {
                 attackData.addDeltaDateTime(60);
               } else if (event.isLeftClick()) {
@@ -132,16 +113,12 @@ public class CreateAttackMenu extends BasicGui {
             })
         .asGuiItem(player, langType);
   }
-
   private @NotNull GuiItem getTimeIcon() {
-
     Instant startTime = Instant.now().plusSeconds(attackData.getSelectedTime() * 60L);
-
     List<FilledLang> availableTimeSlots = new ArrayList<>();
     availableTimeSlots.add(TimeZoneManager.getInstance().formatDateForPlayer(tanPlayer, startTime));
     availableTimeSlots.add(Lang.AUTHORIZED_ATTACK_TIME_SLOT_TITLE.get());
     availableTimeSlots.addAll(Constants.getWarTimeSlot().getPrintedTimeSlots());
-
     return IconManager.getInstance()
         .get(IconKey.WAR_START_TIME_ICON)
         .setName(
@@ -150,7 +127,6 @@ public class CreateAttackMenu extends BasicGui {
         .setDescription(availableTimeSlots)
         .asGuiItem(player, langType);
   }
-
   private @NotNull GuiItem getRemoveTimeButton() {
     return iconManager
         .get(IconKey.REMOVE_WAR_START_TIME_ICON)
@@ -161,7 +137,6 @@ public class CreateAttackMenu extends BasicGui {
             event -> {
               event.setCancelled(true);
               SoundUtil.playSound(player, REMOVE);
-
               if (event.isShiftClick()) {
                 attackData.addDeltaDateTime(-60);
               } else if (event.isLeftClick()) {

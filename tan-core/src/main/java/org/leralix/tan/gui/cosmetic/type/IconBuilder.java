@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.cosmetic.type;
-
+﻿package org.leralix.tan.gui.cosmetic.type;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
@@ -19,9 +18,7 @@ import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.utils.text.TanChatUtils;
-
 public class IconBuilder {
-
   private String name;
   private final List<FilledLang> description;
   private final Requirements requirements;
@@ -30,7 +27,6 @@ public class IconBuilder {
   private final IconType menuIcon;
   private boolean hidePrerequisites;
   private final List<Lang> clickForActionMessage;
-
   public IconBuilder(IconType menuIcon) {
     this.description = new ArrayList<>();
     this.hideItemFlags = false;
@@ -44,60 +40,57 @@ public class IconBuilder {
       this.menuIcon = menuIcon;
     }
   }
-
   public IconBuilder setName(String name) {
     this.name = name;
     return this;
   }
-
   public IconBuilder setDescription(FilledLang... descriptions) {
     return setDescription(List.of(descriptions));
   }
-
   public IconBuilder setDescription(Collection<FilledLang> description) {
     this.description.clear();
     this.description.addAll(description);
     return this;
   }
-
   public IconBuilder setRequirements(IndividualRequirement... requirements) {
     return setRequirements(List.of(requirements));
   }
-
   public IconBuilder setRequirements(Collection<IndividualRequirement> requirements) {
     this.requirements.add(requirements);
     return this;
   }
-
   public IconBuilder setClickToAcceptMessage(Lang... messages) {
     return setClickToAcceptMessage(List.of(messages));
   }
-
   public IconBuilder setClickToAcceptMessage(Collection<Lang> messages) {
     this.clickForActionMessage.clear();
     this.clickForActionMessage.addAll(messages);
     return this;
   }
-
   public IconBuilder setAction(Consumer<InventoryClickEvent> action) {
     this.action = action;
     return this;
   }
-
   public IconBuilder setHideItemFlags(boolean hideItemFlags) {
     this.hideItemFlags = hideItemFlags;
     return this;
   }
-
   public IconBuilder hidePrerequisite(boolean hidePrerequisites) {
     this.hidePrerequisites = hidePrerequisites;
     return this;
   }
-
   public GuiItem asGuiItem(Player player, LangType langType) {
     ItemStack item = menuIcon.getItemStack(player);
     ItemMeta meta = item.getItemMeta();
-
+    if (meta != null && meta.hasCustomModelData()) {
+      System.out.println("[IconBuilder] BEFORE Adventure API: Item=" + item.getType() + ", CMD=" + meta.getCustomModelData());
+    } else {
+      System.out.println("[IconBuilder] BEFORE Adventure API: Item=" + item.getType() + ", NO CMD");
+    }
+    Integer originalCmd = null;
+    if (meta != null && meta.hasCustomModelData()) {
+      originalCmd = meta.getCustomModelData();
+    }
     if (meta != null) {
       org.leralix.tan.utils.text.ComponentUtil.setDisplayName(meta, name);
       org.leralix.tan.utils.text.ComponentUtil.setLore(meta, generateDescription(langType));
@@ -107,6 +100,14 @@ public class IconBuilder {
         meta.getItemFlags().add(ItemFlag.HIDE_UNBREAKABLE);
         meta.getItemFlags().add(ItemFlag.HIDE_PLACED_ON);
         meta.getItemFlags().add(ItemFlag.HIDE_DYE);
+      }
+      if (originalCmd != null) {
+        meta.setCustomModelData(originalCmd);
+      }
+      if (meta.hasCustomModelData()) {
+        System.out.println("[IconBuilder] AFTER restore: Item=" + item.getType() + ", CMD=" + meta.getCustomModelData());
+      } else {
+        System.out.println("[IconBuilder] AFTER restore: Item=" + item.getType() + ", NO CMD (original was " + originalCmd + ")");
       }
       item.setItemMeta(meta);
     }
@@ -125,17 +126,15 @@ public class IconBuilder {
                 }
                 requirements.actionConsume();
                 action.accept(event);
+                event.setCancelled(true);
               });
     }
   }
-
   private List<String> generateDescription(LangType langType) {
     List<String> res = new ArrayList<>();
-
     for (FilledLang filledLang : description) {
       res.add(filledLang.get(langType));
     }
-
     if (!hidePrerequisites && action != null && !requirements.isEmpty()) {
       res.add("");
       res.addAll(requirements.getRequirementsParagraph(langType));

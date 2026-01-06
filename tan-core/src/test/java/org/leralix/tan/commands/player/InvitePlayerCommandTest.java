@@ -49,7 +49,7 @@ class InvitePlayerCommandTest {
 
   @Test
   void getSyntax_returnsCorrectSyntax() {
-    assertEquals("/tan invite <playerName>", command.getSyntax());
+    assertEquals("/ccn invite <playerName>", command.getSyntax());
   }
 
   @Test

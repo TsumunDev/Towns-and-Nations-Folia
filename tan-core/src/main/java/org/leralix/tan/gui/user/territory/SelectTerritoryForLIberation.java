@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,15 +13,11 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.wars.War;
 import org.leralix.tan.wars.legacy.WarRole;
 import org.leralix.tan.wars.legacy.wargoals.LiberateWarGoal;
-
 public class SelectTerritoryForLIberation extends IteratorGUI {
-
   private final WarRole warRole;
   private final TerritoryData territoryData;
   private final War war;
-
   private final TerritoryData enemyTerritory;
-
   private SelectTerritoryForLIberation(
       Player player, ITanPlayer tanPlayer, TerritoryData territoryData, War war, WarRole warRole) {
     super(player, tanPlayer, Lang.HEADER_SELECT_WARGOAL.get(tanPlayer.getLang()), 3);
@@ -32,7 +27,6 @@ public class SelectTerritoryForLIberation extends IteratorGUI {
     this.enemyTerritory =
         war.isMainAttacker(territoryData) ? war.getMainDefender() : war.getMainAttacker();
   }
-
   public static void open(Player player, TerritoryData territoryData, War war, WarRole warRole) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -42,22 +36,17 @@ public class SelectTerritoryForLIberation extends IteratorGUI {
                   .open();
             });
   }
-
   @Override
   public void open() {
     iterator(getTerritoryToLiberate(), p -> ChooseWarGoal.open(p, territoryData, war, warRole));
     gui.open(player);
   }
-
   private List<GuiItem> getTerritoryToLiberate() {
     List<GuiItem> items = new ArrayList<>();
-
     for (TerritoryData territory : enemyTerritory.getVassals()) {
-
       if (territory.isCapital()) {
         continue;
       }
-
       items.add(
           iconManager
               .get(territory.getIcon())

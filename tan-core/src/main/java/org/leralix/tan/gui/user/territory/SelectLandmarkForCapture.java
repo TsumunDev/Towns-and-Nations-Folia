@@ -1,5 +1,4 @@
-package org.leralix.tan.gui.user.territory;
-
+﻿package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,15 +15,11 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.wars.War;
 import org.leralix.tan.wars.legacy.WarRole;
 import org.leralix.tan.wars.legacy.wargoals.CaptureLandmarkWarGoal;
-
 public class SelectLandmarkForCapture extends IteratorGUI {
-
   private final WarRole warRole;
   private final TerritoryData territoryData;
   private final War war;
-
   private final TownData enemyTownData;
-
   private SelectLandmarkForCapture(
       Player player, ITanPlayer tanPlayer, TerritoryData territoryData, War war, WarRole warRole) {
     super(player, tanPlayer, Lang.HEADER_SELECT_WARGOAL.get(tanPlayer.getLang()), 3);
@@ -35,7 +30,6 @@ public class SelectLandmarkForCapture extends IteratorGUI {
         (TownData)
             (war.isMainAttacker(territoryData) ? war.getMainDefender() : war.getMainAttacker());
   }
-
   public static void open(Player player, TerritoryData territoryData, War war, WarRole warRole) {
     PlayerDataStorage.getInstance()
         .get(player)
@@ -44,19 +38,14 @@ public class SelectLandmarkForCapture extends IteratorGUI {
               new SelectLandmarkForCapture(player, tanPlayer, territoryData, war, warRole).open();
             });
   }
-
   @Override
   public void open() {
     iterator(getLandmarks(langType), p -> ChooseWarGoal.open(p, territoryData, war, warRole));
     gui.open(player);
   }
-
   private List<GuiItem> getLandmarks(LangType langType) {
-
     List<GuiItem> items = new ArrayList<>();
-
     for (Landmark landmark : LandmarkStorage.getInstance().getLandmarkOf(enemyTownData)) {
-
       GuiItem item =
           iconManager
               .get(landmark.getIcon(langType))
