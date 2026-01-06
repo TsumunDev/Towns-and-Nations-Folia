@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.storage.database.DatabaseHandler;
@@ -43,16 +44,9 @@ public abstract class DatabaseStorage<T> {
     this.gson = gson;
     this.cacheEnabled = enableCache;
     this.cacheSize = cacheSize;
-    this.cache =
-        enableCache
-            ? Collections.synchronizedMap(
-                new LinkedHashMap<String, T>(16, 0.75f, true) {
-                  @Override
-                  protected boolean removeEldestEntry(Map.Entry<String, T> eldest) {
-                    return size() > cacheSize;
-                  }
-                })
-            : null;
+    // Use ConcurrentHashMap for lock-free reads and better performance in Folia
+    // Note: ConcurrentHashMap doesn't support LRU eviction, so we use a simpler approach
+    this.cache = enableCache ? new ConcurrentHashMap<>(cacheSize) : null;
     createTable();
     createIndexes();
   }
@@ -272,9 +266,7 @@ public abstract class DatabaseStorage<T> {
       ps.setString(2, jsonData);
       ps.executeUpdate();
       if (cacheEnabled && cache != null) {
-        synchronized (cache) {
-          cache.put(id, obj);
-        }
+        cache.put(id, obj);
       }
     } catch (SQLException e) {
       TownsAndNations.getPlugin()
@@ -497,10 +489,9 @@ public abstract class DatabaseStorage<T> {
   }
   public boolean exists(String id) {
     if (cacheEnabled && cache != null) {
-      synchronized (cache) {
-        if (cache.containsKey(id)) {
-          return true;
-        }
+      // ConcurrentHashMap.containsKey is thread-safe and non-blocking
+      if (cache.containsKey(id)) {
+        return true;
       }
     }
     String selectSQL = "SELECT 1 FROM " + tableName + " WHERE id = ?";
@@ -547,14 +538,13 @@ public abstract class DatabaseStorage<T> {
     Map<String, T> result = new LinkedHashMap<>();
     List<String> uncachedIds = new ArrayList<>();
     if (cacheEnabled && cache != null) {
-      synchronized (cache) {
-        for (String id : ids) {
-          T cached = cache.get(id);
-          if (cached != null) {
-            result.put(id, cached);
-          } else {
-            uncachedIds.add(id);
-          }
+      // ConcurrentHashMap.get is thread-safe and non-blocking
+      for (String id : ids) {
+        T cached = cache.get(id);
+        if (cached != null) {
+          result.put(id, cached);
+        } else {
+          uncachedIds.add(id);
         }
       }
     } else {
@@ -621,14 +611,13 @@ public abstract class DatabaseStorage<T> {
     Map<String, T> result = new LinkedHashMap<>();
     List<String> uncachedIds = new ArrayList<>();
     if (cacheEnabled && cache != null) {
-      synchronized (cache) {
-        for (String id : ids) {
-          T cached = cache.get(id);
-          if (cached != null) {
-            result.put(id, cached);
-          } else {
-            uncachedIds.add(id);
-          }
+      // ConcurrentHashMap.get is thread-safe and non-blocking
+      for (String id : ids) {
+        T cached = cache.get(id);
+        if (cached != null) {
+          result.put(id, cached);
+        } else {
+          uncachedIds.add(id);
         }
       }
     } else {

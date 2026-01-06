@@ -44,6 +44,7 @@ public class AdminBrowseTownMenu extends IteratorGUI {
           ItemBuilder.from(townIcon)
               .asGuiItem(
                   event -> {
+                    event.setCancelled(true);
                     townData.openMainMenu(player);
                   });
       townGuiItems.add(townGUI);

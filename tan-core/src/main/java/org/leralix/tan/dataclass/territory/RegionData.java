@@ -32,6 +32,52 @@ import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.deprecated.HeadUtils;
 import org.leralix.tan.utils.gameplay.TerritoryUtil;
 import org.leralix.tan.utils.graphic.TeamUtils;
+
+/**
+ * Represents a region (nation) within the Towns and Nations plugin.
+ * <p>
+ * A region is a collection of towns united under a central government with a capital town.
+ * Regions provide collective defense, shared diplomacy, and can collect taxes from member towns.
+ * </p>
+ * <p>
+ * <b>Key Features:</b>
+ * <ul>
+ *   <li><b>Capital:</b> The founding town that serves as the region's seat of power</li>
+ *   <li><b>Member Towns:</b> Towns can join/leave a region through diplomacy</li>
+ *   <li><b>Vassalage:</b> Regions can have vassal towns or be vassals of other regions</li>
+ *   <li><b>Taxation:</b> Collect taxes from member towns based on configurable rates</li>
+ *   <li><b>Diplomacy:</b> Establish relations, alliances, trade embargoes with other regions</li>
+ *   <li><b>Wars:</b> Declare wars, set war goals (conquer, subjugate, liberate)</li>
+ * </ul>
+ * </p>
+ * <p>
+ * <b>Government Structure:</b><br>
+ * - <b>Leader:</b> The monarch/president of the region (leader of the capital town)<br>
+ * - <b>Capital:</b> The primary town that represents the region's center<br>
+ * - <b>Member Towns:</b> Towns that have joined the region voluntarily
+ * </p>
+ * <p>
+ * <b>Thread Safety:</b><br>
+ * All operations should be performed asynchronously. Use {@link RegionDataStorage#get(String)}
+ * for non-blocking reads.
+ * </p>
+ *
+ * <h2>Example:</h2>
+ * <pre>{@code
+ * // Create a new region
+ * RegionData region = new RegionData("region_001", "MyNation", leaderPlayer);
+ * RegionDataStorage.getInstance().update(region);
+ *
+ * // Town joins region
+ * region.addTown(town);
+ * town.setRegionID(region.getID());
+ * }</pre>
+ *
+ * @see TerritoryData
+ * @see TownData
+ * @see org.leralix.tan.dataclass.territory.diplomacy.DiplomacyComponent
+ * @since 0.15.0
+ */
 public class RegionData extends TerritoryData {
   private String leaderID;
   private String capitalID;

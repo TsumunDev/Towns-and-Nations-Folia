@@ -117,6 +117,7 @@ public class IconBuilder {
       return ItemBuilder.from(item)
           .asGuiItem(
               event -> {
+                event.setCancelled(true);
                 if (requirements.isInvalid()) {
                   TanChatUtils.message(
                       player,
@@ -126,7 +127,6 @@ public class IconBuilder {
                 }
                 requirements.actionConsume();
                 action.accept(event);
-                event.setCancelled(true);
               });
     }
   }

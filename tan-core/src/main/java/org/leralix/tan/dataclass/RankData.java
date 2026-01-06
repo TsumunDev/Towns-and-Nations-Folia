@@ -8,6 +8,61 @@ import org.leralix.tan.dataclass.territory.cosmetic.CustomIcon;
 import org.leralix.tan.enums.RankEnum;
 import org.leralix.tan.enums.RolePermission;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
+
+/**
+ * Represents a rank within a town or region in the Towns and Nations plugin.
+ * <p>
+ * Ranks define the hierarchy and permission system for territories. Each player
+ * in a town is assigned exactly one rank, which determines their permissions and
+ * position in the social structure.
+ * </p>
+ * <p>
+ * <b>Rank Features:</b>
+ * <ul>
+ *   <li><b>Hierarchy Level:</b> Ranks have levels (1-5) determining authority</li>
+ *   <li><b>Permissions:</b> Fine-grained control over actions (build, claim, upgrade, etc.)</li>
+ *   <li><b>Salary:</b> Optional payment from town treasury to rank members</li>
+ *   <li><b>Taxation:</b> Whether rank members pay taxes to the town</li>
+ *   <li><b>Customization:</b> Name, icon, and color can be customized</li>
+ * </ul>
+ * </p>
+ * <p>
+ * <b>Permission System:</b><br>
+ * Permissions are defined in {@link RolePermission} and include:
+ * <ul>
+ *   <li>CLAIM_CHUNK, UNCLAIM_CHUNK - Land management</li>
+ *   <li>MANAGE_CLAIM_SETTINGS - Configure chunk permissions</li>
+ *   <li>UPGRADE_TOWN - Spend town points on upgrades</li>
+ *   <li>MANAGE_TOWN_RELATION - Diplomacy with other territories</li>
+ *   <li>INVITE_PLAYER, KICK_PLAYER - Membership management</li>
+ *   <li>MANAGE_RANKS - Create and modify ranks</li>
+ *   <li>MANAGE_WAR - Military actions</li>
+ * </ul>
+ * </p>
+ * <p>
+ * <b>Default Ranks:</b><br>
+ * Each town has a default rank that new members join. Only one rank can be
+ * marked as default. The leader cannot have their rank changed.
+ * </p>
+ *
+ * <h2>Example:</h2>
+ * <pre>{@code
+ * // Create a custom rank
+ * RankData merchantRank = new RankData(rankId, "Merchant");
+ * merchantRank.addPermission(RolePermission.OPEN_GUI);
+ * merchantRank.addPermission(RolePermission.CREATE_PROPERTY);
+ * merchantRank.setSalary(100.0);
+ *
+ * // Assign player to rank
+ * player.setTownRankID(merchantRank.getID());
+ * }</pre>
+ *
+ * @see RolePermission
+ * @see RankEnum
+ * @see TownData
+ * @see RegionData
+ * @since 0.15.0
+ */
 public class RankData {
   private Integer ID;
   private String name;

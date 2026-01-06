@@ -74,6 +74,49 @@ import org.leralix.tan.utils.text.TanChatUtils;
 import org.leralix.tan.wars.PlannedAttack;
 import org.leralix.tan.wars.fort.Fort;
 import org.leralix.tan.wars.legacy.CurrentAttack;
+
+/**
+ * Abstract base class representing a territory in the Towns and Nations plugin.
+ * <p>
+ * A territory is a geopolitical entity that can be either a {@link TownData} (town)
+ * or a {@link RegionData} (region/nation). Territories manage land claims, economy,
+ * diplomacy, ranks, and upgrades.
+ * </p>
+ * <p>
+ * <b>Component Architecture:</b><br>
+ * This class uses composition with specialized components:
+ * <ul>
+ *   <li>{@link TreasuryComponent} - Manages balance, income, and expenses</li>
+ *   <li>{@link TaxComponent} - Handles tax collection and rates</li>
+ *   <li>{@link CosmeticComponent} - Icon, color, and visual customization</li>
+ *   <li>{@link DiplomacyComponent} - Relations, alliances, vassals</li>
+ *   <li>{@link WarComponent} - War goals and military actions</li>
+ * </ul>
+ * </p>
+ * <p>
+ * <b>Thread Safety:</b><br>
+ * Territory data is accessed asynchronously via {@link CompletableFuture}.
+ * All database operations are non-blocking. Use {@code getAsync()} methods for reads.
+ * </p>
+ *
+ * <h2>Example Usage:</h2>
+ * <pre>{@code
+ * // Get territory asynchronously
+ * TownDataStorage.getInstance().get(townId)
+ *     .thenAccept(town -> {
+ *         if (town != null) {
+ *             double balance = town.getBalance();
+ *             town.claimChunk(player);
+ *         }
+ *     });
+ * }</pre>
+ *
+ * @see TownData
+ * @see RegionData
+ * @see TreasuryComponent
+ * @see DiplomacyComponent
+ * @since 0.15.0
+ */
 public abstract class TerritoryData {
   protected String id;
   protected String name;

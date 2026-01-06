@@ -46,6 +46,7 @@ public class AdminBrowseRegionMenu extends IteratorGUI {
           ItemBuilder.from(regionIcon)
               .asGuiItem(
                   event -> {
+                    event.setCancelled(true);
                     regionData.openMainMenu(player);
                   });
       regionGuiItems.add(regionGUI);

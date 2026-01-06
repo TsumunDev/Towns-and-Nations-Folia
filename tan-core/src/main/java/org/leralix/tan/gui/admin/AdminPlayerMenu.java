@@ -51,6 +51,7 @@ public class AdminPlayerMenu extends IteratorGUI {
               .lore(Component.text("Town: " + townInfo), Component.text("Region: " + regionInfo))
               .asGuiItem(
                   event -> {
+                    event.setCancelled(true);
                     PlayerMenu.open(targetPlayer);
                   }));
     }

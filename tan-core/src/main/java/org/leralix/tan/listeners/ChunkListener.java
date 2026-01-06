@@ -40,9 +40,8 @@ public class ChunkListener implements Listener {
       return;
     }
     try {
-      boolean canDo =
-          permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.BREAK_BLOCK).join();
-      if (!canDo) {
+      // Use sync method with cache - no blocking .join()
+      if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.BREAK_BLOCK)) {
         event.setCancelled(true);
       }
     } catch (Exception e) {
@@ -57,9 +56,7 @@ public class ChunkListener implements Listener {
     Player player = event.getPlayer();
     Location loc = event.getBlock().getLocation();
     try {
-      boolean canDo =
-          permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.BREAK_BLOCK).join();
-      if (!canDo) {
+      if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.BREAK_BLOCK)) {
         event.setCancelled(true);
       }
     } catch (Exception e) {
@@ -74,9 +71,7 @@ public class ChunkListener implements Listener {
     Player player = event.getPlayer();
     Location loc = event.getBlock().getLocation();
     try {
-      boolean canDo =
-          permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.PLACE_BLOCK).join();
-      if (!canDo) {
+      if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.PLACE_BLOCK)) {
         event.setCancelled(true);
       }
     } catch (Exception e) {
@@ -104,11 +99,7 @@ public class ChunkListener implements Listener {
     }
     if (Tag.BUTTONS.isTagged(materialType) || materialBlock == Material.LEVER) {
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, event.getPlayer(), ChunkPermissionType.INTERACT_BUTTON)
-                .join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, event.getPlayer(), ChunkPermissionType.INTERACT_BUTTON)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -123,11 +114,7 @@ public class ChunkListener implements Listener {
         || materialBlock == Material.BREWING_STAND
         || materialBlock == Material.SHULKER_BOX) {
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_CHEST)
-                .join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_CHEST)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -137,11 +124,7 @@ public class ChunkListener implements Listener {
         || Tag.TRAPDOORS.isTagged(materialType)
         || Tag.FENCE_GATES.isTagged(materialType)) {
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_DOOR)
-                .join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_DOOR)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -157,11 +140,7 @@ public class ChunkListener implements Listener {
         || Tag.CAMPFIRES.isTagged(materialType)
         || materialBlock == Material.BEACON) {
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_DECORATIVE_BLOCK)
-                .join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_DECORATIVE_BLOCK)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -169,11 +148,7 @@ public class ChunkListener implements Listener {
       }
     } else if (materialBlock == Material.JUKEBOX || materialBlock == Material.NOTE_BLOCK) {
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_MUSIC_BLOCK)
-                .join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_MUSIC_BLOCK)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -184,11 +159,7 @@ public class ChunkListener implements Listener {
         || materialBlock == Material.COMPARATOR
         || materialBlock == Material.DAYLIGHT_DETECTOR) {
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_REDSTONE)
-                .join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_REDSTONE)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -196,11 +167,7 @@ public class ChunkListener implements Listener {
       }
     } else if (event.getItem() != null && event.getItem().getType() == Material.BONE_MEAL) {
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.USE_BONE_MEAL)
-                .join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.USE_BONE_MEAL)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -210,11 +177,9 @@ public class ChunkListener implements Listener {
         && event.getClickedBlock() != null
         && event.getClickedBlock().getType() == Material.SWEET_BERRY_BUSH) {
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_BERRIES)
-                .join();
-        if (!canDo) event.setCancelled(true);
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_BERRIES)) {
+          event.setCancelled(true);
+        }
       } catch (Exception e) {
         event.setCancelled(true);
       }
@@ -222,11 +187,9 @@ public class ChunkListener implements Listener {
             || event.getAction() == Action.RIGHT_CLICK_BLOCK)
         && player.getItemInHand().getType() == Material.OAK_BOAT) {
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_BOAT)
-                .join();
-        if (!canDo) event.setCancelled(true);
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_BOAT)) {
+          event.setCancelled(true);
+        }
       } catch (Exception e) {
         event.setCancelled(true);
       }
@@ -234,22 +197,16 @@ public class ChunkListener implements Listener {
             || event.getAction() == Action.RIGHT_CLICK_BLOCK)
         && (player.getItemInHand().getType() == Material.MINECART)) {
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_MINECART)
-                .join();
-        if (!canDo) event.setCancelled(true);
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_MINECART)) {
+          event.setCancelled(true);
+        }
       } catch (Exception e) {
         event.setCancelled(true);
       }
     } else if (event.getAction() == Action.PHYSICAL
         && (event.getClickedBlock().getType() == Material.FARMLAND)) {
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.BREAK_BLOCK)
-                .join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.BREAK_BLOCK)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -262,9 +219,7 @@ public class ChunkListener implements Listener {
     Player player = event.getPlayer();
     Location loc = event.getBlock().getLocation();
     try {
-      boolean canDo =
-          permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.PLACE_BLOCK).join();
-      if (!canDo) {
+      if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.PLACE_BLOCK)) {
         event.setCancelled(true);
       }
     } catch (Exception e) {
@@ -312,11 +267,7 @@ public class ChunkListener implements Listener {
           || entity instanceof Wolf
           || entity instanceof ArmorStand) {
         try {
-          boolean canDo =
-              permissionService
-                  .canPlayerDoAction(loc, player, ChunkPermissionType.ATTACK_PASSIVE_MOB)
-                  .join();
-          if (!canDo) {
+          if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.ATTACK_PASSIVE_MOB)) {
             event.setCancelled(true);
           }
         } catch (Exception e) {
@@ -324,11 +275,7 @@ public class ChunkListener implements Listener {
         }
       } else if (entity instanceof ItemFrame) {
         try {
-          boolean canDo =
-              permissionService
-                  .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_ITEM_FRAME)
-                  .join();
-          if (!canDo) {
+          if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_ITEM_FRAME)) {
             event.setCancelled(true);
           }
         } catch (Exception e) {
@@ -336,11 +283,7 @@ public class ChunkListener implements Listener {
         }
       } else if (entity instanceof EnderCrystal) {
         try {
-          boolean canDo =
-              permissionService
-                  .canPlayerDoAction(loc, player, ChunkPermissionType.BREAK_BLOCK)
-                  .join();
-          if (!canDo) {
+          if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.BREAK_BLOCK)) {
             event.setCancelled(true);
           }
         } catch (Exception e) {
@@ -391,11 +334,7 @@ public class ChunkListener implements Listener {
             || entity instanceof Wolf
             || entity instanceof ArmorStand) {
           try {
-            boolean canDo =
-                permissionService
-                    .canPlayerDoAction(loc, player, ChunkPermissionType.ATTACK_PASSIVE_MOB)
-                    .join();
-            if (!canDo) {
+            if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.ATTACK_PASSIVE_MOB)) {
               event.setCancelled(true);
             }
           } catch (Exception e) {
@@ -403,11 +342,7 @@ public class ChunkListener implements Listener {
           }
         } else if (entity instanceof ItemFrame) {
           try {
-            boolean canDo =
-                permissionService
-                    .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_ITEM_FRAME)
-                    .join();
-            if (!canDo) {
+            if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_ITEM_FRAME)) {
               event.setCancelled(true);
             }
           } catch (Exception e) {
@@ -415,11 +350,7 @@ public class ChunkListener implements Listener {
           }
         } else if (entity instanceof EnderCrystal) {
           try {
-            boolean canDo =
-                permissionService
-                    .canPlayerDoAction(loc, player, ChunkPermissionType.BREAK_BLOCK)
-                    .join();
-            if (!canDo) {
+            if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.BREAK_BLOCK)) {
               event.setCancelled(true);
             }
           } catch (Exception e) {
@@ -441,11 +372,7 @@ public class ChunkListener implements Listener {
       Location loc = event.getInventory().getLocation();
       if (loc == null) return;
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_FURNACE)
-                .join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_FURNACE)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -459,11 +386,7 @@ public class ChunkListener implements Listener {
     if (event.getRightClicked() instanceof ItemFrame itemFrame) {
       Location loc = itemFrame.getLocation();
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_ITEM_FRAME)
-                .join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_ITEM_FRAME)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -472,9 +395,7 @@ public class ChunkListener implements Listener {
     } else if (event.getRightClicked() instanceof LeashHitch leashHitch) {
       Location loc = leashHitch.getLocation();
       try {
-        boolean canDo =
-            permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.USE_LEAD).join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.USE_LEAD)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -484,9 +405,7 @@ public class ChunkListener implements Listener {
       if (livingEntity.isLeashed()) {
         Location loc = livingEntity.getLocation();
         try {
-          boolean canDo =
-              permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.USE_LEAD).join();
-          if (!canDo) {
+          if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.USE_LEAD)) {
             event.setCancelled(true);
           }
         } catch (Exception e) {
@@ -501,11 +420,7 @@ public class ChunkListener implements Listener {
       Player player = event.getPlayer();
       Location loc = armorStand.getLocation();
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.INTERACT_ARMOR_STAND)
-                .join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.INTERACT_ARMOR_STAND)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -519,9 +434,7 @@ public class ChunkListener implements Listener {
     Entity entity = event.getEntity();
     Location loc = entity.getLocation();
     try {
-      boolean canDo =
-          permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.USE_LEAD).join();
-      if (!canDo) {
+      if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.USE_LEAD)) {
         event.setCancelled(true);
       }
     } catch (Exception e) {
@@ -536,9 +449,7 @@ public class ChunkListener implements Listener {
       Location loc = entity.getLocation();
       if (entity instanceof LeashHitch) {
         try {
-          boolean canDo =
-              permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.USE_LEAD).join();
-          if (!canDo) {
+          if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.USE_LEAD)) {
             event.setCancelled(true);
           }
         } catch (Exception e) {
@@ -546,11 +457,7 @@ public class ChunkListener implements Listener {
         }
       } else {
         try {
-          boolean canDo =
-              permissionService
-                  .canPlayerDoAction(loc, player, ChunkPermissionType.BREAK_BLOCK)
-                  .join();
-          if (!canDo) {
+          if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.BREAK_BLOCK)) {
             event.setCancelled(true);
           }
         } catch (Exception e) {
@@ -563,11 +470,7 @@ public class ChunkListener implements Listener {
         Location loc = entity.getLocation();
         if (entity instanceof LeashHitch) {
           try {
-            boolean canDo =
-                permissionService
-                    .canPlayerDoAction(loc, player, ChunkPermissionType.USE_LEAD)
-                    .join();
-            if (!canDo) {
+            if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.USE_LEAD)) {
               event.setCancelled(true);
             }
           } catch (Exception e) {
@@ -575,11 +478,7 @@ public class ChunkListener implements Listener {
           }
         } else {
           try {
-            boolean canDo =
-                permissionService
-                    .canPlayerDoAction(loc, player, ChunkPermissionType.BREAK_BLOCK)
-                    .join();
-            if (!canDo) {
+            if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.BREAK_BLOCK)) {
               event.setCancelled(true);
             }
           } catch (Exception e) {
@@ -597,9 +496,7 @@ public class ChunkListener implements Listener {
     Entity entity = event.getEntity();
     if (entity instanceof LeashHitch) {
       try {
-        boolean canDo =
-            permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.USE_LEAD).join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.USE_LEAD)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -607,11 +504,7 @@ public class ChunkListener implements Listener {
       }
     } else {
       try {
-        boolean canDo =
-            permissionService
-                .canPlayerDoAction(loc, player, ChunkPermissionType.PLACE_BLOCK)
-                .join();
-        if (!canDo) {
+        if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.PLACE_BLOCK)) {
           event.setCancelled(true);
         }
       } catch (Exception e) {
@@ -624,9 +517,7 @@ public class ChunkListener implements Listener {
     Player player = event.getPlayer();
     Location loc = event.getEntity().getLocation();
     try {
-      boolean canDo =
-          permissionService.canPlayerDoAction(loc, player, ChunkPermissionType.USE_SHEARS).join();
-      if (!canDo) {
+      if (!permissionService.canPlayerDoActionSync(loc, player, ChunkPermissionType.USE_SHEARS)) {
         event.setCancelled(true);
       }
     } catch (Exception e) {

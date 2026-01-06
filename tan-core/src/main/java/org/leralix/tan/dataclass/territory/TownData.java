@@ -33,6 +33,48 @@ import org.leralix.tan.utils.graphic.PrefixUtil;
 import org.leralix.tan.utils.graphic.TeamUtils;
 import org.leralix.tan.utils.text.StringUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
+
+/**
+ * Represents a town within the Towns and Nations plugin.
+ * <p>
+ * A town is a player-controlled territory that can claim land, collect taxes,
+ * manage members through ranks, and optionally join a {@link RegionData} (region/nation).
+ * </p>
+ * <p>
+ * <b>Key Features:</b>
+ * <ul>
+ *   <li><b>Land Claims:</b> Towns can claim chunks in a defined area around their capital</li>
+ *   <li><b>Membership:</b> Players join towns via application or invitation</li>
+ *   <li><b>Ranks:</b> Customizable roles with permissions (build, claim, upgrade, etc.)</li>
+ *   <li><b>Economy:</b> Treasury, taxes, property sales, and salaries</li>
+ *   <li><b>Upgrades:</b> Level-based unlocking of features (chunk cap, mob ban, spawn, etc.)</li>
+ *   <li><b>Properties:</b> Players can buy/rent land within town claims</li>
+ *   <li><b>Diplomacy:</b> Can join regions, establish alliances, trade, or war</li>
+ * </ul>
+ * </p>
+ * <p>
+ * <b>Thread Safety:</b><br>
+ * All operations should be performed asynchronously. Use {@link TownDataStorage#get(String)}
+ * for non-blocking reads.
+ * </p>
+ *
+ * <h2>Example:</h2>
+ * <pre>{@code
+ * // Create a new town
+ * TownData town = new TownData("town_123", "MyTown", leaderPlayer);
+ * town.addPlayer(leaderPlayer);
+ * TownDataStorage.getInstance().update(town);
+ *
+ * // Claim a chunk
+ * town.claimChunk(player);
+ * }</pre>
+ *
+ * @see TerritoryData
+ * @see RegionData
+ * @see RankData
+ * @see PropertyData
+ * @since 0.15.0
+ */
 public class TownData extends TerritoryData {
   private String uuidLeader;
   private String townTag;

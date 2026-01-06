@@ -171,13 +171,22 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
   public TownClaimedChunk claimTownChunk(Chunk chunk, String ownerID) {
     TownClaimedChunk townClaimedChunk = new TownClaimedChunk(chunk, ownerID);
     putAsync(getChunkKey(chunk), townClaimedChunk).join();
+    // Invalidate permission cache for this chunk
+    org.leralix.tan.service.PermissionCache.getInstance().invalidateChunk(
+        chunk.getX(), chunk.getZ(), chunk.getWorld().getUID().toString());
     return townClaimedChunk;
   }
   public void claimRegionChunk(Chunk chunk, String ownerID) {
     putAsync(getChunkKey(chunk), new RegionClaimedChunk(chunk, ownerID)).join();
+    // Invalidate permission cache for this chunk
+    org.leralix.tan.service.PermissionCache.getInstance().invalidateChunk(
+        chunk.getX(), chunk.getZ(), chunk.getWorld().getUID().toString());
   }
   public void claimLandmarkChunk(Chunk chunk, String ownerID) {
     putAsync(getChunkKey(chunk), new LandmarkClaimedChunk(chunk, ownerID)).join();
+    // Invalidate permission cache for this chunk
+    org.leralix.tan.service.PermissionCache.getInstance().invalidateChunk(
+        chunk.getX(), chunk.getZ(), chunk.getWorld().getUID().toString());
   }
   public CompletableFuture<Boolean> isAllAdjacentChunksClaimedBySameTerritoryAsync(
       Chunk chunk, String territoryID) {
@@ -257,6 +266,9 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
   }
   public void unclaimChunk(ClaimedChunk2 claimedChunk) {
     deleteAsync(getChunkKey(claimedChunk)).join();
+    // Invalidate permission cache for this chunk
+    org.leralix.tan.service.PermissionCache.getInstance().invalidateChunk(
+        claimedChunk.getX(), claimedChunk.getZ(), claimedChunk.getWorldUUID());
   }
   public void unclaimChunk(Chunk chunk) {
     unclaimChunk(get(chunk));

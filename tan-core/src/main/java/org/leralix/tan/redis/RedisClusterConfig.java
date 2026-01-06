@@ -90,7 +90,6 @@ public class RedisClusterConfig {
     String password = config.getString("redis.password", "");
     String username = config.getString("redis.username", "");
     int scanInterval = config.getInt("redis.cluster.scan-interval", 5000);
-    int maxRedirects = config.getInt("redis.cluster.max-redirects", 5);
 
     // Connection parameters
     int connectionPoolSize = config.getInt("redis.connection.connection-pool-size", 64);
@@ -103,7 +102,6 @@ public class RedisClusterConfig {
         redisConfig
             .useClusterServers()
             .setScanInterval(scanInterval)
-            .setMaxRedirects(maxRedirects)
             .setMasterConnectionPoolSize(connectionPoolSize)
             .setSlaveConnectionPoolSize(connectionPoolSize)
             .setMasterConnectionMinimumIdleSize(connectionMinIdleSize)
