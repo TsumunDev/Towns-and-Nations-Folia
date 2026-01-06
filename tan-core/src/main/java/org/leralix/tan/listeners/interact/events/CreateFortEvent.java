@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners.interact.events;
+package org.leralix.tan.listeners.interact.events;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;

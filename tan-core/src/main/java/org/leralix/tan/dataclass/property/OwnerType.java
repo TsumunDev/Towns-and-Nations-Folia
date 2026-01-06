@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.property;
+package org.leralix.tan.dataclass.property;
 public enum OwnerType {
   PLAYER,
   TERRITORY

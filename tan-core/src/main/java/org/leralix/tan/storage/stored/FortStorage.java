@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.stored;
+package org.leralix.tan.storage.stored;
 import java.util.List;
 import org.leralix.lib.position.Vector3D;
 import org.leralix.tan.dataclass.territory.TerritoryData;

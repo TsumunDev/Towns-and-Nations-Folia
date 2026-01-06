@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.external.worldguard;
+package org.leralix.tan.api.external.worldguard;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.leralix.tan.enums.permissions.ChunkPermissionType;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.config;
+package org.leralix.tan.utils.config;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars;
+package org.leralix.tan.wars;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import java.time.Instant;
 import java.util.*;

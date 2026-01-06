@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user;
+package org.leralix.tan.gui.user;
 import static org.leralix.lib.data.SoundEnum.MINOR_BAD;
 import static org.leralix.lib.data.SoundEnum.MINOR_GOOD;
 import dev.triumphteam.gui.guis.GuiItem;

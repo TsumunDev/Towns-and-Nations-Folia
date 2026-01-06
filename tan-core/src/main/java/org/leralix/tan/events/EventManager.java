@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.events;
+package org.leralix.tan.events;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;

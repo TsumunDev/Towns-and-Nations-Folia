@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners;
+package org.leralix.tan.listeners;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.tasks;
+package org.leralix.tan.tasks;
 import org.leralix.tan.TownsAndNations;
 public class SaveStats {
   private SaveStats() {

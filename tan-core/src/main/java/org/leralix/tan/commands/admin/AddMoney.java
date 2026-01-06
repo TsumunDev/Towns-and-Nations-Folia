@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.commands.admin;
+package org.leralix.tan.commands.admin;
 import java.util.List;
 import java.util.Optional;
 import org.bukkit.OfflinePlayer;

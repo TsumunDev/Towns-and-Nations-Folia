@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.internal.managers;
+package org.leralix.tan.api.internal.managers;
 import java.util.Optional;
 import org.bukkit.Location;
 import org.bukkit.block.Block;

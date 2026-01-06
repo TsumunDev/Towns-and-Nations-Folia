@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user.territory.relation;
+package org.leralix.tan.gui.user.territory.relation;
 import static org.leralix.lib.data.SoundEnum.NOT_ALLOWED;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;

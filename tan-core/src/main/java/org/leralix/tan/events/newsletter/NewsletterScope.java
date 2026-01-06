@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.events.newsletter;
+package org.leralix.tan.events.newsletter;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 public enum NewsletterScope {

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.text;
+package org.leralix.tan.utils.text;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.leralix.lib.data.SoundEnum;

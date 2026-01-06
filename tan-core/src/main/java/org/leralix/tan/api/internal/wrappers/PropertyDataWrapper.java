@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.internal.wrappers;
+package org.leralix.tan.api.internal.wrappers;
 import java.util.Optional;
 import org.leralix.lib.position.Vector3D;
 import org.leralix.tan.dataclass.PropertyData;

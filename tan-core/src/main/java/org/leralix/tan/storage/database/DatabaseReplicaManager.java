@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.database;
+package org.leralix.tan.storage.database;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.SQLException;

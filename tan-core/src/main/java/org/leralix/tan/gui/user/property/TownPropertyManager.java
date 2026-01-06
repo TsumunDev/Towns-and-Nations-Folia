@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user.property;
+package org.leralix.tan.gui.user.property;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.ITanPlayer;

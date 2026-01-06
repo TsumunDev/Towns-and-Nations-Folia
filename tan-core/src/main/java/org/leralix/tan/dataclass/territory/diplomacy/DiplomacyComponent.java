@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.diplomacy;
+package org.leralix.tan.dataclass.territory.diplomacy;
 import org.leralix.tan.dataclass.DiplomacyProposal;
 import org.leralix.tan.dataclass.RelationData;
 import org.leralix.tan.enums.TownRelation;

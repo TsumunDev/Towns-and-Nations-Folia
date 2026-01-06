@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.property;
+package org.leralix.tan.dataclass.property;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.enums.RolePermission;

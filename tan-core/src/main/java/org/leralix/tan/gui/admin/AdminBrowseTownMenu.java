@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.admin;
+package org.leralix.tan.gui.admin;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;

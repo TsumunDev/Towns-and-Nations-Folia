@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user.territory;
+package org.leralix.tan.gui.user.territory;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

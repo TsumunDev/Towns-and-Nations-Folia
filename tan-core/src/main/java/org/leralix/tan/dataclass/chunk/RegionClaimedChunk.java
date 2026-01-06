@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.chunk;
+package org.leralix.tan.dataclass.chunk;
 import java.time.Duration;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

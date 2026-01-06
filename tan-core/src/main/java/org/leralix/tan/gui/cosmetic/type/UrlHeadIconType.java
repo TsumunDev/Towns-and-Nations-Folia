@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.cosmetic.type;
+package org.leralix.tan.gui.cosmetic.type;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;

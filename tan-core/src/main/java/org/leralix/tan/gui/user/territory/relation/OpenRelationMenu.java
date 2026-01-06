@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user.territory.relation;
+package org.leralix.tan.gui.user.territory.relation;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;

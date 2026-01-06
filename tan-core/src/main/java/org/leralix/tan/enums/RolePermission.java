@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.enums;
+package org.leralix.tan.enums;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.dataclass.territory.TownData;
 import org.leralix.tan.gui.cosmetic.IconKey;

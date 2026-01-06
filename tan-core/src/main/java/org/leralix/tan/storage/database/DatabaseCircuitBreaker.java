@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.database;
+package org.leralix.tan.storage.database;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;

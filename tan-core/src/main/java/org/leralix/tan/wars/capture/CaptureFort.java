@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars.capture;
+package org.leralix.tan.wars.capture;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Bukkit;

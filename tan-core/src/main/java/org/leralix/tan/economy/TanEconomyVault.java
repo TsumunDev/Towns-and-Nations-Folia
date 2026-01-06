@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.economy;
+package org.leralix.tan.economy;
 import java.util.Collections;
 import java.util.List;
 import net.milkbowl.vault.economy.Economy;

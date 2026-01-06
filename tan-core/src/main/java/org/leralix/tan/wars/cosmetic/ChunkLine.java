@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars.cosmetic;
+package org.leralix.tan.wars.cosmetic;
 import org.leralix.lib.position.Vector2D;
 public class ChunkLine {
   private final Vector2D point1;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.property;
+package org.leralix.tan.dataclass.property;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.leralix.tan.dataclass.ITanPlayer;

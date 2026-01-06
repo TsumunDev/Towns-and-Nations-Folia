@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.newhistory;
+package org.leralix.tan.dataclass.newhistory;
 public enum TransactionHistoryEnum {
   CHUNK_SPENDING,
   MISCELLANEOUS,

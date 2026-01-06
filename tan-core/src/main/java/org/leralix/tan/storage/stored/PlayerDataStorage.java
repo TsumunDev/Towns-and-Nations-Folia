@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.stored;
+package org.leralix.tan.storage.stored;
 import com.google.gson.GsonBuilder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

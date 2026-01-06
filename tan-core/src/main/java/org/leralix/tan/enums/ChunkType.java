@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.enums;
+package org.leralix.tan.enums;
 public enum ChunkType {
   TOWN("town"),
   REGION("region");

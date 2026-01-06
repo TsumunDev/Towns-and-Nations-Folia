@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners.chat.events;
+package org.leralix.tan.listeners.chat.events;
 import java.util.function.Consumer;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.territory.TerritoryData;

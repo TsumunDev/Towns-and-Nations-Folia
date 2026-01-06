@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.cosmetic;
+package org.leralix.tan.dataclass.territory.cosmetic;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;

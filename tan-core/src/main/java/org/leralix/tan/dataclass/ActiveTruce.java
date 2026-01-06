@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass;
+package org.leralix.tan.dataclass;
 import java.time.Instant;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 public class ActiveTruce {

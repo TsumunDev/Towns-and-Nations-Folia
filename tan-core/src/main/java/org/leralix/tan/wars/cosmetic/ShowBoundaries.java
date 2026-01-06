@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars.cosmetic;
+package org.leralix.tan.wars.cosmetic;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.entity.Player;

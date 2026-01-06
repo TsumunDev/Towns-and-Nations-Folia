@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.commands;
+package org.leralix.tan.utils.commands;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.events.newsletter.dao;
+package org.leralix.tan.events.newsletter.dao;
 import java.sql.*;
 import java.time.Duration;
 import java.time.Instant;

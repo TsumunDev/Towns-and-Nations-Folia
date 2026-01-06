@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.property;
+package org.leralix.tan.dataclass.property;
 import org.leralix.tan.dataclass.ITanPlayer;
 public abstract class AbstractOwner {
   protected final OwnerType type;

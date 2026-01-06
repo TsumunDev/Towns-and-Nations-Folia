@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage;
+package org.leralix.tan.storage;
 import java.util.EnumMap;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.territory.TerritoryData;

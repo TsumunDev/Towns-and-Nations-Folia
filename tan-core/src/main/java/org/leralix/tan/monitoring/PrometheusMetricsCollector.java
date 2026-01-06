@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.monitoring;
+package org.leralix.tan.monitoring;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;

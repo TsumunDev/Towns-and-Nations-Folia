@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.newhistory;
+package org.leralix.tan.dataclass.newhistory;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import org.jetbrains.annotations.NotNull;

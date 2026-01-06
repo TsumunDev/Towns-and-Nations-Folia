@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.internal.managers;
+package org.leralix.tan.api.internal.managers;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;

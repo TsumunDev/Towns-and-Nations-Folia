@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.cosmetic;
+package org.leralix.tan.dataclass.territory.cosmetic;
 import java.util.Objects;
 public final class CosmeticComponent {
     private final String description;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.economy;
+package org.leralix.tan.economy;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.utils.constants.Constants;
 public class TanEconomyStandalone extends AbstractTanEcon {

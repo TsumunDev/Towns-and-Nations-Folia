@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners.chat;
+package org.leralix.tan.listeners.chat;
 import java.util.HashMap;
 import java.util.Map;
 import org.bukkit.entity.Player;

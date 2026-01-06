@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.service.requirements.model;
+package org.leralix.tan.gui.service.requirements.model;
 import org.bukkit.Material;
 import org.leralix.tan.lang.LangType;
 public class MaterialScope extends ItemScope {

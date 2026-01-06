@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user.ranks;
+package org.leralix.tan.gui.user.ranks;
 import static org.leralix.lib.data.SoundEnum.*;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;

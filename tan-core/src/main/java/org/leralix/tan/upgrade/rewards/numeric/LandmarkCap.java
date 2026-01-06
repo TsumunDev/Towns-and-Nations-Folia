@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.upgrade.rewards.numeric;
+package org.leralix.tan.upgrade.rewards.numeric;
 import java.util.List;
 import org.leralix.tan.dataclass.territory.TownData;
 import org.leralix.tan.gui.service.requirements.IndividualRequirement;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.file;
+package org.leralix.tan.utils.file;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;

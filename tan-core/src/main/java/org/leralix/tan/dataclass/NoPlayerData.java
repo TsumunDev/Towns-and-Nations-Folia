@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass;
+package org.leralix.tan.dataclass;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;

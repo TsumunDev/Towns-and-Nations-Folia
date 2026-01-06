@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.economy;
+package org.leralix.tan.economy;
 import java.util.UUID;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;

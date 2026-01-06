@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners.chat.events;
+package org.leralix.tan.listeners.chat.events;
 import java.util.function.Consumer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;

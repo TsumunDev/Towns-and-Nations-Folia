@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.external.worldguard;
+package org.leralix.tan.api.external.worldguard;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.WorldGuard;

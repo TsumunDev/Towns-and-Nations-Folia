@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.commands.debug;
+package org.leralix.tan.commands.debug;
 import org.leralix.lib.commands.CommandManager;
 import org.leralix.lib.commands.MainHelpCommand;
 import org.leralix.tan.integration.nexo.NexoCheckCommand;

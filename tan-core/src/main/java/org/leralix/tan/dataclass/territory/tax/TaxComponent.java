@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.tax;
+package org.leralix.tan.dataclass.territory.tax;
 import java.util.Objects;
 public final class TaxComponent {
     private final double baseTax;

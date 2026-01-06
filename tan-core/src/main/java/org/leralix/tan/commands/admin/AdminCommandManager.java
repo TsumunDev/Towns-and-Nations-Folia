@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.commands.admin;
+package org.leralix.tan.commands.admin;
 import org.leralix.lib.commands.CommandManager;
 import org.leralix.lib.commands.MainHelpCommand;
 public class AdminCommandManager extends CommandManager {

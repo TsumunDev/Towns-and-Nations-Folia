@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.lang;
+package org.leralix.tan.lang;
 import java.util.HashMap;
 import java.util.Map;
 import org.bukkit.entity.Player;

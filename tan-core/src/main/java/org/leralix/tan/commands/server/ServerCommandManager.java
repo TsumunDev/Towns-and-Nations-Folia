@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.commands.server;
+package org.leralix.tan.commands.server;
 import org.leralix.lib.commands.CommandManager;
 public class ServerCommandManager extends CommandManager {
   public ServerCommandManager() {

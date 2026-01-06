@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.landmark;
+package org.leralix.tan.gui.landmark;
 import static org.leralix.lib.data.SoundEnum.GOOD;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;

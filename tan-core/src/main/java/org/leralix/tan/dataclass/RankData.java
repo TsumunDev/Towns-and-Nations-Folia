@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass;
+package org.leralix.tan.dataclass;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;

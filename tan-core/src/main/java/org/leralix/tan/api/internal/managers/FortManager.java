@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.internal.managers;
+package org.leralix.tan.api.internal.managers;
 import java.util.List;
 import org.leralix.tan.api.internal.wrappers.FortDataWrapper;
 import org.leralix.tan.storage.impl.FortDataStorage;

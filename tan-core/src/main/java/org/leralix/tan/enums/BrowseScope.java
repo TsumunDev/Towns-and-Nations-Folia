@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.enums;
+package org.leralix.tan.enums;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.lang.Lang;
 public enum BrowseScope {

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.tasks;
+package org.leralix.tan.tasks;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.leralix.tan.TownsAndNations;

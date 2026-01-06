@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user.territory;
+package org.leralix.tan.gui.user.territory;
 import static org.leralix.lib.data.SoundEnum.MINOR_GOOD;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;

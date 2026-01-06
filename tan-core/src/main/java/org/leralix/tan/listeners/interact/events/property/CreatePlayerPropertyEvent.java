@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners.interact.events.property;
+package org.leralix.tan.listeners.interact.events.property;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.PropertyData;

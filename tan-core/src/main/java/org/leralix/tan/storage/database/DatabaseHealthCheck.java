@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.database;
+package org.leralix.tan.storage.database;
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.utils.FoliaScheduler;
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.internal.wrappers;
+package org.leralix.tan.api.internal.wrappers;
 import java.util.Collection;
 import java.util.UUID;
 import org.bukkit.Bukkit;

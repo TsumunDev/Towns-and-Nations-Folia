@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.war;
+package org.leralix.tan.dataclass.territory.war;
 import java.util.*;
 public final class WarComponent {
     private final Collection<String> attackIncomingList;

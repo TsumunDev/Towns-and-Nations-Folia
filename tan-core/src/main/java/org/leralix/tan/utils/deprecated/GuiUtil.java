@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.deprecated;
+package org.leralix.tan.utils.deprecated;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.components.GuiType;
 import dev.triumphteam.gui.guis.Gui;

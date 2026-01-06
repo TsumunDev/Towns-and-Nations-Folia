@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars.legacy.wargoals;
+package org.leralix.tan.wars.legacy.wargoals;
 import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;

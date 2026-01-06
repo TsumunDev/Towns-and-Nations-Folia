@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners.chat;
+package org.leralix.tan.listeners.chat;
 import java.util.function.Consumer;
 import org.bukkit.entity.Player;
 import org.leralix.tan.TownsAndNations;

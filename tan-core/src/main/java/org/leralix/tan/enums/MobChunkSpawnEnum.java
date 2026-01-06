@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.enums;
+package org.leralix.tan.enums;
 public enum MobChunkSpawnEnum {
   AXOLOTL(
       "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDcwNDI1NDEzOWEwYjFhOTI2ZTc1NTI0ODJkZDY3Njc5YzZhZTBkYzgzMzVjOTgwZGJkMWMwZDk5NjM0YTcwOCJ9fX0="),

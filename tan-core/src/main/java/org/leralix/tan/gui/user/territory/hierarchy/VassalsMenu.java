@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user.territory.hierarchy;
+package org.leralix.tan.gui.user.territory.hierarchy;
 import static org.leralix.lib.data.SoundEnum.BAD;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;

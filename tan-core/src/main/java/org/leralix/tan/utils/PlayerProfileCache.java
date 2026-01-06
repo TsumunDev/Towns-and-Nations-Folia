@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils;
+package org.leralix.tan.utils;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;

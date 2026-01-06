@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.database;
+package org.leralix.tan.storage.database;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;

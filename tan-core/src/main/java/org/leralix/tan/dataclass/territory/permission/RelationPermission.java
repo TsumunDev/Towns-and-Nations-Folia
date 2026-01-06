@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.permission;
+package org.leralix.tan.dataclass.territory.permission;
 import java.util.List;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;

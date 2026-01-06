@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.graphic;
+package org.leralix.tan.utils.graphic;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;

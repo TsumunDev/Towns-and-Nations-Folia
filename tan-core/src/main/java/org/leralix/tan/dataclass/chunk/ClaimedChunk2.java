@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.chunk;
+package org.leralix.tan.dataclass.chunk;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Chunk;
 import org.bukkit.Location;

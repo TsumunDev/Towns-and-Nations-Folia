@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.upgrade.rewards;
+package org.leralix.tan.upgrade.rewards;
 import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.LangType;
 public abstract class IndividualStat {

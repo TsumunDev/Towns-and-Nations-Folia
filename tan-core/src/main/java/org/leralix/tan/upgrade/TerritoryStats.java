@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.upgrade;
+package org.leralix.tan.upgrade;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import net.objecthunter.exp4j.Expression;

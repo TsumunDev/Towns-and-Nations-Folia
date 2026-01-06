@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.components;
+package org.leralix.tan.dataclass.territory.components;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;

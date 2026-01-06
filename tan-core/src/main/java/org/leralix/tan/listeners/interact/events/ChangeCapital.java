@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners.interact.events;
+package org.leralix.tan.listeners.interact.events;
 import java.util.function.Consumer;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;

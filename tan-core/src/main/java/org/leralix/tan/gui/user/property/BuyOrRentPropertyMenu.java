@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user.property;
+package org.leralix.tan.gui.user.property;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;

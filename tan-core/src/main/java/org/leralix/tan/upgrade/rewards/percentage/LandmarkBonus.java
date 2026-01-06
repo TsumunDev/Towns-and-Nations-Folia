@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.upgrade.rewards.percentage;
+package org.leralix.tan.upgrade.rewards.percentage;
 import java.util.List;
 import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;

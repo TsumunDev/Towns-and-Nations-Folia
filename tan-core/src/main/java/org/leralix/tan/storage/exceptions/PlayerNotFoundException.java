@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.exceptions;
+package org.leralix.tan.storage.exceptions;
 public class PlayerNotFoundException extends RuntimeException {
   private final String playerId;
   public PlayerNotFoundException(String playerId) {

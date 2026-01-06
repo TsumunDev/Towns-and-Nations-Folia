@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.utils;
+package org.leralix.tan.gui.utils;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.function.Consumer;
 import org.bukkit.Material;

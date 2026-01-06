@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners.interact;
+package org.leralix.tan.listeners.interact;
 import java.util.HashMap;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

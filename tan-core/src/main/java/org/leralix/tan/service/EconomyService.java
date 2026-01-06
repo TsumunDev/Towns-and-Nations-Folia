@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.service;
+package org.leralix.tan.service;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

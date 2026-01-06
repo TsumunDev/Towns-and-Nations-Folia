@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.cosmetic;
+package org.leralix.tan.dataclass.territory.cosmetic;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;

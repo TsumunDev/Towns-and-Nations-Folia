@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.commands;
+package org.leralix.tan.utils.commands;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.bukkit.Bukkit;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.events;
+package org.leralix.tan.events;
 import java.time.Instant;
 import org.tan.api.events.TanEvent;
 public abstract class InternalEvent implements TanEvent {

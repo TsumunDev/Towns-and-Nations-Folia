@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.tasks;
+package org.leralix.tan.tasks;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import org.leralix.lib.utils.config.ConfigTag;

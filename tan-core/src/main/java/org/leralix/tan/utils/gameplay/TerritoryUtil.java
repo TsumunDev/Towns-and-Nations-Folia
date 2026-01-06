@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.gameplay;
+package org.leralix.tan.utils.gameplay;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.storage.stored.RegionDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;

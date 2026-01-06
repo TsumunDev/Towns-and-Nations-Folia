@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.events.newsletter;
+package org.leralix.tan.events.newsletter;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.Collections;

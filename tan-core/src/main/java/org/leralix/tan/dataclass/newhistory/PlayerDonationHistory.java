@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.newhistory;
+package org.leralix.tan.dataclass.newhistory;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;

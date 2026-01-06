@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.events.newsletter;
+package org.leralix.tan.events.newsletter;
 import org.leralix.lib.utils.config.ConfigTag;
 import org.leralix.lib.utils.config.ConfigUtil;
 public enum NewsletterType {

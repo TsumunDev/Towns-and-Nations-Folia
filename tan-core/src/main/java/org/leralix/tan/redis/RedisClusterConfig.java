@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.redis;
+package org.leralix.tan.redis;
 import java.util.List;
 import java.util.logging.Logger;
 import org.bukkit.configuration.file.FileConfiguration;

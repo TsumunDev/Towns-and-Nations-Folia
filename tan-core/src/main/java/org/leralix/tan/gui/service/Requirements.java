@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.service;
+package org.leralix.tan.gui.service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

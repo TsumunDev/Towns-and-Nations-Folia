@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.blacklist;
+package org.leralix.tan.storage.blacklist;
 import java.util.List;
 import org.bukkit.Chunk;
 public class BlackListZone implements IBlackList {

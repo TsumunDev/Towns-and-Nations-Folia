@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.internal.wrappers;
+package org.leralix.tan.api.internal.wrappers;
 import org.leralix.lib.position.Vector3D;
 import org.leralix.tan.wars.fort.Fort;
 import org.tan.api.interfaces.TanFort;

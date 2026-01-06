@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.internal;
+package org.leralix.tan.api.internal;
 import org.leralix.lib.data.PluginVersion;
 import org.leralix.tan.api.internal.managers.*;
 import org.leralix.tan.events.EventManager;

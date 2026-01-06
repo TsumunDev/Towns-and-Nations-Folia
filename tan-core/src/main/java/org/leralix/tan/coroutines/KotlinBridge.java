@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.coroutines;
+package org.leralix.tan.coroutines;
 public final class KotlinBridge {
     private KotlinBridge() {
     }

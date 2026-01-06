@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.invitation;
+package org.leralix.tan.storage.invitation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;

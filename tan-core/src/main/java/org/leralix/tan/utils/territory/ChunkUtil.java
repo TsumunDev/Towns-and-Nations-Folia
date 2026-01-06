@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.territory;
+package org.leralix.tan.utils.territory;
 import java.util.*;
 import java.util.function.Predicate;
 import org.bukkit.Chunk;

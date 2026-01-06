@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.constants;
+package org.leralix.tan.utils.constants;
 import java.util.HashMap;
 import java.util.Map;
 import org.bukkit.configuration.ConfigurationSection;

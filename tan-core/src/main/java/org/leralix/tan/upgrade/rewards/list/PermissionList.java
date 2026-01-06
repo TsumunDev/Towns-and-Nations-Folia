@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.upgrade.rewards.list;
+package org.leralix.tan.upgrade.rewards.list;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

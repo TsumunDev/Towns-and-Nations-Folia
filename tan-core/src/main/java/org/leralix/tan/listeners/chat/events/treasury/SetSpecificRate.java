@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners.chat.events.treasury;
+package org.leralix.tan.listeners.chat.events.treasury;
 import org.bukkit.entity.Player;
 import org.leralix.lib.data.SoundEnum;
 import org.leralix.tan.TownsAndNations;

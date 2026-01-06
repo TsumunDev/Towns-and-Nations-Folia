@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.item;
+package org.leralix.tan.utils.item;
 import com.google.gson.JsonParser;
 import java.net.URL;
 import java.util.ArrayList;

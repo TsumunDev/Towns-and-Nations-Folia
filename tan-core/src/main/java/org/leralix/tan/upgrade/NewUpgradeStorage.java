@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.upgrade;
+package org.leralix.tan.upgrade;
 import java.util.*;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;

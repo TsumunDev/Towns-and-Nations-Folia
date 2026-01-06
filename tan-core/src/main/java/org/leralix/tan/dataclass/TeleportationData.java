@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass;
+package org.leralix.tan.dataclass;
 public class TeleportationData {
   private final TeleportationPosition teleportationPosition;
   private boolean isCancelled;

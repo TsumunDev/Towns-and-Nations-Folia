@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.text;
+package org.leralix.tan.utils.text;
 public class DateUtil {
   private DateUtil() {
     throw new IllegalStateException("Utility class");

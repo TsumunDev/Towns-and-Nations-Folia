@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.enums.permissions;
+package org.leralix.tan.enums.permissions;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Material;

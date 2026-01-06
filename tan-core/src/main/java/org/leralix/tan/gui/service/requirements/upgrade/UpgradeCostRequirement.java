@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.service.requirements.upgrade;
+package org.leralix.tan.gui.service.requirements.upgrade;
 import java.util.List;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.territory.TerritoryData;

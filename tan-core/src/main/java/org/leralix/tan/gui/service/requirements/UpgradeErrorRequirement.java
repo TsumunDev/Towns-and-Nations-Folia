@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.service.requirements;
+package org.leralix.tan.gui.service.requirements;
 import org.leralix.tan.lang.LangType;
 public class UpgradeErrorRequirement extends IndividualRequirement {
   @Override

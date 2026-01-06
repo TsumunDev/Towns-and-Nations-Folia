@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars;
+package org.leralix.tan.wars;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

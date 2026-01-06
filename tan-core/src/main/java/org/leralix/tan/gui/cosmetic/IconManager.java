@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.cosmetic;
+package org.leralix.tan.gui.cosmetic;
 import java.io.File;
 import java.util.EnumMap;
 import java.util.Map;

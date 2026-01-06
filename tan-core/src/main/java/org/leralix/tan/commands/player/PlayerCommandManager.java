@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.commands.player;
+package org.leralix.tan.commands.player;
 import org.leralix.lib.commands.CommandManager;
 import org.leralix.lib.commands.MainHelpCommand;
 import org.leralix.tan.utils.constants.Constants;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.economy;
+package org.leralix.tan.economy;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.milkbowl.vault.economy.Economy;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.commands.admin;
+package org.leralix.tan.commands.admin;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.entity.Player;

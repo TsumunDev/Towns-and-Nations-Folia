@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars.fort;
+package org.leralix.tan.wars.fort;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.Material;
 import org.bukkit.block.Block;

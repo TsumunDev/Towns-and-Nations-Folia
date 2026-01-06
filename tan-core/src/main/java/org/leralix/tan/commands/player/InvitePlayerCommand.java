@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.commands.player;
+package org.leralix.tan.commands.player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

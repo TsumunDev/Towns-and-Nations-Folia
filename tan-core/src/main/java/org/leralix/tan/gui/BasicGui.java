@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui;
+package org.leralix.tan.gui;
 import dev.triumphteam.gui.components.GuiType;
 import dev.triumphteam.gui.guis.Gui;
 import net.kyori.adventure.text.Component;

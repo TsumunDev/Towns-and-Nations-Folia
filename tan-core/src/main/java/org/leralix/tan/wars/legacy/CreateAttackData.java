@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars.legacy;
+package org.leralix.tan.wars.legacy;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.wars.War;
 public class CreateAttackData {

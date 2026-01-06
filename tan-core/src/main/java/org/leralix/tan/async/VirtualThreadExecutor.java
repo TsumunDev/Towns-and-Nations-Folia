@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.async;
+package org.leralix.tan.async;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;

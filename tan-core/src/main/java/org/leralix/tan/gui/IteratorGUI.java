@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui;
+package org.leralix.tan.gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.List;
 import java.util.function.Consumer;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.internal.wrappers;
+package org.leralix.tan.api.internal.wrappers;
 import org.leralix.tan.dataclass.territory.RegionData;
 import org.tan.api.interfaces.TanRegion;
 import org.tan.api.interfaces.TanTerritory;

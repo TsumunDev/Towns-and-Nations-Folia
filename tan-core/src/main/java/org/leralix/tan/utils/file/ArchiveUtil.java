@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.file;
+package org.leralix.tan.utils.file;
 import java.io.*;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;

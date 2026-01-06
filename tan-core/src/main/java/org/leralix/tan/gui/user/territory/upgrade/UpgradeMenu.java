@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user.territory.upgrade;
+package org.leralix.tan.gui.user.territory.upgrade;
 import dev.triumphteam.gui.components.util.GuiFiller;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;

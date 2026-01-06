@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.deprecated;
+package org.leralix.tan.utils.deprecated;
 import com.google.gson.JsonParser;
 import java.net.URL;
 import java.util.ArrayList;

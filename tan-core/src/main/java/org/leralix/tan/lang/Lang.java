@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.lang;
+package org.leralix.tan.lang;
 import java.io.File;
 import java.util.EnumMap;
 import java.util.List;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.service;
+package org.leralix.tan.service;
 import java.util.concurrent.CompletableFuture;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

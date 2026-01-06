@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.blacklist;
+package org.leralix.tan.storage.blacklist;
 import org.bukkit.Chunk;
 public class BlackListWorld implements IBlackList {
   String worldName;

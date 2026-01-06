@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user.property;
+package org.leralix.tan.gui.user.property;
 import static org.leralix.lib.data.SoundEnum.NOT_ALLOWED;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;

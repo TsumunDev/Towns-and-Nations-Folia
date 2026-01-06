@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.components;
+package org.leralix.tan.dataclass.territory.components;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.IntSupplier;

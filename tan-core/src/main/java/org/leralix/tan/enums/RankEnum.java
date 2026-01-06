@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.enums;
+package org.leralix.tan.enums;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import net.kyori.adventure.text.format.NamedTextColor;

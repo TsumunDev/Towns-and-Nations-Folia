@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.building;
+package org.leralix.tan.building;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.entity.Player;
 import org.leralix.lib.position.Vector3D;

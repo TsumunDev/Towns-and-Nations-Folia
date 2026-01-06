@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.graphic;
+package org.leralix.tan.utils.graphic;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.storage.stored.PlayerDataStorage;

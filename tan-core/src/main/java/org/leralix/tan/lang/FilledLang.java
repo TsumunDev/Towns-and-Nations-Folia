@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.lang;
+package org.leralix.tan.lang;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.entity.Player;

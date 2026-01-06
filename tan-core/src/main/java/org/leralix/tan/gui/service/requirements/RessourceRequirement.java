@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.service.requirements;
+package org.leralix.tan.gui.service.requirements;
 import org.bukkit.entity.Player;
 import org.leralix.tan.gui.service.requirements.model.ItemScope;
 import org.leralix.tan.lang.Lang;

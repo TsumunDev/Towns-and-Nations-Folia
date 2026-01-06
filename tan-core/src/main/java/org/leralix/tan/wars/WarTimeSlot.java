@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars;
+package org.leralix.tan.wars;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;

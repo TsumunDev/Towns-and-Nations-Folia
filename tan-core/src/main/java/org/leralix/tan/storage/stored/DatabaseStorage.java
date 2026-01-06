@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.stored;
+package org.leralix.tan.storage.stored;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import java.lang.reflect.Type;

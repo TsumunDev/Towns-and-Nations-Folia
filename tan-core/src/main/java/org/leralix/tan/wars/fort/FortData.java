@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars.fort;
+package org.leralix.tan.wars.fort;
 import org.leralix.lib.position.Vector3D;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.utils.gameplay.TerritoryUtil;

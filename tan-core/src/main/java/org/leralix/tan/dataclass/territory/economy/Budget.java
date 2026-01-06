@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.economy;
+package org.leralix.tan.dataclass.territory.economy;
 import dev.triumphteam.gui.guis.Gui;
 import java.util.Collections;
 import java.util.LinkedList;

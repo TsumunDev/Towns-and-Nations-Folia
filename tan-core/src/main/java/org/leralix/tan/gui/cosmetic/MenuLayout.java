@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.cosmetic;
+package org.leralix.tan.gui.cosmetic;
 import java.util.Map;
 import org.bukkit.Material;
 public class MenuLayout {

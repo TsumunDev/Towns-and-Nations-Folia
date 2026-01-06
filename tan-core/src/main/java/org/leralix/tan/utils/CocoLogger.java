@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils;
+package org.leralix.tan.utils;
 public class CocoLogger {
   public static final String RESET = "\u001B[0m";
   public static final String BLACK = "\u001B[30m";

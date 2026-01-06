@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners;
+package org.leralix.tan.listeners;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;

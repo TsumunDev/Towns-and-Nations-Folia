@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.exception;
+package org.leralix.tan.exception;
 public class StorageException extends TanException {
   public StorageException(String message) {
     super(message);

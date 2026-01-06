@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.events.newsletter;
+package org.leralix.tan.events.newsletter;
 import org.leralix.tan.events.newsletter.news.*;
 import org.tan.api.events.*;
 public class NewsletterEvents implements TanListener {

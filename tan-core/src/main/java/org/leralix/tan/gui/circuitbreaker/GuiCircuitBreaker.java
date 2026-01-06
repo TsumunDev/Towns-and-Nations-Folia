@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.circuitbreaker;
+package org.leralix.tan.gui.circuitbreaker;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.slf4j.Logger;

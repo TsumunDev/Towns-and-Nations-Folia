@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass;
+package org.leralix.tan.dataclass;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.inventory.ItemStack;
 import org.leralix.tan.dataclass.territory.TerritoryData;

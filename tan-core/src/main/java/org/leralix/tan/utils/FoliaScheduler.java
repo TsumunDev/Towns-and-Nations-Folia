@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils;
+package org.leralix.tan.utils;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import java.util.concurrent.TimeUnit;
 import org.bukkit.Bukkit;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.commands.debug;
+package org.leralix.tan.commands.debug;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.command.CommandSender;

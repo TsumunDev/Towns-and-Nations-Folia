@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.territory;
+package org.leralix.tan.utils.territory;
 import java.util.Optional;
 import java.util.Set;
 import org.leralix.lib.position.Vector2D;

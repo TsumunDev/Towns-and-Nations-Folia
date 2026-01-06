@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass;
+package org.leralix.tan.dataclass;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;

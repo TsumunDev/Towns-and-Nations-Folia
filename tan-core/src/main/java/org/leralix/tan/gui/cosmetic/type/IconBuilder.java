@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.cosmetic.type;
+package org.leralix.tan.gui.cosmetic.type;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;

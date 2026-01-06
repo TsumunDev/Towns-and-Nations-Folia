@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user.property;
+package org.leralix.tan.gui.user.property;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;

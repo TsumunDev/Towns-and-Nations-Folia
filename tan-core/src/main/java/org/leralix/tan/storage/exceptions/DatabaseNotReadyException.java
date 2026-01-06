@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.exceptions;
+package org.leralix.tan.storage.exceptions;
 public class DatabaseNotReadyException extends RuntimeException {
   public DatabaseNotReadyException(String message) {
     super(message);

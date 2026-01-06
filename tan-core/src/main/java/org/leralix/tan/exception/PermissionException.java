@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.exception;
+package org.leralix.tan.exception;
 public class PermissionException extends TanException {
   private final String requiredPermission;
   public PermissionException(String message, String requiredPermission) {

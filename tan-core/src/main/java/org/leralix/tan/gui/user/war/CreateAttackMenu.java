@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.user.war;
+package org.leralix.tan.gui.user.war;
 import static org.leralix.lib.data.SoundEnum.REMOVE;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.time.Instant;

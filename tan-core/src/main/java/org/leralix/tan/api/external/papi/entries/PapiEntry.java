@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.external.papi.entries;
+package org.leralix.tan.api.external.papi.entries;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

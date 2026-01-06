@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.upgrade.rewards.numeric;
+package org.leralix.tan.upgrade.rewards.numeric;
 import java.util.List;
 import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;

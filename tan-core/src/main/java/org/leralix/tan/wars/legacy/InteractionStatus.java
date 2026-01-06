@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars.legacy;
+package org.leralix.tan.wars.legacy;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.enums.permissions.GeneralChunkSetting;
 public enum InteractionStatus {

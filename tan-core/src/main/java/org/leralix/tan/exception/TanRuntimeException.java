@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.exception;
+package org.leralix.tan.exception;
 public class TanRuntimeException extends RuntimeException {
   public TanRuntimeException(String message) {
     super(message);

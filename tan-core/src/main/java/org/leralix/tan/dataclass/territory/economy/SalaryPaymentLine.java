@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.economy;
+package org.leralix.tan.dataclass.territory.economy;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;

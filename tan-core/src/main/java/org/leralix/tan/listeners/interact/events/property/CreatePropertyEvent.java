@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners.interact.events.property;
+package org.leralix.tan.listeners.interact.events.property;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.timezone;
+package org.leralix.tan.timezone;
 import java.time.ZoneOffset;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;

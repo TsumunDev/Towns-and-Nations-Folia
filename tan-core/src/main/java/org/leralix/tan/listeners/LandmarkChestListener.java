@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners;
+package org.leralix.tan.listeners;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;

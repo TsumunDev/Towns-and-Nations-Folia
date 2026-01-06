@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.migration;
+package org.leralix.tan.storage.migration;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

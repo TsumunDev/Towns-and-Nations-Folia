@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.service.requirements;
+package org.leralix.tan.gui.service.requirements;
 import java.util.List;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.lang.Lang;

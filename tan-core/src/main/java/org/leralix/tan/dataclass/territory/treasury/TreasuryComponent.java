@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.treasury;
+package org.leralix.tan.dataclass.territory.treasury;
 public final class TreasuryComponent {
     private final double balance;
     public static final double DEFAULT_BALANCE = 0.0;

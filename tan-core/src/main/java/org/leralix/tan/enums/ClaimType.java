@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.enums;
+package org.leralix.tan.enums;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 public enum ClaimType {

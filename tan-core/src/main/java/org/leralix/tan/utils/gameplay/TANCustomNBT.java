@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.gameplay;
+package org.leralix.tan.utils.gameplay;
 import java.util.Iterator;
 import java.util.Optional;
 import org.bukkit.Location;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.service.requirements;
+package org.leralix.tan.gui.service.requirements;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.enums.RolePermission;

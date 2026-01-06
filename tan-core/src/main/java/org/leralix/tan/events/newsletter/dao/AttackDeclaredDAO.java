@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.events.newsletter.dao;
+package org.leralix.tan.events.newsletter.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.commands.admin;
+package org.leralix.tan.commands.admin;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Bukkit;

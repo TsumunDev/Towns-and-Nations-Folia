@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.upgrade.rewards.bool;
+package org.leralix.tan.upgrade.rewards.bool;
 import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;

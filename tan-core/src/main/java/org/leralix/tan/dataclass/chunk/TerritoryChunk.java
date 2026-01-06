@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.chunk;
+package org.leralix.tan.dataclass.chunk;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.Chunk;

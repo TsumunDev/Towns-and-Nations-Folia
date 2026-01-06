@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.upgrade;
+package org.leralix.tan.upgrade;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

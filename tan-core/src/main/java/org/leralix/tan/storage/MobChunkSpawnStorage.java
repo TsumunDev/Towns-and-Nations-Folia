@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage;
+package org.leralix.tan.storage;
 import java.util.HashMap;
 import java.util.Map;
 import org.leralix.lib.utils.config.ConfigTag;

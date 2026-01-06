@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.admin;
+package org.leralix.tan.gui.admin;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.ITanPlayer;

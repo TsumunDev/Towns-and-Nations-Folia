@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass.territory.permission;
+package org.leralix.tan.dataclass.territory.permission;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

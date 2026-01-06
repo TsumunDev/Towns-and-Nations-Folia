@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.gameplay;
+package org.leralix.tan.utils.gameplay;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

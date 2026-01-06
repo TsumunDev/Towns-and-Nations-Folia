@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass;
+package org.leralix.tan.dataclass;
 public class UpgradeStatus {
   private boolean unlocked;
   private boolean activated;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage;
+package org.leralix.tan.storage;
 import java.util.HashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

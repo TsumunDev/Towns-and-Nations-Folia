@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.listeners.chat;
+package org.leralix.tan.listeners.chat;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

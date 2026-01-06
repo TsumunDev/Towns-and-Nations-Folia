@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.stored;
+package org.leralix.tan.storage.stored;
 import com.google.gson.*;
 import java.lang.reflect.Type;
 import org.leralix.tan.dataclass.ITanPlayer;

@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.economy;
+package org.leralix.tan.economy;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.ITanPlayer;

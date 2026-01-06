@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars.capture;
+package org.leralix.tan.wars.capture;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;

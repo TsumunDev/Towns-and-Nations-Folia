@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.constants;
+package org.leralix.tan.utils.constants;
 import org.bukkit.configuration.ConfigurationSection;
 public class DatabaseConstants {
   private String dbType;

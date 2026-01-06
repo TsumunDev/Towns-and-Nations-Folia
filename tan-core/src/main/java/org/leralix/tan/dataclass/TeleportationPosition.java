@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass;
+package org.leralix.tan.dataclass;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.leralix.lib.position.Vector3DWithOrientation;

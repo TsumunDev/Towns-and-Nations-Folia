@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.events.newsletter.news;
+package org.leralix.tan.events.newsletter.news;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.UUID;
 import java.util.function.Consumer;

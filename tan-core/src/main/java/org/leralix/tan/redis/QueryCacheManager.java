@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.redis;
+package org.leralix.tan.redis;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.util.List;

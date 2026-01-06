@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.external.papi;
+package org.leralix.tan.api.external.papi;
 import java.util.HashMap;
 import java.util.Map;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;

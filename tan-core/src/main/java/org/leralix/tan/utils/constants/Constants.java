@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.utils.constants;
+package org.leralix.tan.utils.constants;
 import java.util.*;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;

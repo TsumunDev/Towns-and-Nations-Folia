@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.storage.typeadapter;
+package org.leralix.tan.storage.typeadapter;
 import com.google.gson.*;
 import java.lang.reflect.Type;
 import org.leralix.tan.wars.legacy.wargoals.*;

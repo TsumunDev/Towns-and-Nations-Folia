@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.external.papi.entries;
+package org.leralix.tan.api.external.papi.entries;
 import org.jetbrains.annotations.NotNull;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.territory.TerritoryData;

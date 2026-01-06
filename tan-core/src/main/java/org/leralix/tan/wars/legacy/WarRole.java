@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars.legacy;
+package org.leralix.tan.wars.legacy;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 public enum WarRole {

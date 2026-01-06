@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.wars.legacy;
+package org.leralix.tan.wars.legacy;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;

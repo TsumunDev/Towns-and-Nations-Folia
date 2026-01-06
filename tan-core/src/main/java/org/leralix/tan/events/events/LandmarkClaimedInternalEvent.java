@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.events.events;
+package org.leralix.tan.events.events;
 import org.leralix.tan.api.internal.wrappers.LandmarkDataWrapper;
 import org.leralix.tan.api.internal.wrappers.TerritoryDataWrapper;
 import org.leralix.tan.dataclass.Landmark;

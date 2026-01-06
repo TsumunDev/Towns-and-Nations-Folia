@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.events.events;
+package org.leralix.tan.events.events;
 import org.leralix.tan.api.internal.wrappers.TanPlayerWrapper;
 import org.leralix.tan.api.internal.wrappers.TownDataWrapper;
 import org.leralix.tan.dataclass.ITanPlayer;

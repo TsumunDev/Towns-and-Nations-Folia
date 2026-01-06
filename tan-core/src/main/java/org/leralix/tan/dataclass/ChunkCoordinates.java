@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.dataclass;
+package org.leralix.tan.dataclass;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;

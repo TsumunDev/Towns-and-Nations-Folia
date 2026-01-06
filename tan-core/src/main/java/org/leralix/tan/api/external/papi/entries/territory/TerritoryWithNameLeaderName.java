@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.api.external.papi.entries.territory;
+package org.leralix.tan.api.external.papi.entries.territory;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.leralix.tan.api.external.papi.entries.PapiEntry;

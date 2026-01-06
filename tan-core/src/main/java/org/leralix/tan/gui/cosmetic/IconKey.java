@@ -1,4 +1,4 @@
-﻿package org.leralix.tan.gui.cosmetic;
+package org.leralix.tan.gui.cosmetic;
 public enum IconKey {
   TIMEZONE_ICON_DAY,
   TIMEZONE_ICON_NIGHT,
