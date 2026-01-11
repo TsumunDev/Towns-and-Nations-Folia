@@ -8,7 +8,7 @@ import org.leralix.tan.enums.permissions.GeneralChunkSetting;
 import org.leralix.tan.gui.BasicGui;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 public class ChunkGeneralSettingsMenu extends BasicGui {
   private final TerritoryData territoryData;
   private ChunkGeneralSettingsMenu(
@@ -21,7 +21,10 @@ public class ChunkGeneralSettingsMenu extends BasicGui {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new ChunkGeneralSettingsMenu(player, tanPlayer, territoryData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new ChunkGeneralSettingsMenu(player, tanPlayer, territoryData).open()
+              );
             });
   }
   @Override

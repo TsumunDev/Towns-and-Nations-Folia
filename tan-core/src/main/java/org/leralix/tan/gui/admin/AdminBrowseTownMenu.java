@@ -10,7 +10,7 @@ import org.leralix.tan.dataclass.territory.TownData;
 import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 public class AdminBrowseTownMenu extends IteratorGUI {
   private AdminBrowseTownMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, "Admin - Towns List", 6);
@@ -20,7 +20,10 @@ public class AdminBrowseTownMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new AdminBrowseTownMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new AdminBrowseTownMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override

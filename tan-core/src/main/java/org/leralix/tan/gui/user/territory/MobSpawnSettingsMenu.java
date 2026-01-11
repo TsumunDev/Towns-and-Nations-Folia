@@ -12,7 +12,7 @@ import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.MobChunkSpawnStorage;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 public class MobSpawnSettingsMenu extends IteratorGUI {
   private final TownData townData;
   private MobSpawnSettingsMenu(Player player, ITanPlayer tanPlayer, TownData townData) {
@@ -24,7 +24,10 @@ public class MobSpawnSettingsMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new MobSpawnSettingsMenu(player, tanPlayer, townData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new MobSpawnSettingsMenu(player, tanPlayer, townData).open()
+              );
             });
   }
   @Override

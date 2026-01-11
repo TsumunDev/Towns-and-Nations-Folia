@@ -26,7 +26,10 @@ public class OpenDiplomacyProposalsMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new OpenDiplomacyProposalsMenu(player, tanPlayer, territoryData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new OpenDiplomacyProposalsMenu(player, tanPlayer, territoryData).open()
+              );
             });
   }
   @Override

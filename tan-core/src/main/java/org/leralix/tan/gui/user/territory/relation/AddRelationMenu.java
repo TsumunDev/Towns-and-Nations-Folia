@@ -79,8 +79,11 @@ public class AddRelationMenu extends IteratorGUI {
               ITanPlayer tanPlayer = (ITanPlayer) ((Object[]) data)[0];
               @SuppressWarnings("unchecked")
               Map<String, ITanPlayer> playersData = (Map<String, ITanPlayer>) ((Object[]) data)[1];
-              new AddRelationMenu(player, tanPlayer, territoryData, wantedRelation, playersData)
-                  .open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new AddRelationMenu(player, tanPlayer, territoryData, wantedRelation, playersData)
+                      .open()
+              );
             });
   }
   @Override

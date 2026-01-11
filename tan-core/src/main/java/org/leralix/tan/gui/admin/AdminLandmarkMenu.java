@@ -14,7 +14,7 @@ import org.leralix.tan.gui.landmark.LandmarkNoOwnerMenu;
 import org.leralix.tan.storage.stored.LandmarkStorage;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.gui.AsyncGuiHelper;
 public class AdminLandmarkMenu extends IteratorGUI {
   private List<GuiItem> cachedLandmarks = new ArrayList<>();
@@ -27,7 +27,10 @@ public class AdminLandmarkMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new AdminLandmarkMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new AdminLandmarkMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override

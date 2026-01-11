@@ -23,7 +23,10 @@ public class AddVassalMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new AddVassalMenu(player, tanPlayer, overlordTerritory).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new AddVassalMenu(player, tanPlayer, overlordTerritory).open()
+              );
             });
   }
   @Override

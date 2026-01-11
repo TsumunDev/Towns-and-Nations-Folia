@@ -13,7 +13,7 @@ import org.leralix.tan.gui.service.requirements.RankPermissionRequirement;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.upgrade.rewards.bool.EnableMobBan;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class ChunkSettingsMenu extends BasicGui {
   private final TerritoryData territoryData;
@@ -26,7 +26,10 @@ public class ChunkSettingsMenu extends BasicGui {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new ChunkSettingsMenu(player, tanPlayer, territoryData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new ChunkSettingsMenu(player, tanPlayer, territoryData).open()
+              );
             });
   }
   @Override

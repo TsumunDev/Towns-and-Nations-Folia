@@ -13,7 +13,7 @@ import org.leralix.tan.listeners.chat.events.CreateRegion;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.RegionDataStorage;
 import org.leralix.tan.utils.constants.Constants;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class NoRegionMenu extends BasicGui {
   private NoRegionMenu(Player player, ITanPlayer tanPlayer) {
@@ -24,7 +24,10 @@ public class NoRegionMenu extends BasicGui {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new NoRegionMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new NoRegionMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override

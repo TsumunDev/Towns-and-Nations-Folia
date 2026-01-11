@@ -18,7 +18,7 @@ import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.PermissionManager;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 public class AddPlayerWithPermissionMenu extends IteratorGUI {
   private final PermissionManager permissionManager;
   private final ChunkPermissionType chunkPermission;
@@ -67,14 +67,17 @@ public class AddPlayerWithPermissionMenu extends IteratorGUI {
               ITanPlayer tanPlayer = (ITanPlayer) ((Object[]) data)[0];
               @SuppressWarnings("unchecked")
               Map<String, ITanPlayer> playersData = (Map<String, ITanPlayer>) ((Object[]) data)[1];
-              new AddPlayerWithPermissionMenu(
-                      player,
-                      tanPlayer,
-                      permissionManager,
-                      chunkPermission,
-                      browsePlayerWithPermissionMenu,
-                      playersData)
-                  .open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new AddPlayerWithPermissionMenu(
+                          player,
+                          tanPlayer,
+                          permissionManager,
+                          chunkPermission,
+                          browsePlayerWithPermissionMenu,
+                          playersData)
+                      .open()
+              );
             });
   }
   @Override

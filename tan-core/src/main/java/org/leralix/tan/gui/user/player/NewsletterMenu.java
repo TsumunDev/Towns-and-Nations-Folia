@@ -13,7 +13,7 @@ import org.leralix.tan.gui.cosmetic.IconManager;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.FoliaScheduler;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 public class NewsletterMenu extends IteratorGUI {
   NewsletterScope scope;
   private List<GuiItem> cachedNewsletters = new ArrayList<>();
@@ -27,7 +27,10 @@ public class NewsletterMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new NewsletterMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new NewsletterMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override

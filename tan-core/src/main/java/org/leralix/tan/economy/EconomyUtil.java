@@ -45,4 +45,44 @@ public class EconomyUtil {
     removeFromBalance(target, getBalance(target));
     addFromBalance(target, amount);
   }
+
+  /**
+   * Formats a money amount with the currency icon.
+   *
+   * @param amount The amount to format
+   * @return Formatted string (e.g., "$100.00")
+   */
+  public static String formatMoney(double amount) {
+    return econ.formatMoney(amount);
+  }
+
+  /**
+   * Adds money to a player's balance (alias for addFromBalance).
+   *
+   * @param player The player to add money to
+   * @param amount The amount to add
+   */
+  public static void addToBalance(Player player, double amount) {
+    addFromBalance(player, amount);
+  }
+
+  /**
+   * Adds money to an ITanPlayer's balance (alias for addFromBalance).
+   *
+   * @param tanPlayer The player to add money to
+   * @param amount The amount to add
+   */
+  public static void addToBalance(ITanPlayer tanPlayer, double amount) {
+    addFromBalance(tanPlayer, amount);
+  }
+
+  /**
+   * Adds money to an offline player's balance (alias for addFromBalance).
+   *
+   * @param offlinePlayer The offline player to add money to
+   * @param amount The amount to add
+   */
+  public static void addToBalance(OfflinePlayer offlinePlayer, double amount) {
+    addFromBalance(offlinePlayer, amount);
+  }
 }

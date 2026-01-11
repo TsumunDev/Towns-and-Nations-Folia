@@ -10,7 +10,7 @@ import org.leralix.tan.gui.cosmetic.IconManager;
 import org.leralix.tan.gui.user.MainMenu;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class TownMenu extends TerritoryMenu {
   private final TownData townData;
@@ -33,7 +33,10 @@ public class TownMenu extends TerritoryMenu {
             })
         .thenAccept(
             tanPlayer -> {
-              new TownMenu(player, tanPlayer, townData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new TownMenu(player, tanPlayer, townData).open()
+              );
             });
   }
   @Override
@@ -53,6 +56,12 @@ public class TownMenu extends TerritoryMenu {
     gui.setItem(layout.getSlotOrDefault("town_menu", "attack", 20), getAttackButton());
     gui.setItem(layout.getSlotOrDefault("town_menu", "hierarchy", 21), getHierarchyButton());
     gui.setItem(layout.getSlotOrDefault("town_menu", "landmarks", 25), getLandmarksButton());
+
+    // Progression system buttons
+    gui.setItem(layout.getSlotOrDefault("town_menu", "quest", 22), getQuestButton());
+    gui.setItem(layout.getSlotOrDefault("town_menu", "prestige", 23), getPrestigeButton());
+    gui.setItem(layout.getSlotOrDefault("town_menu", "upgrade", 24), getUpgradeButton());
+
     gui.setItem(layout.getSlotOrDefault("town_menu", "back", 27),
         GuiUtil.createBackArrow(player, MainMenu::open));
     gui.open(player);
@@ -74,6 +83,33 @@ public class TownMenu extends TerritoryMenu {
             event -> {
               TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(tanPlayer.getLang()));
             })
+        .asGuiItem(player, langType);
+  }
+
+  private GuiItem getQuestButton() {
+    return IconManager.getInstance()
+        .get(Material.WOODEN_HOE)
+        .setName("§eTown Quests")
+        .setDescription(org.leralix.tan.lang.Lang.GUI_TOWN_SETTINGS_ICON_DESC1.get())
+        .setAction(event -> org.leralix.tan.gui.user.territory.quest.QuestListMenu.open(player, townData))
+        .asGuiItem(player, langType);
+  }
+
+  private GuiItem getPrestigeButton() {
+    return IconManager.getInstance()
+        .get(Material.GOLD_BLOCK)
+        .setName("§6Prestige Points")
+        .setDescription(org.leralix.tan.lang.Lang.GUI_TOWN_SETTINGS_ICON_DESC1.get())
+        .setAction(event -> org.leralix.tan.gui.user.territory.prestige.PrestigeShopMenu.open(player, townData))
+        .asGuiItem(player, langType);
+  }
+
+  private GuiItem getUpgradeButton() {
+    return IconManager.getInstance()
+        .get(Material.ENCHANTED_BOOK)
+        .setName("§dTown Upgrades")
+        .setDescription(org.leralix.tan.lang.Lang.GUI_TOWN_SETTINGS_ICON_DESC1.get())
+        .setAction(event -> org.leralix.tan.gui.user.territory.upgrade.UpgradeShopMenu.open(player, townData))
         .asGuiItem(player, langType);
   }
 }

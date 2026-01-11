@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.ITanPlayer;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 public abstract class IteratorGUI extends BasicGui {
   protected int page;
   protected IteratorGUI(Player player, ITanPlayer tanPlayer, String title, int rows) {

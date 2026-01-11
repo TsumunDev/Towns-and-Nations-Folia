@@ -18,7 +18,10 @@ public class PlayerSelectTimezoneMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new PlayerSelectTimezoneMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new PlayerSelectTimezoneMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override

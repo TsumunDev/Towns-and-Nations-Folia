@@ -5,7 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 public enum RankEnum {
   ONE(5, NamedTextColor.GOLD, Material.NETHERITE_HELMET, Material.YELLOW_STAINED_GLASS_PANE),
   TWO(4, NamedTextColor.DARK_PURPLE, Material.DIAMOND_HELMET, Material.PURPLE_STAINED_GLASS_PANE),

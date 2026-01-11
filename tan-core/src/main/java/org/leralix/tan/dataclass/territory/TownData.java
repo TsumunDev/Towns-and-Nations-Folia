@@ -15,6 +15,8 @@ import org.leralix.tan.dataclass.*;
 import org.leralix.tan.dataclass.chunk.ClaimedChunk2;
 import org.leralix.tan.dataclass.newhistory.PlayerTaxHistory;
 import org.leralix.tan.dataclass.territory.economy.*;
+import org.leralix.tan.dataclass.territory.progression.TownProgressionComponent;
+import org.leralix.tan.dataclass.territory.progression.TownTier;
 import org.leralix.tan.economy.EconomyUtil;
 import org.leralix.tan.enums.RolePermission;
 import org.leralix.tan.events.EventManager;
@@ -28,7 +30,7 @@ import org.leralix.tan.lang.LangType;
 import org.leralix.tan.storage.stored.*;
 import org.leralix.tan.upgrade.rewards.numeric.TownPlayerCap;
 import org.leralix.tan.utils.constants.Constants;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.graphic.PrefixUtil;
 import org.leralix.tan.utils.graphic.TeamUtils;
 import org.leralix.tan.utils.text.StringUtil;
@@ -84,6 +86,9 @@ public class TownData extends TerritoryData {
   private TeleportationPosition teleportationPosition;
   private final HashSet<String> townPlayerListId;
   private Vector2D capitalLocation;
+  private TownProgressionComponent progression;
+  private org.leralix.tan.domain.prestige.model.PrestigePoints prestigePoints;
+  private Set<String> purchasedUpgrades;
   public TownData(String townId, String townName, ITanPlayer leader) {
     super(townId, townName, leader);
     this.playerJoinRequestSet = new HashSet<>();
@@ -98,6 +103,9 @@ public class TownData extends TerritoryData {
         townName.length() >= prefixSize
             ? townName.substring(0, prefixSize).toUpperCase()
             : townName.toUpperCase();
+    this.progression = new TownProgressionComponent();
+    this.prestigePoints = org.leralix.tan.domain.prestige.model.PrestigePoints.create();
+    this.purchasedUpgrades = new HashSet<>();
   }
   @Override
   protected void initUpgradesStatus() {
@@ -518,6 +526,129 @@ public class TownData extends TerritoryData {
   public String getColoredTag() {
     return getChunkColor() + "[" + getTownTag() + "]";
   }
+
+  // ===== PROGRESSION SYSTEM =====
+
+  /**
+   * Gets the town's progression component.
+   *
+   * @return the progression component
+   */
+  public TownProgressionComponent getProgression() {
+    if (progression == null) {
+      synchronized (this) {
+        if (progression == null) {
+          progression = new TownProgressionComponent();
+        }
+      }
+    }
+    return progression;
+  }
+
+  /**
+   * Sets the town's progression component (for deserialization).
+   *
+   * @param progression the new progression component
+   */
+  public void setProgression(TownProgressionComponent progression) {
+    this.progression = progression;
+  }
+
+  /**
+   * Creates a new instance with updated progression.
+   *
+   * @param progression the new progression component
+   */
+  public void withProgression(TownProgressionComponent progression) {
+    this.progression = progression;
+  }
+
+  /**
+   * Gets the current civilization tier of the town.
+   *
+   * @return the current tier
+   */
+  public TownTier getTownTier() {
+    return getProgression().getCurrentTier();
+  }
+
+  /**
+   * Gets the current level within the tier.
+   *
+   * @return the current level
+   */
+  public int getTownLevel() {
+    return getProgression().getCurrentLevel();
+  }
+
+  /**
+   * Gets the current XP in the current level.
+   *
+   * @return the current XP
+   */
+  public long getTownXp() {
+    return getProgression().getCurrentXp();
+  }
+
+  // ===== PRESTIGE SYSTEM =====
+
+  /**
+   * Gets the town's prestige points component.
+   *
+   * @return the prestige points component
+   */
+  public org.leralix.tan.domain.prestige.model.PrestigePoints getPrestigePoints() {
+    if (prestigePoints == null) {
+      synchronized (this) {
+        if (prestigePoints == null) {
+          prestigePoints = org.leralix.tan.domain.prestige.model.PrestigePoints.create();
+        }
+      }
+    }
+    return prestigePoints;
+  }
+
+  /**
+   * Sets the town's prestige points component (for deserialization).
+   *
+   * @param prestigePoints the new prestige points component
+   */
+  public void setPrestigePoints(org.leralix.tan.domain.prestige.model.PrestigePoints prestigePoints) {
+    this.prestigePoints = prestigePoints;
+  }
+
+  /**
+   * Gets the current prestige balance.
+   *
+   * @return current prestige points
+   */
+  public long getPrestigeBalance() {
+    return getPrestigePoints().currentBalance();
+  }
+
+  public boolean hasPurchasedUpgrade(String upgradeId) {
+    Set<String> upgrades = getPurchasedUpgrades();
+    return upgrades.contains(upgradeId);
+  }
+
+  public void addPurchasedUpgrade(String upgradeId) {
+    Set<String> upgrades = getPurchasedUpgrades();
+    upgrades.add(upgradeId);
+  }
+
+  public Set<String> getPurchasedUpgrades() {
+    if (purchasedUpgrades == null) {
+      synchronized (this) {
+        if (purchasedUpgrades == null) {
+          purchasedUpgrades = new HashSet<>();
+        }
+      }
+    }
+    return purchasedUpgrades;
+  }
+
+  // ===== END PRESTIGE SYSTEM =====
+
   public void kickPlayer(OfflinePlayer kickedPlayer) {
     ITanPlayer kickedITanPlayer = PlayerDataStorage.getInstance().getSync(kickedPlayer);
     removePlayer(kickedITanPlayer);

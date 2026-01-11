@@ -32,4 +32,9 @@ public class TanEconomyExternal extends AbstractTanEcon {
   public String getMoneyIcon() {
     return externalEconomy.currencyNameSingular();
   }
+
+  @Override
+  public String formatMoney(double amount) {
+    return String.format("%.2f %s", amount, externalEconomy.currencyNamePlural());
+  }
 }

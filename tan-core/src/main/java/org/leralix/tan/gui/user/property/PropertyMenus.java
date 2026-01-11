@@ -16,7 +16,7 @@ import org.leralix.tan.listeners.chat.events.ChangePropertyDescription;
 import org.leralix.tan.listeners.chat.events.ChangePropertyName;
 import org.leralix.tan.listeners.chat.events.ChangePropertyRentPrice;
 import org.leralix.tan.listeners.chat.events.ChangePropertySalePrice;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.text.NumberUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public abstract class PropertyMenus extends BasicGui {

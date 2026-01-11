@@ -14,7 +14,7 @@ import org.leralix.tan.gui.cosmetic.IconKey;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.RegionDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 public class BrowseTerritoryMenu extends IteratorGUI {
   private final TerritoryData territoryData;
   private BrowseScope scope;
@@ -60,7 +60,7 @@ public class BrowseTerritoryMenu extends IteratorGUI {
       ItemStack territoryIcon =
           specificTerritoryData.getIconWithInformationAndRelation(
               territoryData, tanPlayer.getLang());
-      GuiItem territoryGUI = ItemBuilder.from(territoryIcon).asGuiItem();
+      GuiItem territoryGUI = ItemBuilder.from(territoryIcon).asGuiItem(event -> event.setCancelled(true));
       townGuiItems.add(territoryGUI);
     }
     return townGuiItems;

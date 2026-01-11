@@ -28,7 +28,10 @@ public class WarsMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new WarsMenu(player, tanPlayer, territoryData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new WarsMenu(player, tanPlayer, territoryData).open()
+              );
             });
   }
   @Override

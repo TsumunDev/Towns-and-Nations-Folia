@@ -38,7 +38,10 @@ public class RemoveRelationMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new RemoveRelationMenu(player, tanPlayer, territoryData, relation).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new RemoveRelationMenu(player, tanPlayer, territoryData, relation).open()
+              );
             });
   }
   @Override

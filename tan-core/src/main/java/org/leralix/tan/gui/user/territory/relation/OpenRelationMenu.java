@@ -39,7 +39,10 @@ public class OpenRelationMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new OpenRelationMenu(player, tanPlayer, territoryData, relation).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new OpenRelationMenu(player, tanPlayer, territoryData, relation).open()
+              );
             });
   }
   @Override

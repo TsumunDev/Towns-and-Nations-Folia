@@ -22,4 +22,9 @@ public class TanEconomyStandalone extends AbstractTanEcon {
   public String getMoneyIcon() {
     return Constants.getBaseCurrencyChar();
   }
+
+  @Override
+  public String formatMoney(double amount) {
+    return String.format("%.2f%s", amount, getMoneyIcon());
+  }
 }

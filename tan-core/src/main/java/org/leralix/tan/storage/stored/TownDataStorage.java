@@ -275,4 +275,29 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
     return getSync(tanPlayer.getTownId());
   }
+
+  /**
+   * Updates a town in storage (alias for put).
+   *
+   * @param town The town to update
+   */
+  public void update(TownData town) {
+    if (town == null) {
+      throw new IllegalArgumentException("Town cannot be null");
+    }
+    put(town.getID(), town);
+  }
+
+  /**
+   * Updates a town in storage asynchronously (alias for putAsync).
+   *
+   * @param town The town to update
+   * @return Future completing when update is done
+   */
+  public CompletableFuture<Void> updateAsync(TownData town) {
+    if (town == null) {
+      throw new IllegalArgumentException("Town cannot be null");
+    }
+    return putAsync(town.getID(), town);
+  }
 }

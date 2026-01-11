@@ -10,7 +10,7 @@ import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.utils.constants.Constants;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.text.StringUtil;
 public class ChunkUpkeepLine extends ProfitLine {
   private final double totalUpkeep;

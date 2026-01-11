@@ -23,8 +23,8 @@ import org.leralix.tan.storage.stored.LandmarkStorage;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.upgrade.rewards.numeric.LandmarkCap;
 import org.leralix.tan.utils.constants.Constants;
-import org.leralix.tan.utils.deprecated.GuiUtil;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.gui.GuiUtil;
+import org.leralix.tan.utils.item.HeadUtils;
 public class LandmarkNoOwnerMenu extends BasicGui {
   private final Landmark landmark;
   @Nullable private final TownData playerTown;

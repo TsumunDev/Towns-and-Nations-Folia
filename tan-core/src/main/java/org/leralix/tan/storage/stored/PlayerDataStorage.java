@@ -298,4 +298,29 @@ public class PlayerDataStorage extends DatabaseStorage<ITanPlayer> {
   public ITanPlayer getSync(OfflinePlayer player) {
     return getSync(player.getUniqueId());
   }
+
+  /**
+   * Updates a player in storage (alias for put).
+   *
+   * @param player The player to update
+   */
+  public void update(ITanPlayer player) {
+    if (player == null) {
+      throw new IllegalArgumentException("Player cannot be null");
+    }
+    put(player.getID(), player);
+  }
+
+  /**
+   * Updates a player in storage asynchronously (alias for putAsync).
+   *
+   * @param player The player to update
+   * @return Future completing when update is done
+   */
+  public CompletableFuture<Void> updateAsync(ITanPlayer player) {
+    if (player == null) {
+      throw new IllegalArgumentException("Player cannot be null");
+    }
+    return putAsync(player.getID(), player);
+  }
 }

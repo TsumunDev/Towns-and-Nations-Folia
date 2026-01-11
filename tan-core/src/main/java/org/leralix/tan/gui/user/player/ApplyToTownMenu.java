@@ -13,8 +13,8 @@ import org.leralix.tan.gui.user.territory.NoTownMenu;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.gui.GuiUtil;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class ApplyToTownMenu extends IteratorGUI {
   private ApplyToTownMenu(Player player, ITanPlayer tanPlayer) {
@@ -25,7 +25,10 @@ public class ApplyToTownMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new ApplyToTownMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new ApplyToTownMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override

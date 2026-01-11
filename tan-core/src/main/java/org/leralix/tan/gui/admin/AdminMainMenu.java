@@ -6,7 +6,7 @@ import org.leralix.tan.gui.BasicGui;
 import org.leralix.tan.gui.cosmetic.IconKey;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 public class AdminMainMenu extends BasicGui {
   private AdminMainMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, Lang.HEADER_ADMIN_MAIN_MENU.get(tanPlayer.getLang()), 3);
@@ -16,7 +16,10 @@ public class AdminMainMenu extends BasicGui {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new AdminMainMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new AdminMainMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override

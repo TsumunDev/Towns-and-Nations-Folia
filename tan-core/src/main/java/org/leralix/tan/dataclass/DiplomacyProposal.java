@@ -6,7 +6,7 @@ import org.leralix.tan.enums.TownRelation;
 import org.leralix.tan.gui.user.territory.relation.OpenDiplomacyProposalsMenu;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.gameplay.TerritoryUtil;
 public class DiplomacyProposal {
   private final String askingTerritoryID;

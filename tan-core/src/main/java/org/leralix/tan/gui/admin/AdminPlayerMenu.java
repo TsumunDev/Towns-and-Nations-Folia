@@ -11,7 +11,7 @@ import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.gui.user.player.PlayerMenu;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 public class AdminPlayerMenu extends IteratorGUI {
   private AdminPlayerMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, "Admin - Players List", 6);
@@ -21,7 +21,10 @@ public class AdminPlayerMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new AdminPlayerMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new AdminPlayerMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override

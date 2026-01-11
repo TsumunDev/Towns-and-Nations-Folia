@@ -15,7 +15,7 @@ import org.leralix.tan.dataclass.territory.cosmetic.PlayerHeadIcon;
 import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 public class SelectTerritoryHeadMenu extends IteratorGUI {
   private final TerritoryData territoryData;
   private SelectTerritoryHeadMenu(
@@ -29,7 +29,10 @@ public class SelectTerritoryHeadMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new SelectTerritoryHeadMenu(player, tanPlayer, territoryData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new SelectTerritoryHeadMenu(player, tanPlayer, territoryData).open()
+              );
             });
   }
   @Override

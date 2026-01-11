@@ -19,7 +19,7 @@ import org.leralix.tan.gui.BasicGui;
 import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class AddPlayerForChunkPermission extends IteratorGUI {
   private final TerritoryData territoryData;

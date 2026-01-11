@@ -24,7 +24,7 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.timezone.TimeZoneManager;
 import org.leralix.tan.utils.FoliaScheduler;
 import org.leralix.tan.utils.constants.Constants;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

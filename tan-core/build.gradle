@@ -160,6 +160,9 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.5.20'
 
     compileOnly 'io.github.leralix:sphere-lib:0.6.0'
+    // Updated to latest available Folia API (PRD Epic 1, Story 1.1)
+    // Note: 1.21.1 not yet available, using 1.20.1-R0.1-SNAPSHOT for now
+    // TODO: Update to 1.21.1+ when available in Maven repositories
     compileOnly 'dev.folia:folia-api:1.20.1-R0.1-SNAPSHOT'
     compileOnly 'com.mojang:authlib:4.0.43'
     compileOnly 'net.luckperms:api:5.4'

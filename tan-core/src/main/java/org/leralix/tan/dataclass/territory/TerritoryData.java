@@ -63,7 +63,7 @@ import org.leralix.tan.upgrade.rewards.list.BiomeStat;
 import org.leralix.tan.upgrade.rewards.numeric.ChunkCap;
 import org.leralix.tan.upgrade.rewards.numeric.ChunkCost;
 import org.leralix.tan.utils.constants.Constants;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.file.FileUtil;
 import org.leralix.tan.utils.gameplay.TerritoryUtil;
 import org.leralix.tan.utils.graphic.PrefixUtil;
@@ -984,6 +984,17 @@ public abstract class TerritoryData {
     }
     return upgradesStatus;
   }
+
+  /**
+   * Alias for getNewLevel() - returns the upgrade status.
+   * This method name is more semantically clear for upgrade-related operations.
+   *
+   * @return The territory stats/upgrades status
+   */
+  public TerritoryStats getUpgradesStatus() {
+    return getNewLevel();
+  }
+
   public void upgradeTown(Upgrade upgrade) {
     getNewLevel().levelUp(upgrade);
   }

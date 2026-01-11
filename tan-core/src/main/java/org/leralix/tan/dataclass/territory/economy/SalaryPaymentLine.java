@@ -11,7 +11,7 @@ import org.leralix.tan.gui.user.territory.EconomicHistoryMenu;
 import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.text.StringUtil;
 public class SalaryPaymentLine extends ProfitLine {
   double totalSalaries;

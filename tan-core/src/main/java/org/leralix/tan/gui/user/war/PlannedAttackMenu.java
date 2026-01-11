@@ -17,8 +17,8 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.listeners.chat.PlayerChatListenerStorage;
 import org.leralix.tan.listeners.chat.events.ChangeAttackName;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.gui.GuiUtil;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.leralix.tan.wars.PlannedAttack;
 import org.leralix.tan.wars.legacy.WarRole;
@@ -41,7 +41,10 @@ public class PlannedAttackMenu extends BasicGui {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new PlannedAttackMenu(player, tanPlayer, territoryData, plannedAttack).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new PlannedAttackMenu(player, tanPlayer, territoryData, plannedAttack).open()
+              );
             });
   }
   @Override
@@ -154,12 +157,12 @@ public class PlannedAttackMenu extends BasicGui {
     gui.open(player);
   }
   private @NotNull GuiItem getDefendingSidePanel() {
-    return ItemBuilder.from(plannedAttack.getDefendingIcon(langType)).asGuiItem();
+    return ItemBuilder.from(plannedAttack.getDefendingIcon(langType)).asGuiItem(event -> event.setCancelled(true));
   }
   private @NotNull GuiItem getAttackingSideSidePanel() {
-    return ItemBuilder.from(plannedAttack.getAttackingIcon(langType)).asGuiItem();
+    return ItemBuilder.from(plannedAttack.getAttackingIcon(langType)).asGuiItem(event -> event.setCancelled(true));
   }
   private @NotNull GuiItem getAttackIcon() {
-    return ItemBuilder.from(plannedAttack.getIcon(tanPlayer, territoryData)).asGuiItem();
+    return ItemBuilder.from(plannedAttack.getIcon(tanPlayer, territoryData)).asGuiItem(event -> event.setCancelled(true));
   }
 }

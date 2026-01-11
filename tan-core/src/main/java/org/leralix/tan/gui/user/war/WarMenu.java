@@ -13,7 +13,7 @@ import org.leralix.tan.gui.user.territory.WarsMenu;
 import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.wars.War;
 import org.leralix.tan.wars.legacy.WarRole;
 import org.leralix.tan.wars.legacy.wargoals.WarGoal;
@@ -33,7 +33,10 @@ public class WarMenu extends BasicGui {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new WarMenu(player, tanPlayer, territoryData, war).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new WarMenu(player, tanPlayer, territoryData, war).open()
+              );
             });
   }
   @Override

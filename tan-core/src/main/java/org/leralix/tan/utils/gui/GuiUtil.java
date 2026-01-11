@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
@@ -18,6 +19,18 @@ public class GuiUtil {
   private GuiUtil() {
     throw new IllegalStateException("Utility class");
   }
+
+  /**
+   * Opens a GUI safely on the Folia region thread.
+   * This MUST be used for all GUI openings from async contexts.
+   */
+  public static void openGuiSynchronously(Runnable openAction) {
+    org.leralix.tan.utils.FoliaScheduler.runTask(
+        TownsAndNations.getPlugin(),
+        openAction
+    );
+  }
+
   public static Gui createChestGui(String name, int nRow) {
     return Gui.gui().title(Component.text(name)).type(GuiType.CHEST).rows(nRow).create();
   }

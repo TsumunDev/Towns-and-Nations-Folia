@@ -29,7 +29,10 @@ public class ConfirmMenu extends BasicGui {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new ConfirmMenu(player, tanPlayer, message, onConfirm, onCancel).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new ConfirmMenu(player, tanPlayer, message, onConfirm, onCancel).open()
+              );
             });
   }
   @Override

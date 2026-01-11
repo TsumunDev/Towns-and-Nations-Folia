@@ -9,7 +9,7 @@ import org.leralix.tan.gui.cosmetic.IconKey;
 import org.leralix.tan.gui.user.RenterPropertyMenu;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 public class BuyOrRentPropertyMenu extends PropertyMenus {
   private BuyOrRentPropertyMenu(Player player, ITanPlayer tanPlayer, PropertyData propertyData) {
     super(
@@ -24,7 +24,10 @@ public class BuyOrRentPropertyMenu extends PropertyMenus {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new BuyOrRentPropertyMenu(player, tanPlayer, propertyData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new BuyOrRentPropertyMenu(player, tanPlayer, propertyData).open()
+              );
             });
   }
   @Override

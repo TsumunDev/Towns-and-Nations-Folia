@@ -17,8 +17,8 @@ import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.gui.GuiUtil;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class AssignPlayerToRankMenu extends IteratorGUI {
   private final TerritoryData territoryData;
@@ -61,8 +61,10 @@ public class AssignPlayerToRankMenu extends IteratorGUI {
               ITanPlayer tanPlayer = (ITanPlayer) ((Object[]) data)[0];
               @SuppressWarnings("unchecked")
               Map<String, ITanPlayer> playersData = (Map<String, ITanPlayer>) ((Object[]) data)[1];
-              new AssignPlayerToRankMenu(player, tanPlayer, territoryData, rankData, playersData)
-                  .open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new AssignPlayerToRankMenu(player, tanPlayer, territoryData, rankData, playersData).open()
+              );
             });
   }
   @Override

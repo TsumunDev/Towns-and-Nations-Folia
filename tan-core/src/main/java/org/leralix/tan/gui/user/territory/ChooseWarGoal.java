@@ -11,7 +11,7 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.listeners.chat.PlayerChatListenerStorage;
 import org.leralix.tan.listeners.chat.events.SelectNbChunksForConquer;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.leralix.tan.wars.War;
 import org.leralix.tan.wars.legacy.WarRole;

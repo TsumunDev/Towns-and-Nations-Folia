@@ -13,6 +13,7 @@ public class DebugCommandManager extends CommandManager {
     addSubCommand(new NexoDebugCommand());
     addSubCommand(new SkipDay());
     addSubCommand(new PlaySound());
+    addSubCommand(new TestQuestCommand());
     addSubCommand(new MainHelpCommand(this));
     addSubCommand(new SendReport());
   }

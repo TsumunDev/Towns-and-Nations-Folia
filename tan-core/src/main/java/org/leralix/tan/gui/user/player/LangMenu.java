@@ -14,7 +14,7 @@ import org.leralix.tan.gui.cosmetic.IconManager;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class LangMenu extends IteratorGUI {
   private LangMenu(Player player, ITanPlayer tanPlayer) {
@@ -25,7 +25,10 @@ public class LangMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new LangMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new LangMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override

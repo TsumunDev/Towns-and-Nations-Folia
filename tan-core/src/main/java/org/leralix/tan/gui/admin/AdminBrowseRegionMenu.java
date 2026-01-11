@@ -10,7 +10,7 @@ import org.leralix.tan.dataclass.territory.RegionData;
 import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.RegionDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 public class AdminBrowseRegionMenu extends IteratorGUI {
   private AdminBrowseRegionMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, "Admin - Regions List", 6);
@@ -20,7 +20,10 @@ public class AdminBrowseRegionMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new AdminBrowseRegionMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new AdminBrowseRegionMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override

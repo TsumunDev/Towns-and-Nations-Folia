@@ -13,7 +13,7 @@ import org.leralix.tan.gui.cosmetic.IconManager;
 import org.leralix.tan.gui.service.requirements.RankPermissionRequirement;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 public class TerritoryMemberMenu extends IteratorGUI {
   private final TerritoryData territoryData;
   public TerritoryMemberMenu(Player player, ITanPlayer tanPlayer, TerritoryData territoryData) {
@@ -25,7 +25,10 @@ public class TerritoryMemberMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new TerritoryMemberMenu(player, tanPlayer, territoryData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new TerritoryMemberMenu(player, tanPlayer, territoryData).open()
+              );
             });
   }
   @Override

@@ -12,7 +12,7 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.timezone.TimeZoneManager;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 public class PlayerMenu extends BasicGui {
   private PlayerMenu(Player player, ITanPlayer tanPlayer) {
     super(player, tanPlayer, Lang.HEADER_PLAYER_PROFILE.get(tanPlayer.getLang()), 3);
@@ -22,7 +22,10 @@ public class PlayerMenu extends BasicGui {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new PlayerMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new PlayerMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override

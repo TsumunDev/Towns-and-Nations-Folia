@@ -168,6 +168,14 @@ public class TownsAndNations extends JavaPlugin {
     WarStorage.getInstance();
     EventManager.getInstance().registerEvents(new NewsletterEvents());
     TruceStorage.getInstance();
+
+    // Initialize new progression services
+    LOGGER.info("[TaN] -Initializing Progression Services");
+    org.leralix.tan.service.quest.QuestService.getInstance().initialize();
+    org.leralix.tan.service.prestige.PrestigeService.getInstance().initialize();
+    org.leralix.tan.service.upgrade.UpgradeService.getInstance().initialize();
+    LOGGER.info("[TaN] -Progression services initialized");
+
     LOGGER.info("[TaN] -Loading blocks data");
     TANCustomNBT.setBlocsData();
     LOGGER.info("[TaN] -Loading commands");
@@ -277,6 +285,11 @@ public class TownsAndNations extends JavaPlugin {
     pluginManager.registerEvents(new EconomyService(), this);
     pluginManager.registerEvents(new CommandBlocker(), this);
     pluginManager.registerEvents(new RightClickListener(), this);
+
+    // Register quest listeners
+    LOGGER.info("[TaN] -Registering Quest Listeners");
+    pluginManager.registerEvents(new org.leralix.tan.listeners.quest.QuestBlockBreakListener(this), this);
+    pluginManager.registerEvents(new org.leralix.tan.listeners.quest.QuestEntityKillListener(this), this);
   }
   public static TownsAndNations getPlugin() {
     return plugin;

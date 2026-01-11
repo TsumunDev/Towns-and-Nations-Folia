@@ -14,7 +14,7 @@ import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.gui.utils.ConfirmMenu;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class SelectNewOwnerForTownMenu extends IteratorGUI {
   private final TownData townData;
@@ -27,7 +27,10 @@ public class SelectNewOwnerForTownMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new SelectNewOwnerForTownMenu(player, tanPlayer, townData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new SelectNewOwnerForTownMenu(player, tanPlayer, townData).open()
+              );
             });
   }
   @Override

@@ -15,7 +15,7 @@ import org.leralix.tan.gui.cosmetic.IconKey;
 import org.leralix.tan.gui.user.property.PropertyMenus;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class RenterPropertyMenu extends PropertyMenus {
   private RenterPropertyMenu(Player player, ITanPlayer tanPlayer, PropertyData propertyData) {
@@ -31,7 +31,10 @@ public class RenterPropertyMenu extends PropertyMenus {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new RenterPropertyMenu(player, tanPlayer, propertyData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new RenterPropertyMenu(player, tanPlayer, propertyData).open()
+              );
             });
   }
   @Override

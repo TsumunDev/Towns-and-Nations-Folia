@@ -21,7 +21,7 @@ import org.leralix.tan.storage.stored.PlannedAttackStorage;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.timezone.TimeZoneManager;
 import org.leralix.tan.utils.constants.Constants;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.DateUtil;
 import org.leralix.tan.wars.War;
 import org.leralix.tan.wars.legacy.CreateAttackData;
@@ -48,7 +48,10 @@ public class CreateAttackMenu extends BasicGui {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new CreateAttackMenu(player, tanPlayer, territoryData, war, warRole).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new CreateAttackMenu(player, tanPlayer, territoryData, war, warRole).open()
+              );
             });
   }
   @Override

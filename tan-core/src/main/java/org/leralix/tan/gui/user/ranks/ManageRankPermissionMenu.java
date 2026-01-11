@@ -26,7 +26,10 @@ public class ManageRankPermissionMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new ManageRankPermissionMenu(player, tanPlayer, territoryData, rankData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new ManageRankPermissionMenu(player, tanPlayer, territoryData, rankData).open()
+              );
             });
   }
   @Override

@@ -20,7 +20,7 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.listeners.chat.PlayerChatListenerStorage;
 import org.leralix.tan.listeners.chat.events.RenameRank;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class RankManagerMenu extends BasicGui {
   private final TerritoryData territoryData;
@@ -40,7 +40,10 @@ public class RankManagerMenu extends BasicGui {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new RankManagerMenu(player, tanPlayer, territoryData, rankData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new RankManagerMenu(player, tanPlayer, territoryData, rankData).open()
+              );
             });
   }
   @Override

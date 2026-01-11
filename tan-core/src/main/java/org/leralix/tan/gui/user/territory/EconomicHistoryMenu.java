@@ -15,7 +15,7 @@ import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.gui.AsyncGuiHelper;
 public class EconomicHistoryMenu extends IteratorGUI {
   private final TerritoryData territoryData;
@@ -37,8 +37,11 @@ public class EconomicHistoryMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new EconomicHistoryMenu(player, tanPlayer, territoryData, transactionHistoryEnum)
-                  .open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new EconomicHistoryMenu(player, tanPlayer, territoryData, transactionHistoryEnum)
+                      .open()
+              );
             });
   }
   @Override

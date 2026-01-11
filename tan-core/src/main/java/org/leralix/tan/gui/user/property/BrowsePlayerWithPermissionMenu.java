@@ -16,7 +16,7 @@ import org.leralix.tan.gui.cosmetic.IconKey;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.PermissionManager;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.item.HeadUtils;
 public class BrowsePlayerWithPermissionMenu extends IteratorGUI {
   private final PermissionManager permissionManager;
   private final ChunkPermissionType chunkPermission;
@@ -41,9 +41,12 @@ public class BrowsePlayerWithPermissionMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new BrowsePlayerWithPermissionMenu(
-                      player, tanPlayer, permissionManager, permission, returnMenu)
-                  .open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new BrowsePlayerWithPermissionMenu(
+                          player, tanPlayer, permissionManager, permission, returnMenu)
+                      .open()
+              );
             });
   }
   @Override

@@ -1,9 +1,9 @@
 # 🏰 Coconation - Towns & Nations
 
-[![Version](https://img.shields.io/badge/version-0.16.0-blue.svg)](https://github.com/Leralix/Towns-And-Nations)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1-green.svg)](https://papermc.io/)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/Leralix/Towns-And-Nations)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1%2B-green.svg)](https://papermc.io/)
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://adoptium.net/)
-[![Folia](https://img.shields.io/badge/Folia-Compatible-brightgreen.svg)](https://papermc.io/software/folia)
+[![Folia](https://img.shields.io/badge/Folia-1.21.1%2B-brightgreen.svg)](https://papermc.io/software/folia)
 [![License](https://img.shields.io/badge/license-GPL--3.0-red.svg)](LICENSE)
 
 > Un plugin de gestion territoriale, diplomatique et économique complet pour Minecraft Folia/Paper

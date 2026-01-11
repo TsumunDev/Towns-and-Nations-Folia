@@ -18,7 +18,7 @@ import org.leralix.tan.listeners.chat.PlayerChatListenerStorage;
 import org.leralix.tan.listeners.chat.events.DonateToTerritory;
 import org.leralix.tan.listeners.chat.events.RetrieveMoney;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class TreasuryMenu extends BasicGui {
   protected final TerritoryData territoryData;
@@ -33,7 +33,10 @@ public class TreasuryMenu extends BasicGui {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new TreasuryMenu(player, tanPlayer, territoryData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new TreasuryMenu(player, tanPlayer, territoryData).open()
+              );
             });
   }
   @Override

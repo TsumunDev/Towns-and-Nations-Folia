@@ -27,7 +27,7 @@ import org.leralix.tan.listeners.interact.RightClickListener;
 import org.leralix.tan.listeners.interact.events.ChangeCapital;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.constants.Constants;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.file.FileUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class TownSettingsMenu extends SettingsMenus {
@@ -41,7 +41,10 @@ public class TownSettingsMenu extends SettingsMenus {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new TownSettingsMenu(player, tanPlayer, townData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new TownSettingsMenu(player, tanPlayer, townData).open()
+              );
             });
   }
   @Override

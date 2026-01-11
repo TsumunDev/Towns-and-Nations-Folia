@@ -27,7 +27,10 @@ public class PropertyChunkSettingsMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new PropertyChunkSettingsMenu(player, tanPlayer, propertyData, returnGui).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new PropertyChunkSettingsMenu(player, tanPlayer, propertyData, returnGui).open()
+              );
             });
   }
   @Override

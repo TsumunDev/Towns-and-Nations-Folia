@@ -11,7 +11,7 @@ import org.leralix.tan.dataclass.PropertyData;
 import org.leralix.tan.dataclass.territory.cosmetic.CustomIcon;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 public class PlayerPropertyManager extends PropertyMenus {
   private final Consumer<Player> onClose;
   private PlayerPropertyManager(

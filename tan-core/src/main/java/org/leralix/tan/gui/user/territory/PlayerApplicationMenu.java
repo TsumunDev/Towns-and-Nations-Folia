@@ -19,8 +19,8 @@ import org.leralix.tan.enums.RolePermission;
 import org.leralix.tan.gui.IteratorGUI;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
-import org.leralix.tan.utils.deprecated.HeadUtils;
+import org.leralix.tan.utils.gui.GuiUtil;
+import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class PlayerApplicationMenu extends IteratorGUI {
   TownData townData;
@@ -61,7 +61,10 @@ public class PlayerApplicationMenu extends IteratorGUI {
               @SuppressWarnings("unchecked")
               Map<String, ITanPlayer> applicantsData =
                   (Map<String, ITanPlayer>) ((Object[]) data)[1];
-              new PlayerApplicationMenu(player, tanPlayer, townData, applicantsData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new PlayerApplicationMenu(player, tanPlayer, townData, applicantsData).open()
+              );
             });
   }
   @Override

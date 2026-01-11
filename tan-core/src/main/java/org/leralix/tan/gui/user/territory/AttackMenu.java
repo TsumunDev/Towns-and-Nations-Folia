@@ -27,7 +27,10 @@ public class AttackMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new AttackMenu(player, tanPlayer, territoryData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new AttackMenu(player, tanPlayer, territoryData).open()
+              );
             });
   }
   @Override

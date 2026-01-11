@@ -21,7 +21,7 @@ import org.leralix.tan.upgrade.TerritoryStats;
 import org.leralix.tan.upgrade.Upgrade;
 import org.leralix.tan.upgrade.rewards.IndividualStat;
 import org.leralix.tan.utils.constants.Constants;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class UpgradeMenu extends BasicGui {
   private final TerritoryData territoryData;
@@ -39,7 +39,10 @@ public class UpgradeMenu extends BasicGui {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new UpgradeMenu(player, tanPlayer, territoryData).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new UpgradeMenu(player, tanPlayer, territoryData).open()
+              );
             });
   }
   @Override

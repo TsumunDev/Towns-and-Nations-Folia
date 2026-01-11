@@ -19,7 +19,7 @@ import org.leralix.tan.listeners.interact.RightClickListener;
 import org.leralix.tan.listeners.interact.events.property.CreatePlayerPropertyEvent;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.upgrade.rewards.numeric.PropertyCap;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class PlayerPropertiesMenu extends IteratorGUI {
   private PlayerPropertiesMenu(Player player, ITanPlayer tanPlayer) {
@@ -30,7 +30,10 @@ public class PlayerPropertiesMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new PlayerPropertiesMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new PlayerPropertiesMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override

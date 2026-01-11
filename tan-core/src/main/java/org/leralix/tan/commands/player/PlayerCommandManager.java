@@ -18,6 +18,12 @@ public class PlayerCommandManager extends CommandManager {
     addSubCommand(new AutoClaimCommand());
     addSubCommand(new TownSpawnCommand());
     addSubCommand(new SetTownSpawnCommand());
+
+    // Progression system commands
+    addSubCommand(new QuestCommand());
+    addSubCommand(new PrestigeCommand());
+    addSubCommand(new UpgradeCommand());
+
     addSubCommand(new MainHelpCommand(this));
   }
   @Override

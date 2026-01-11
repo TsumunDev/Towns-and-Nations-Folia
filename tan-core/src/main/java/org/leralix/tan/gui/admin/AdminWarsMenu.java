@@ -9,7 +9,7 @@ import org.leralix.tan.gui.user.war.WarMenu;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.WarStorage;
-import org.leralix.tan.utils.deprecated.GuiUtil;
+import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.gui.AsyncGuiHelper;
 import org.leralix.tan.wars.War;
 public class AdminWarsMenu extends IteratorGUI {
@@ -23,7 +23,10 @@ public class AdminWarsMenu extends IteratorGUI {
         .get(player)
         .thenAccept(
             tanPlayer -> {
-              new AdminWarsMenu(player, tanPlayer).open();
+              org.leralix.tan.utils.FoliaScheduler.runTask(
+                  org.leralix.tan.TownsAndNations.getPlugin(),
+                  () -> new AdminWarsMenu(player, tanPlayer).open()
+              );
             });
   }
   @Override
