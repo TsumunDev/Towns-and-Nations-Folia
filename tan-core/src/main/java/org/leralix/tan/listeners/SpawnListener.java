@@ -19,10 +19,19 @@ public class SpawnListener implements Listener {
         && TeleportationRegister.isPlayerRegistered(player.getUniqueId().toString())
         && !TeleportationRegister.getTeleportationData(player).isCancelled()
         && ConfigUtil.getCustomConfig(ConfigTag.MAIN).getBoolean("cancelTeleportOnDamage", true)) {
-      ITanPlayer tanPlayer =
-          PlayerDataStorage.getInstance().getSync(player.getUniqueId().toString());
-      TeleportationRegister.getTeleportationData(tanPlayer).setCancelled(true);
-      TanChatUtils.message(player, Lang.TELEPORTATION_CANCELLED.get(player));
+      // Load player data asynchronously to avoid blocking I/O during combat
+      PlayerDataStorage.getInstance()
+          .get(player.getUniqueId())
+          .thenAccept(tanPlayer -> {
+            TeleportationRegister.getTeleportationData(tanPlayer).setCancelled(true);
+            TanChatUtils.message(player, Lang.TELEPORTATION_CANCELLED.get(player));
+          })
+          .exceptionally(throwable -> {
+            org.leralix.tan.TownsAndNations.getPlugin()
+                .getLogger()
+                .warning("Failed to cancel teleportation on hit: " + throwable.getMessage());
+            return null;
+          });
     }
   }
   @EventHandler
@@ -47,8 +56,18 @@ public class SpawnListener implements Listener {
     }
   }
   public void cancelTeleportation(Player player) {
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player.getUniqueId().toString());
-    TeleportationRegister.getTeleportationData(tanPlayer).setCancelled(true);
-    TanChatUtils.message(player, Lang.TELEPORTATION_CANCELLED.get(player));
+    // Load player data asynchronously to avoid blocking I/O
+    PlayerDataStorage.getInstance()
+        .get(player.getUniqueId())
+        .thenAccept(tanPlayer -> {
+          TeleportationRegister.getTeleportationData(tanPlayer).setCancelled(true);
+          TanChatUtils.message(player, Lang.TELEPORTATION_CANCELLED.get(player));
+        })
+        .exceptionally(throwable -> {
+          org.leralix.tan.TownsAndNations.getPlugin()
+              .getLogger()
+              .warning("Failed to cancel teleportation: " + throwable.getMessage());
+          return null;
+        });
   }
 }
