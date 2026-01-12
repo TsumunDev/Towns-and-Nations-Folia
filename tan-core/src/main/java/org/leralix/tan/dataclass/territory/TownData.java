@@ -243,6 +243,20 @@ public class TownData extends TerritoryData {
     }
     return PlayerDataStorage.getInstance().getSync(leaderID);
   }
+  /**
+   * Gets the town leader's data asynchronously.
+   *
+   * <p>This method loads the leader player data without blocking the calling thread.</p>
+   *
+   * @return CompletableFuture containing the leader's ITanPlayer, or null if no leader
+   */
+  public CompletableFuture<ITanPlayer> getLeaderDataAsync() {
+    String leaderID = getLeaderID();
+    if (leaderID == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return PlayerDataStorage.getInstance().get(leaderID);
+  }
   @Override
   public void setLeaderID(String leaderID) {
     this.uuidLeader = leaderID;
@@ -262,6 +276,29 @@ public class TownData extends TerritoryData {
       }
     }
     return overlords;
+  }
+  /**
+   * Gets the town's overlord (region/nation) hierarchy asynchronously.
+   *
+   * <p>This method loads all overlords in the hierarchy without blocking the calling thread.</p>
+   *
+   * @return CompletableFuture containing a collection of overlords
+   */
+  protected CompletableFuture<List<TerritoryData>> getOverlordsAsync() {
+    List<TerritoryData> overlords = new ArrayList<>();
+    if (!haveOverlord()) {
+      return CompletableFuture.completedFuture(overlords);
+    }
+
+    return RegionDataStorage.getInstance()
+        .get(this.overlordID)
+        .thenApply(regionData -> {
+          if (regionData != null) {
+            overlords.add(regionData);
+            regionData.getOverlord().ifPresent(overlords::add);
+          }
+          return overlords;
+        });
   }
   @Override
   public void broadCastMessage(FilledLang message) {

@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.OfflinePlayer;
@@ -111,6 +112,16 @@ public class RegionData extends TerritoryData {
   @Override
   public ITanPlayer getLeaderData() {
     return PlayerDataStorage.getInstance().getSync(getLeaderID());
+  }
+  /**
+   * Gets the region leader's data asynchronously.
+   *
+   * <p>This method loads the leader player data without blocking the calling thread.</p>
+   *
+   * @return CompletableFuture containing the leader's ITanPlayer
+   */
+  public CompletableFuture<ITanPlayer> getLeaderDataAsync() {
+    return PlayerDataStorage.getInstance().get(getLeaderID());
   }
   @Override
   public void setLeaderID(String newLeaderID) {
