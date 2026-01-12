@@ -3,7 +3,6 @@ import static org.leralix.lib.data.SoundEnum.NOT_ALLOWED;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.ITanPlayer;
-import org.leralix.tan.economy.EconomyUtil;
 import org.leralix.tan.gui.BasicGui;
 import org.leralix.tan.gui.cosmetic.IconKey;
 import org.leralix.tan.gui.cosmetic.IconManager;
@@ -52,7 +51,7 @@ public class NoTownMenu extends BasicGui {
                 TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(tanPlayer), NOT_ALLOWED);
                 return;
               }
-              double playerMoney = EconomyUtil.getBalance(player);
+              double playerMoney = tanPlayer.getBalance();
               if (playerMoney < townPrice) {
                 TanChatUtils.message(
                     player,

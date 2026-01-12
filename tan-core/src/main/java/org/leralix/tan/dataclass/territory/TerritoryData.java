@@ -572,6 +572,80 @@ public abstract class TerritoryData {
     }
     return false;
   }
+  /**
+   * Adds a player donation to the territory asynchronously.
+   *
+   * <p>This method is now async to avoid blocking I/O calls. It checks the player's balance,
+   * withdraws the donation amount, adds it to the territory balance, and records the transaction.</p>
+   *
+   * @param player The player making the donation
+   * @param amount The amount to donate
+   * @return CompletableFuture that completes when the donation is processed
+   */
+  public CompletableFuture<Void> addDonationAsync(Player player, double amount) {
+    if (amount <= 0) {
+      // Synchronous validation - fast operation
+      return PlayerDataStorage.getInstance().get(player)
+          .thenAccept(tanPlayer -> {
+            TanChatUtils.message(
+                player,
+                Lang.PAY_MINIMUM_REQUIRED.get(tanPlayer.getLang()));
+          });
+    }
+
+    // Load player data and check balance asynchronously
+    return PlayerDataStorage.getInstance()
+        .get(player)
+        .thenCompose(tanPlayer -> {
+          LangType langType = tanPlayer.getLang();
+
+          // Check player's balance asynchronously
+          return org.leralix.tan.service.AsyncEconomyService.getBalance(player)
+              .thenCompose(balance -> {
+                if (balance < amount) {
+                  // Insufficient funds
+                  TanChatUtils.message(
+                      player,
+                      Lang.PLAYER_NOT_ENOUGH_MONEY.get(langType));
+                  return CompletableFuture.completedFuture(null);
+                }
+
+                // Sufficient funds - withdraw and add to territory balance
+                return org.leralix.tan.service.AsyncEconomyService.withdraw(player, amount)
+                    .thenRun(() -> {
+                      addToBalance(amount);
+                      TownsAndNations.getPlugin()
+                          .getDatabaseHandler()
+                          .addTransactionHistory(new PlayerDonationHistory(this, player, amount));
+                      TanChatUtils.message(
+                          player,
+                          Lang.PLAYER_SEND_MONEY_SUCCESS.get(
+                              langType, Double.toString(amount), getBaseColoredName()),
+                          SoundEnum.MINOR_GOOD);
+                    });
+              });
+        })
+        .exceptionally(throwable -> {
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .warning("Failed to process donation from " + player.getName() + ": " + throwable.getMessage());
+          TanChatUtils.message(
+              player,
+              Lang.SYNTAX_ERROR.get(player));
+          return null;
+        });
+  }
+
+  /**
+   * Synchronous version of addDonation for backwards compatibility.
+   *
+   * <p><b>Deprecated:</b> Use {@link #addDonationAsync(Player, double)} instead to avoid blocking I/O.</p>
+   *
+   * @param player The player making the donation
+   * @param amount The amount to donate
+   * @deprecated Use addDonationAsync instead
+   */
+  @Deprecated
   public void addDonation(Player player, double amount) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
     LangType langType = tanPlayer.getLang();

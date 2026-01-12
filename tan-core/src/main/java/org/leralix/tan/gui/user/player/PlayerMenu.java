@@ -2,7 +2,6 @@ package org.leralix.tan.gui.user.player;
 import dev.triumphteam.gui.guis.GuiItem;
 import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.ITanPlayer;
-import org.leralix.tan.economy.EconomyUtil;
 import org.leralix.tan.gui.BasicGui;
 import org.leralix.tan.gui.cosmetic.IconKey;
 import org.leralix.tan.gui.cosmetic.IconManager;
@@ -50,7 +49,7 @@ public class PlayerMenu extends BasicGui {
         .get(IconKey.PLAYER_BALANCE_ICON)
         .setName(Lang.GUI_YOUR_BALANCE.get(langType, player.getName()))
         .setDescription(
-            Lang.GUI_YOUR_BALANCE_DESC1.get(Double.toString(EconomyUtil.getBalance(player))))
+            Lang.GUI_YOUR_BALANCE_DESC1.get(Double.toString(tanPlayer.getBalance())))
         .asGuiItem(player, langType);
   }
   private GuiItem getPropertyButton() {
