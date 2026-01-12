@@ -11,6 +11,18 @@ public class EconomyUtil {
   public static boolean isStandalone() {
     return econ instanceof TanEconomyStandalone;
   }
+  /**
+   * Gets the underlying economy instance.
+   *
+   * <p><b>Internal use only:</b> This is exposed for {@link AsyncEconomyService}
+   * and other advanced async operations. Prefer using {@link AsyncEconomyService}
+   * for new code.</p>
+   *
+   * @return The economy instance
+   */
+  static AbstractTanEcon getEconInstance() {
+    return econ;
+  }
   public static double getBalance(OfflinePlayer offlinePlayer) {
     return econ.getBalance(PlayerDataStorage.getInstance().getSync(offlinePlayer));
   }
