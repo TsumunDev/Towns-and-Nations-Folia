@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -170,37 +171,68 @@ public class PropertyData extends Building {
   public String getDescription() {
     return description;
   }
-  public void payRent() {
+  /**
+   * Collects rent from the current renter asynchronously.
+   *
+   * <p>This method is now async to avoid blocking I/O calls. It checks the renter's balance,
+   * withdraws rent if sufficient, and distributes it to the property owner and town.</p>
+   *
+   * @return CompletableFuture that completes when rent collection is done
+   */
+  public CompletableFuture<Void> payRent() {
     if (rentingPlayerID == null) {
-      return;
+      return CompletableFuture.completedFuture(null);
     }
-    OfflinePlayer renter;
+
+    UUID renterUuid;
     try {
-      renter = Bukkit.getOfflinePlayer(UUID.fromString(rentingPlayerID));
+      renterUuid = UUID.fromString(rentingPlayerID);
     } catch (IllegalArgumentException e) {
       TownsAndNations.getPlugin()
           .getLogger()
           .warning("Invalid renting player UUID for property " + name + ", expelling renter");
-      expelRenter(true);
-      return;
+      expelRenterAsync(true);
+      return CompletableFuture.completedFuture(null);
     }
+
     TerritoryData town = getTown();
     if (town == null) {
       TownsAndNations.getPlugin()
           .getLogger()
           .warning("Property " + name + " has no valid town, cannot collect rent");
-      return;
+      return CompletableFuture.completedFuture(null);
     }
+
     double baseRent = getBaseRentPrice();
     double rent = getRentPrice();
     double taxRent = rent - baseRent;
-    if (EconomyUtil.getBalance(renter) < rent) {
-      expelRenter(true);
-      return;
-    }
-    EconomyUtil.removeFromBalance(renter, rent);
-    getOwner().addToBalance(baseRent);
-    town.addToBalance(taxRent);
+
+    // Create OfflinePlayer from UUID (lightweight operation)
+    OfflinePlayer renter = Bukkit.getOfflinePlayer(renterUuid);
+
+    // Check balance and collect rent asynchronously
+    return org.leralix.tan.service.AsyncEconomyService.getBalance(renter)
+        .thenCompose(balance -> {
+          if (balance < rent) {
+            // Insufficient funds - expel renter
+            expelRenterAsync(true);
+            return CompletableFuture.completedFuture(null);
+          }
+
+          // Sufficient funds - withdraw and distribute
+          return org.leralix.tan.service.AsyncEconomyService.withdraw(renter, rent)
+              .thenRun(() -> {
+                // Distribute rent: owner gets baseRent, town gets tax
+                getOwner().addToBalance(baseRent);
+                town.addToBalance(taxRent);
+              });
+        })
+        .exceptionally(throwable -> {
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .warning("Failed to collect rent for property " + name + ": " + throwable.getMessage());
+          return null;
+        });
   }
   public AbstractOwner getOwner() {
     return owner;
@@ -434,6 +466,48 @@ public class PropertyData extends Building {
     if (isRented()) return Lang.PROPERTY_RENTED_BY.get(langType, getRenter().getNameStored());
     else return Lang.PROPERTY_BELONGS_TO.get(langType, getOwner().getName());
   }
+  /**
+   * Expels the current renter asynchronously.
+   *
+   * <p>This method is now async to avoid blocking I/O calls. It loads the renter's data,
+   * removes the property from their inventory, and updates the property state.</p>
+   *
+   * @param rentBack Whether to put the property back up for rent
+   * @return CompletableFuture that completes when renter expulsion is done
+   */
+  public CompletableFuture<Void> expelRenterAsync(boolean rentBack) {
+    if (!isRented()) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    return PlayerDataStorage.getInstance()
+        .get(rentingPlayerID)
+        .thenAccept(renter -> {
+          renter.removeProperty(this);
+          this.rentingPlayerID = null;
+          if (rentBack) isForRent = true;
+          org.leralix.tan.utils.FoliaScheduler.runTask(
+              TownsAndNations.getPlugin(),
+              this::updateSign);
+          getPermissionManager().setAll(RelationPermission.SELECTED_ONLY);
+        })
+        .exceptionally(throwable -> {
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .warning("Failed to expel renter from property " + name + ": " + throwable.getMessage());
+          return null;
+        });
+  }
+
+  /**
+   * Synchronous version of expelRenter for backwards compatibility.
+   *
+   * <p><b>Deprecated:</b> Use {@link #expelRenterAsync(boolean)} instead to avoid blocking I/O.</p>
+   *
+   * @param rentBack Whether to put the property back up for rent
+   * @deprecated Use expelRenterAsync instead
+   */
+  @Deprecated
   public void expelRenter(boolean rentBack) {
     if (!isRented()) return;
     ITanPlayer renter = PlayerDataStorage.getInstance().getSync(rentingPlayerID);

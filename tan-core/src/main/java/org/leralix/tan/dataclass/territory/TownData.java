@@ -2,6 +2,7 @@ package org.leralix.tan.dataclass.territory;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -302,6 +303,67 @@ public class TownData extends TerritoryData {
     this.isRecruiting = !this.isRecruiting;
   }
   @Override
+  protected CompletableFuture<Void> collectTaxesAsync() {
+    Collection<ITanPlayer> tanPlayers = getITanPlayerList();
+
+    // Collect taxes from all members asynchronously (in parallel)
+    List<CompletableFuture<Void>> taxFutures = new ArrayList<>();
+
+    for (ITanPlayer tanPlayer : tanPlayers) {
+      OfflinePlayer offlinePlayer = tanPlayer.getOfflinePlayer();
+      if (!getRank(tanPlayer).isPayingTaxes()) continue;
+
+      double tax = getTax();
+
+      // Create async tax collection task for each player
+      CompletableFuture<Void> taxFuture = org.leralix.tan.service.AsyncEconomyService
+          .getBalance(offlinePlayer)
+          .thenAccept(balance -> {
+            if (balance > tax) {
+              // Sufficient funds - collect tax
+              org.leralix.tan.service.AsyncEconomyService.withdraw(offlinePlayer, tax)
+                  .thenRun(() -> {
+                    addToBalance(tax);
+                    TownsAndNations.getPlugin()
+                        .getDatabaseHandler()
+                        .addTransactionHistory(new PlayerTaxHistory(this, tanPlayer, tax));
+                  })
+                  .exceptionally(throwable -> {
+                    TownsAndNations.getPlugin()
+                        .getLogger()
+                        .warning("Failed to collect tax from " + tanPlayer.getNameStored() + ": " + throwable.getMessage());
+                    return null;
+                  });
+            } else {
+              // Insufficient funds - record failed tax collection
+              TownsAndNations.getPlugin()
+                  .getDatabaseHandler()
+                  .addTransactionHistory(new PlayerTaxHistory(this, tanPlayer, -1));
+            }
+          })
+          .exceptionally(throwable -> {
+            TownsAndNations.getPlugin()
+                .getLogger()
+                .warning("Failed to check balance for tax collection from " + tanPlayer.getNameStored() + ": " + throwable.getMessage());
+            return null;
+          });
+
+      taxFutures.add(taxFuture);
+    }
+
+    // Wait for all tax collections to complete
+    return CompletableFuture.allOf(taxFutures.toArray(new CompletableFuture[0]));
+  }
+
+  /**
+   * Legacy synchronous tax collection method.
+   *
+   * <p><b>Deprecated:</b> Use {@link #collectTaxesAsync()} instead to avoid blocking I/O.</p>
+   *
+   * @deprecated Use collectTaxesAsync instead
+   */
+  @Override
+  @Deprecated
   protected void collectTaxes() {
     Collection<ITanPlayer> tanPlayers = getITanPlayerList();
     for (ITanPlayer tanPlayer : tanPlayers) {
