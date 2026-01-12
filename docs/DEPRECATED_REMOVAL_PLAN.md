@@ -107,9 +107,23 @@ See detailed migration plan in `docs/ASYNC_MIGRATION_PLAN.md`
 
 **Problem**: Legacy icon storage replaced by base64 serialization.
 
-**Target Epic/Story**: Epic 2 → New story
-**Estimated Effort**: 3 hours
-**Quick Win**: No
+**Solution**: Instead of breaking backward compatibility, implemented proactive data migration:
+- Created `IconDataMigrator` utility that scans and migrates old data on plugin startup
+- Integrated into `TownsAndNations.onEnable()` (lines 172-185)
+- Deprecated fields retained for backward compatibility with old saved data
+- New data is automatically migrated to base64 format
+- Migration creates backups of original files before modification
+
+**Benefits**:
+- Zero data loss for existing servers
+- Automatic migration on first startup after update
+- Backward compatible with old JSON format
+- Can safely remove deprecated fields in future version (e.g., 0.17.0)
+
+**Target Epic/Story**: Epic 2 → Ongoing
+**Estimated Effort**: 3 hours (migration utility) + 1 hour (future field removal)
+**Quick Win**: No (requires careful data migration)
+**Status**: ✅ Migration utility implemented, fields retained for compatibility
 
 ---
 
@@ -134,19 +148,32 @@ See detailed migration plan in `docs/ASYNC_MIGRATION_PLAN.md`
 | NumberUtil.kt | HIGH | 1h | YES | 1.2 | ✅ COMPLETED |
 | getSync/getAllSync | HIGH | 17h | NO | ASYNC_MIGRATION_PLAN.md | ✅ Audited |
 | owningPlayerID | MEDIUM | 2h | YES | 1.3 | ✅ COMPLETED |
-| CustomIcon fields | MEDIUM | 3h | NO | 2.X | Pending |
+| CustomIcon fields | MEDIUM | 3h | NO | 2.X | ✅ Migration implemented |
 | Incomplete features | LOW | TBD | NO | 3.2 | Epic 3 decision |
 
 ---
 
-**Progress**: 2/5 quick wins completed (40%)
+**Progress**: 3/5 items completed (60%)
 
-**Next Steps**:
-1. Implement async migration (see ASYNC_MIGRATION_PLAN.md)
-2. Or proceed with CustomIcon fields cleanup
-3. Or defer to Epic 3 decision
+**Story 1.3 Status**: ✅ COMPLETE
+
+**Completed Work**:
+1. ✅ Comprehensive audit of deprecated code (11 @Deprecated, 15 TODO, 0 FIXME)
+2. ✅ Removed NumberUtil.kt duplicate utility (6 files updated)
+3. ✅ Removed PropertyData.owningPlayerID legacy field (2 files simplified)
+4. ✅ Implemented IconDataMigrator for safe CustomIcon field migration
+5. ✅ Created ASYNC_MIGRATION_PLAN.md for Phase 1 economy migration
+
+**Next Steps** (Epic 1 continuation):
+1. **Phase 1**: Implement async migration for economy layer (5 hours) - see ASYNC_MIGRATION_PLAN.md
+2. **Phase 2**: Migrate core territory logic (7 hours)
+3. **Phase 3**: Migrate commands and GUI (3 hours)
+4. **Phase 4**: Cleanup and tests (2 hours)
+
+**Future Work** (Epic 2):
+- CustomIcon deprecated fields can be safely removed in version 0.17.0+ after data migration
 
 ---
 
-**Document Version**: 1.1
-**Last Updated**: 2025-01-11
+**Document Version**: 1.2
+**Last Updated**: 2025-01-12
