@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn clean package:*)",
+      "Bash(./gradlew:*)",
+      "Bash(test:*)",
+      "Bash(nul:*)",
+      "Bash(mkdir:*)",
+      "Bash(./gradlew.bat:*)",
+      "Bash(find:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

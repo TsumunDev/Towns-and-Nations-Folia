@@ -57,7 +57,7 @@ import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.constants.DatabaseConstants;
 import org.leralix.tan.utils.constants.EnabledPermissions;
 import org.leralix.tan.utils.gameplay.TANCustomNBT;
-import org.leralix.tan.utils.text.NumberUtil;
+import org.leralix.tan.utils.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tan.api.TanAPI;
@@ -127,7 +127,7 @@ public class TownsAndNations extends JavaPlugin {
     LOGGER.info("[TaN] -Nexo update checker initialized");
     IconManager.getInstance();
     LayoutManager.getInstance();
-    NumberUtil.init();
+    NumberUtils.init();
     EnabledPermissions.getInstance().init();
     FortStorage.init(new FortDataStorage());
     LOGGER.info("[TaN] -Loading Redis");

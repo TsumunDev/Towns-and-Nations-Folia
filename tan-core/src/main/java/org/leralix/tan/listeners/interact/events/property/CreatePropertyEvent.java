@@ -19,7 +19,7 @@ import org.leralix.tan.storage.stored.NewClaimedChunkStorage;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.constants.Constants;
-import org.leralix.tan.utils.text.NumberUtil;
+import org.leralix.tan.utils.NumberUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 public abstract class CreatePropertyEvent extends RightClickListenerEvent {
   protected final Player player;
@@ -69,7 +69,7 @@ public abstract class CreatePropertyEvent extends RightClickListenerEvent {
         return ListenerState.FAILURE;
       }
       position2 = vector3D;
-      cost = NumberUtil.roundWithDigits(getTotalCost());
+      cost = NumberUtils.roundWithDigits(getTotalCost());
       if (tanPlayer.getBalance() < cost) {
         TanChatUtils.message(
             player,

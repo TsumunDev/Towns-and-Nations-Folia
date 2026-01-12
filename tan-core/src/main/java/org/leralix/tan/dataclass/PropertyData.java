@@ -45,12 +45,10 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.gameplay.TANCustomNBT;
-import org.leralix.tan.utils.text.NumberUtil;
+import org.leralix.tan.utils.NumberUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class PropertyData extends Building {
   private final String ID;
-  @Deprecated(since = "0.15.6")
-  private String owningPlayerID;
   private AbstractOwner owner;
   private String rentingPlayerID;
   private PermissionManager permissionManager;
@@ -205,9 +203,6 @@ public class PropertyData extends Building {
     town.addToBalance(taxRent);
   }
   public AbstractOwner getOwner() {
-    if (owner == null) {
-      owner = new PlayerOwned(owningPlayerID);
-    }
     return owner;
   }
   public String getName() {
@@ -224,7 +219,7 @@ public class PropertyData extends Building {
     if (town == null) {
       return getBaseRentPrice();
     }
-    return NumberUtil.roundWithDigits(getBaseRentPrice() * (1 + town.getTaxOnRentingProperty()));
+    return NumberUtils.roundWithDigits(getBaseRentPrice() * (1 + town.getTaxOnRentingProperty()));
   }
   public double getBaseSalePrice() {
     return this.salePrice;
@@ -234,7 +229,7 @@ public class PropertyData extends Building {
     if (town == null) {
       return getBaseSalePrice();
     }
-    return NumberUtil.roundWithDigits(getBaseSalePrice() * (1 + town.getTaxOnBuyingProperty()));
+    return NumberUtils.roundWithDigits(getBaseSalePrice() * (1 + town.getTaxOnBuyingProperty()));
   }
   public boolean containsLocation(Location location) {
     return Math.max(p1.getX(), p2.getX()) >= location.getX()

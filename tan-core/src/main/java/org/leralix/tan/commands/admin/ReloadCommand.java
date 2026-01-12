@@ -14,7 +14,7 @@ import org.leralix.tan.storage.ClaimBlacklistStorage;
 import org.leralix.tan.storage.MobChunkSpawnStorage;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.constants.EnabledPermissions;
-import org.leralix.tan.utils.text.NumberUtil;
+import org.leralix.tan.utils.NumberUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class ReloadCommand extends SubCommand {
   @Override
@@ -51,7 +51,7 @@ public class ReloadCommand extends SubCommand {
       Constants.init(ConfigUtil.getCustomConfig(ConfigTag.MAIN));
       MobChunkSpawnStorage.init();
       ClaimBlacklistStorage.init();
-      NumberUtil.init();
+      NumberUtils.init();
       EnabledPermissions.getInstance().init();
       try {
         org.leralix.tan.gui.cosmetic.LayoutManager.reload();

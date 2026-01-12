@@ -17,7 +17,7 @@ import org.leralix.tan.listeners.chat.events.ChangePropertyName;
 import org.leralix.tan.listeners.chat.events.ChangePropertyRentPrice;
 import org.leralix.tan.listeners.chat.events.ChangePropertySalePrice;
 import org.leralix.tan.utils.item.HeadUtils;
-import org.leralix.tan.utils.text.NumberUtil;
+import org.leralix.tan.utils.NumberUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
 public abstract class PropertyMenus extends BasicGui {
   protected final PropertyData propertyData;
@@ -83,8 +83,8 @@ public abstract class PropertyMenus extends BasicGui {
         propertyData.isForSale() ? Lang.GUI_PROPERTY_FOR_SALE : Lang.GUI_PROPERTY_NOT_FOR_SALE;
     double price = propertyData.getSalePrice();
     double taxPrice =
-        NumberUtil.roundWithDigits(price * propertyData.getTown().getTaxOnBuyingProperty());
-    double total = NumberUtil.roundWithDigits(price + taxPrice);
+        NumberUtils.roundWithDigits(price * propertyData.getTown().getTaxOnBuyingProperty());
+    double total = NumberUtils.roundWithDigits(price + taxPrice);
     return iconManager
         .get(iconKey)
         .setName(name.get(langType))
@@ -121,7 +121,7 @@ public abstract class PropertyMenus extends BasicGui {
         propertyData.isForRent() ? Lang.GUI_PROPERTY_FOR_RENT : Lang.GUI_PROPERTY_NOT_FOR_RENT;
     double price = propertyData.getBaseRentPrice();
     double taxPrice =
-        NumberUtil.roundWithDigits(price * propertyData.getTown().getTaxOnRentingProperty());
+        NumberUtils.roundWithDigits(price * propertyData.getTown().getTaxOnRentingProperty());
     double total = propertyData.getRentPrice();
     return iconManager
         .get(iconKey)

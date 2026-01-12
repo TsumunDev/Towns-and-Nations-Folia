@@ -8,20 +8,9 @@ public class PropertyDataDeserializer implements JsonDeserializer<PropertyData> 
   public PropertyData deserialize(
       JsonElement json, Type typeOfT, JsonDeserializationContext context)
       throws JsonParseException {
-    JsonObject jsonObject = json.getAsJsonObject();
-    if (jsonObject.has("owningPlayerID")
-        && jsonObject.get("owningPlayerID") != null
-        && !jsonObject.get("owningPlayerID").isJsonNull()
-        && (!jsonObject.has("owner") || jsonObject.get("owner").isJsonNull())) {
-      String owningPlayerID = jsonObject.get("owningPlayerID").getAsString();
-      JsonObject ownerObject = new JsonObject();
-      ownerObject.addProperty("type", "PLAYER");
-      ownerObject.addProperty("playerID", owningPlayerID);
-      jsonObject.add("owner", ownerObject);
-    }
     return new GsonBuilder()
         .registerTypeAdapter(AbstractOwner.class, new OwnerDeserializer())
         .create()
-        .fromJson(jsonObject, PropertyData.class);
+        .fromJson(json, PropertyData.class);
   }
 }

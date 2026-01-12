@@ -4,7 +4,7 @@ import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.upgrade.Upgrade;
-import org.leralix.tan.utils.text.NumberUtil;
+import org.leralix.tan.utils.NumberUtils;
 public class AmountForUpgradeRequirement extends IndividualRequirementWithCost {
   private final TerritoryData territoryData;
   private final Upgrade upgrade;
@@ -30,8 +30,8 @@ public class AmountForUpgradeRequirement extends IndividualRequirementWithCost {
   }
   public double getCost() {
     int level = territoryData.getNewLevel().getLevel(upgrade);
-    if (costs.size() <= level) return NumberUtil.roundWithDigits(costs.getLast());
-    return NumberUtil.roundWithDigits(costs.get(level));
+    if (costs.size() <= level) return NumberUtils.roundWithDigits(costs.getLast());
+    return NumberUtils.roundWithDigits(costs.get(level));
   }
   @Override
   public void actionDone() {
