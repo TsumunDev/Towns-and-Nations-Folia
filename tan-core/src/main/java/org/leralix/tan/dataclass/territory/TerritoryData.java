@@ -747,6 +747,59 @@ public abstract class TerritoryData {
     }
     return proposals;
   }
+
+  /**
+   * Gets vassalization proposals asynchronously for GUI display.
+   *
+   * <p>This method loads player data asynchronously to avoid blocking the GUI rendering thread.
+   * Use this version when building proposal GUIs in async contexts.</p>
+   *
+   * @param player The player viewing the proposals
+   * @param page The page number (for pagination)
+   * @return CompletableFuture containing the list of GUI items for each proposal
+   */
+  public CompletableFuture<List<GuiItem>> getAllSubjugationProposalsAsync(Player player, int page) {
+    return PlayerDataStorage.getInstance()
+        .get(player)
+        .thenApply(tanPlayer -> {
+          ArrayList<GuiItem> proposals = new ArrayList<>();
+          LangType langType = tanPlayer.getLang();
+          for (String proposalID : getOverlordsProposals()) {
+            TerritoryData proposalOverlord = TerritoryUtil.getTerritory(proposalID);
+            if (proposalOverlord == null) continue;
+            ItemStack territoryItem = proposalOverlord.getIconWithInformations(langType);
+            HeadUtils.addLore(
+                territoryItem,
+                Lang.GUI_GENERIC_LEFT_CLICK_TO_ACCEPT.get(langType),
+                Lang.RIGHT_CLICK_TO_REFUSE.get(langType));
+            GuiItem acceptInvitation =
+                ItemBuilder.from(territoryItem)
+                    .asGuiItem(
+                        event -> {
+                          event.setCancelled(true);
+                          if (event.isLeftClick()) {
+                            if (haveOverlord()) {
+                              TanChatUtils.message(
+                                  player,
+                                  Lang.TOWN_ALREADY_HAVE_OVERLORD.get(langType),
+                                  SoundEnum.NOT_ALLOWED);
+                              return;
+                            }
+                            setOverlord(proposalOverlord);
+                            broadcastMessageWithSound(
+                                Lang.ACCEPTED_VASSALISATION_PROPOSAL_ALL.get(
+                                    this.getBaseColoredName(), proposalOverlord.getName()),
+                                SoundEnum.GOOD);
+                          }
+                          if (event.isRightClick()) {
+                            getOverlordsProposals().remove(proposalID);
+                          }
+                        });
+            proposals.add(acceptInvitation);
+          }
+          return proposals;
+        });
+  }
   protected Map<Integer, RankData> getRanks() {
     if (ranks == null) {
       ranks = new HashMap<>();
@@ -767,6 +820,21 @@ public abstract class TerritoryData {
   public abstract RankData getRank(ITanPlayer tanPlayer);
   public RankData getRank(Player player) {
     return getRank(PlayerDataStorage.getInstance().getSync(player));
+  }
+
+  /**
+   * Gets a player's rank in this territory asynchronously.
+   *
+   * <p>This method loads player data asynchronously to avoid blocking the calling thread.
+   * Use this version for rank lookups in async contexts or on region threads.</p>
+   *
+   * @param player The player to query
+   * @return CompletableFuture containing the player's rank, or null if player is not in territory
+   */
+  public CompletableFuture<RankData> getRankAsync(Player player) {
+    return PlayerDataStorage.getInstance()
+        .get(player)
+        .thenApply(this::getRank);
   }
   public int getNumberOfRank() {
     return getRanks().size();
@@ -816,6 +884,28 @@ public abstract class TerritoryData {
     if (isLeader(tanPlayer)) return true;
     return getRank(tanPlayer).hasPermission(townRolePermission);
   }
+
+  /**
+   * Checks if a player has a specific permission asynchronously.
+   *
+   * <p>This method loads player data asynchronously to avoid blocking the calling thread.
+   * Use this version for permission checks in async contexts or on region threads.</p>
+   *
+   * @param player The player to check
+   * @param townRolePermission The permission to check for
+   * @return CompletableFuture containing true if the player has the permission
+   */
+  public CompletableFuture<Boolean> doesPlayerHavePermissionAsync(Player player, RolePermission townRolePermission) {
+    return PlayerDataStorage.getInstance()
+        .get(player)
+        .thenApply(tanPlayer -> {
+          if (!this.isPlayerIn(tanPlayer)) {
+            return false;
+          }
+          if (isLeader(tanPlayer)) return true;
+          return getRank(tanPlayer).hasPermission(townRolePermission);
+        });
+  }
   public boolean doesPlayerHavePermission(ITanPlayer tanPlayer, RolePermission townRolePermission) {
     if (!this.isPlayerIn(tanPlayer)) {
       return false;
@@ -858,23 +948,61 @@ public abstract class TerritoryData {
     payChunkUpkeep();
   }
   private void paySalaries() {
+    // Use async version for non-blocking execution
+    paySalariesAsync().exceptionally(throwable -> {
+      TownsAndNations.getPlugin()
+          .getLogger()
+          .severe("Failed to pay salaries for territory '" + getName() + "': " + throwable.getMessage());
+      return null;
+    });
+  }
+
+  /**
+   * Pays salaries to all players asynchronously.
+   *
+   * <p>This method loads player data in parallel and pays salaries using the non-blocking
+   * AsyncEconomyService. This prevents blocking the territory thread during periodic salary payments.</p>
+   *
+   * @return CompletableFuture that completes when all salaries are paid
+   */
+  private CompletableFuture<Void> paySalariesAsync() {
+    List<CompletableFuture<Void>> rankFutures = new ArrayList<>();
+
     for (RankData rank : getAllRanks()) {
       int rankSalary = rank.getSalary();
       List<String> playerIdList = rank.getPlayersID();
       double costOfSalary = (double) playerIdList.size() * rankSalary;
+
       if (rankSalary == 0 || costOfSalary > getBalance()) {
         continue;
       }
+
+      // Withdraw total cost from territory balance (synchronous - fast operation)
       removeFromBalance(costOfSalary);
+
+      // Create async payment tasks for all players in this rank
       for (String playerId : playerIdList) {
-        ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(playerId);
-        EconomyUtil.addFromBalance(tanPlayer, rankSalary);
-        TownsAndNations.getPlugin()
-            .getDatabaseHandler()
-            .addTransactionHistory(
-                new SalaryPaymentHistory(this, String.valueOf(rank.getID()), costOfSalary));
+        CompletableFuture<Void> paymentFuture = PlayerDataStorage.getInstance()
+            .get(playerId)
+            .thenCompose(tanPlayer -> {
+              // Use AsyncEconomyService for non-blocking balance update
+              return org.leralix.tan.service.AsyncEconomyService.deposit(
+                      tanPlayer.getOfflinePlayer(),
+                      rankSalary)
+                  .thenRun(() -> {
+                    // Record transaction history
+                    TownsAndNations.getPlugin()
+                        .getDatabaseHandler()
+                        .addTransactionHistory(
+                            new SalaryPaymentHistory(this, String.valueOf(rank.getID()), costOfSalary));
+                  });
+            });
+        rankFutures.add(paymentFuture);
       }
     }
+
+    // Wait for all salary payments to complete
+    return CompletableFuture.allOf(rankFutures.toArray(new CompletableFuture[0]));
   }
   private void payChunkUpkeep() {
     double upkeepCost = Constants.getUpkeepCost(this);
