@@ -324,6 +324,41 @@ public class RegionData extends TerritoryData {
     }
     return res;
   }
+
+  /**
+   * Gets ordered member list asynchronously for GUI display.
+   *
+   * <p>This method loads all player data in batch using PlayerDataStorage.getBatchSync()
+   * to minimize blocking I/O operations. Use this version for GUI rendering in async contexts.</p>
+   *
+   * @param tanPlayer The player viewing the member list
+   * @return CompletableFuture containing the list of GUI items for each member
+   */
+  public CompletableFuture<List<GuiItem>> getOrderedMemberListAsync(ITanPlayer tanPlayer) {
+    LangType langType = tanPlayer.getLang();
+    Collection<String> playerUUIDs = getOrderedPlayerIDListSync();
+
+    // Batch load all player data at once (more efficient than individual loads)
+    Map<String, ITanPlayer> playerMap = PlayerDataStorage.getInstance().getBatchSync(playerUUIDs);
+
+    // Build GUI items with cached player data
+    List<GuiItem> res = new ArrayList<>();
+    for (String playerUUID : playerUUIDs) {
+      ITanPlayer playerIterateData = playerMap.get(playerUUID);
+      if (playerIterateData == null) continue;
+
+      OfflinePlayer playerIterate = Bukkit.getOfflinePlayer(UUID.fromString(playerUUID));
+      ItemStack playerHead =
+          HeadUtils.getPlayerHead(
+              playerIterate,
+              Lang.GUI_TOWN_MEMBER_DESC1.get(
+                  langType, playerIterateData.getRegionRank().getColoredName()));
+      GuiItem playerButton =
+          ItemBuilder.from(playerHead).asGuiItem(event -> event.setCancelled(true));
+      res.add(playerButton);
+    }
+    return CompletableFuture.completedFuture(res);
+  }
   @Override
   protected void specificSetPlayerRank(ITanPlayer playerStat, int rankID) {
     playerStat.setRegionRankID(rankID);
