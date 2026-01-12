@@ -12,7 +12,6 @@ import org.leralix.lib.utils.SoundUtil;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.newhistory.TransactionHistoryEnum;
 import org.leralix.tan.dataclass.territory.TownData;
-import org.leralix.tan.economy.EconomyUtil;
 import org.leralix.tan.enums.RolePermission;
 import org.leralix.tan.gui.user.territory.EconomicHistoryMenu;
 import org.leralix.tan.gui.user.territory.TreasuryMenu;
@@ -33,11 +32,10 @@ public class PlayerTaxLine extends ProfitLine {
     double flatTax = townData.getTax();
     for (String playerID : townData.getPlayerIDList()) {
       ITanPlayer othertanPlayer = PlayerDataStorage.getInstance().getSync(playerID);
-      OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(UUID.fromString(playerID));
       if (!othertanPlayer.getTownRank().isPayingTaxes()) {
         continue;
       }
-      if (EconomyUtil.getBalance(otherPlayer) < flatTax) missingTaxes += flatTax;
+      if (othertanPlayer.getBalance() < flatTax) missingTaxes += flatTax;
       else actualTaxes += flatTax;
     }
   }

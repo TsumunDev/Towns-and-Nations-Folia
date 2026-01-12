@@ -18,7 +18,6 @@ import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.NotNull;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.territory.RegionData;
-import org.leralix.tan.economy.EconomyUtil;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
@@ -41,7 +40,7 @@ public class HeadUtils {
     setLore(
         head,
         Lang.GUI_YOUR_BALANCE_DESC1.get(
-            tanPlayer, StringUtil.formatMoney(EconomyUtil.getBalance(offlinePlayer))));
+            tanPlayer, StringUtil.formatMoney(tanPlayer.getBalance())));
     return head;
   }
   public static @NotNull ItemStack getPlayerHead(
