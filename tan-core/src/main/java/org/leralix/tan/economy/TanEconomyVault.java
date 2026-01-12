@@ -8,6 +8,32 @@ import org.bukkit.OfflinePlayer;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.constants.Constants;
+/**
+ * Vault economy integration for Towns and Nations.
+ *
+ * <p><b>IMPORTANT - Blocking I/O Warning:</b></p>
+ * <p>This implementation uses blocking {@code getSync()} calls internally to comply with
+ * Vault's synchronous API contract. These methods will block the calling thread:</p>
+ * <ul>
+ *   <li>{@link #getBalance(OfflinePlayer)} - Blocks to load player data</li>
+ *   <li>{@link #withdrawPlayer(OfflinePlayer, double)} - Blocks to load player data</li>
+ *   <li>{@link #depositPlayer(OfflinePlayer, double)} - Blocks to load player data</li>
+ * </ul>
+ *
+ * <p><b>Recommendations:</b></p>
+ * <ul>
+ *   <li>Avoid calling Vault methods on region threads in Folia</li>
+ *   <li>Use {@link org.leralix.tan.service.AsyncEconomyService} for new code instead</li>
+ *   <li>Consider caching balance values if frequent access is needed</li>
+ * </ul>
+ *
+ * <p><b>Why Not Async?</b></p>
+ * <p>Vault's API interface ({@link Economy}) is synchronous by definition. All methods must
+ * return immediately (not {@code CompletableFuture}), so we cannot make them truly async
+ * without breaking the Vault API contract and compatibility with other plugins.</p>
+ *
+ * @see org.leralix.tan.service.AsyncEconomyService for non-blocking economy operations
+ */
 public class TanEconomyVault extends TanEconomyStandalone implements Economy {
   public TanEconomyVault() {
     super();
@@ -60,7 +86,17 @@ public class TanEconomyVault extends TanEconomyStandalone implements Economy {
   public double getBalance(String s) {
     return getBalance(Bukkit.getOfflinePlayer(s));
   }
+  /**
+   * Gets a player's balance (BLOCKING - loads from storage).
+   *
+   * <p><b>Warning:</b> This method blocks the calling thread while loading player data from storage.
+   * Avoid calling on Folia region threads. Use {@code AsyncEconomyService.getBalance()} instead.</p>
+   *
+   * @param offlinePlayer The player to query
+   * @return The player's balance
+   */
   @Override
+  @SuppressWarnings("deprecation") // Using getSync() is necessary for Vault API compatibility
   public double getBalance(OfflinePlayer offlinePlayer) {
     return super.getBalance(PlayerDataStorage.getInstance().getSync(offlinePlayer));
   }
@@ -92,7 +128,18 @@ public class TanEconomyVault extends TanEconomyStandalone implements Economy {
   public EconomyResponse withdrawPlayer(String s, double v) {
     return withdrawPlayer(Bukkit.getOfflinePlayer(s), v);
   }
+  /**
+   * Withdraws funds from a player's balance (BLOCKING - loads from storage).
+   *
+   * <p><b>Warning:</b> This method blocks the calling thread while loading player data from storage.
+   * Avoid calling on Folia region threads. Use {@code AsyncEconomyService.withdraw()} instead.</p>
+   *
+   * @param offlinePlayer The player to withdraw from
+   * @param v The amount to withdraw
+   * @return EconomyResponse indicating success or failure
+   */
   @Override
+  @SuppressWarnings("deprecation") // Using getSync() is necessary for Vault API compatibility
   public EconomyResponse withdrawPlayer(OfflinePlayer offlinePlayer, double v) {
     if (v < 0)
       return new EconomyResponse(
@@ -119,7 +166,18 @@ public class TanEconomyVault extends TanEconomyStandalone implements Economy {
   public EconomyResponse depositPlayer(String s, double v) {
     return depositPlayer(Bukkit.getOfflinePlayer(s), v);
   }
+  /**
+   * Deposits funds to a player's balance (BLOCKING - loads from storage).
+   *
+   * <p><b>Warning:</b> This method blocks the calling thread while loading player data from storage.
+   * Avoid calling on Folia region threads. Use {@code AsyncEconomyService.deposit()} instead.</p>
+   *
+   * @param offlinePlayer The player to deposit to
+   * @param v The amount to deposit
+   * @return EconomyResponse indicating success
+   */
   @Override
+  @SuppressWarnings("deprecation") // Using getSync() is necessary for Vault API compatibility
   public EconomyResponse depositPlayer(OfflinePlayer offlinePlayer, double v) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(offlinePlayer);
     tanPlayer.addToBalance((int) v);
