@@ -72,17 +72,21 @@ public class PlayerEnterChunkListener implements Listener {
       final @NotNull TerritoryChunk territoryChunk,
       final @NotNull Player player,
       final @NotNull UUID playerUuid) {
-    ITanPlayer cachedPlayer = playerDataStorage.getSync(playerUuid.toString());
-    if (cachedPlayer != null) {
-      checkRelationAndExecute(event, territoryChunk, cachedPlayer, player);
-    } else {
-      playerDataStorage
-          .get(player)
-          .thenAccept(
-              tanPlayer -> {
+    // Load player data asynchronously to avoid blocking I/O on player movement
+    playerDataStorage
+        .get(player)
+        .thenAccept(
+            tanPlayer -> {
+              if (tanPlayer != null) {
                 checkRelationAndExecute(event, territoryChunk, tanPlayer, player);
-              });
-    }
+              }
+            })
+        .exceptionally(throwable -> {
+          org.leralix.tan.TownsAndNations.getPlugin()
+              .getLogger()
+              .warning("Failed to load player data in handleTerritoryChunk: " + throwable.getMessage());
+          return null;
+        });
   }
   private void checkRelationAndExecute(
       final @NotNull PlayerMoveEvent event,
@@ -136,22 +140,34 @@ public class PlayerEnterChunkListener implements Listener {
       final @NotNull Chunk nextChunk,
       final @NotNull Player player) {
     ChunkType chunkType = PlayerAutoClaimStorage.getChunkType(e.getPlayer());
-    ITanPlayer playerStat =
-        PlayerDataStorage.getInstance().getSync(player.getUniqueId().toString());
-    if (chunkType == ChunkType.TOWN) {
-      if (!playerStat.hasTown()) {
-        TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(player));
-        return;
-      }
-      playerStat
-          .getTown()
-          .thenAccept(
-              townData -> {
-                if (townData != null) {
-                  townData.claimChunk(player, nextChunk);
-                }
-              });
-    }
+
+    // Load player data asynchronously to avoid blocking I/O during auto-claim
+    PlayerDataStorage.getInstance()
+        .get(player)
+        .thenAccept(playerStat -> {
+          if (playerStat == null) return;
+
+          if (chunkType == ChunkType.TOWN) {
+            if (!playerStat.hasTown()) {
+              TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(player));
+              return;
+            }
+            playerStat
+                .getTown()
+                .thenAccept(
+                    townData -> {
+                      if (townData != null) {
+                        townData.claimChunk(player, nextChunk);
+                      }
+                    });
+          }
+        })
+        .exceptionally(throwable -> {
+          org.leralix.tan.TownsAndNations.getPlugin()
+              .getLogger()
+              .warning("Failed to auto-claim chunk: " + throwable.getMessage());
+          return null;
+        });
   }
   public static boolean sameOwner(final ClaimedChunk2 a, final ClaimedChunk2 b) {
     if (a == b) return true;

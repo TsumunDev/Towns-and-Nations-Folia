@@ -44,25 +44,35 @@ public class AutoClaimCommand extends PlayerSubCommand {
     if (!CommandExceptionHandler.validateArgCount((CommandSender) player, args, 2, getSyntax())) {
       return;
     }
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    LangType langType = tanPlayer.getLang();
-    String message = args[1];
-    switch (message) {
-      case "town" -> {
-        PlayerAutoClaimStorage.addPlayer(player, ChunkType.TOWN);
-        TanChatUtils.message(
-            player, Lang.AUTO_CLAIM_ON_FOR.get(langType, ChunkType.TOWN.getName()));
-      }
-      case "region" -> {
-        PlayerAutoClaimStorage.addPlayer(player, ChunkType.REGION);
-        TanChatUtils.message(
-            player, Lang.AUTO_CLAIM_ON_FOR.get(langType, ChunkType.REGION.getName()));
-      }
-      case "stop" -> {
-        PlayerAutoClaimStorage.removePlayer(player);
-        TanChatUtils.message(player, Lang.AUTO_CLAIM_OFF.get(langType));
-      }
-      default -> TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
-    }
+    // Load player data asynchronously to avoid blocking I/O
+    PlayerDataStorage.getInstance()
+        .get(player)
+        .thenAccept(tanPlayer -> {
+          LangType langType = tanPlayer.getLang();
+          String message = args[1];
+          switch (message) {
+            case "town" -> {
+              PlayerAutoClaimStorage.addPlayer(player, ChunkType.TOWN);
+              TanChatUtils.message(
+                  player, Lang.AUTO_CLAIM_ON_FOR.get(langType, ChunkType.TOWN.getName()));
+            }
+            case "region" -> {
+              PlayerAutoClaimStorage.addPlayer(player, ChunkType.REGION);
+              TanChatUtils.message(
+                  player, Lang.AUTO_CLAIM_ON_FOR.get(langType, ChunkType.REGION.getName()));
+            }
+            case "stop" -> {
+              PlayerAutoClaimStorage.removePlayer(player);
+              TanChatUtils.message(player, Lang.AUTO_CLAIM_OFF.get(langType));
+            }
+            default -> TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));
+          }
+        })
+        .exceptionally(throwable -> {
+          org.leralix.tan.TownsAndNations.getPlugin()
+              .getLogger()
+              .warning("AutoClaimCommand failed: " + throwable.getMessage());
+          return null;
+        });
   }
 }
