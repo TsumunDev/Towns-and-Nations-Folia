@@ -139,6 +139,29 @@ public class TownData extends TerritoryData {
         });
     TownDataStorage.getInstance().putSync(getID(), this);
   }
+  /**
+   * Removes a player from the town asynchronously.
+   *
+   * <p>This method loads the player data asynchronously and then removes them from the town.</p>
+   *
+   * @param tanPlayerID The UUID of the player to remove
+   * @return CompletableFuture that completes when the player is removed
+   */
+  public CompletableFuture<Void> removePlayerAsync(String tanPlayerID) {
+    return PlayerDataStorage.getInstance()
+        .get(tanPlayerID)
+        .thenAccept(this::removePlayer);
+  }
+  /**
+   * Removes a player from the town (synchronous - player already loaded).
+   *
+   * <p><b>Deprecated:</b> Use {@link #removePlayerAsync(String)} instead to avoid blocking I/O.
+   * This synchronous version is kept for backwards compatibility.</p>
+   *
+   * @param tanPlayerID The UUID of the player to remove
+   * @deprecated Use removePlayerAsync instead
+   */
+  @Deprecated
   public void removePlayer(String tanPlayerID) {
     removePlayer(PlayerDataStorage.getInstance().getSync(tanPlayerID));
   }
@@ -711,6 +734,43 @@ public class TownData extends TerritoryData {
 
   // ===== END PRESTIGE SYSTEM =====
 
+  /**
+   * Kicks a player from the town asynchronously.
+   *
+   * <p>This method loads the player data asynchronously and removes them from the town.</p>
+   *
+   * @param kickedPlayer The player to kick
+   * @return CompletableFuture that completes when the player is kicked
+   */
+  public CompletableFuture<Void> kickPlayerAsync(OfflinePlayer kickedPlayer) {
+    return PlayerDataStorage.getInstance()
+        .get(kickedPlayer)
+        .thenAccept(kickedITanPlayer -> {
+          removePlayer(kickedITanPlayer);
+          broadcastMessageWithSound(
+              Lang.GUI_TOWN_MEMBER_KICKED_SUCCESS.get(kickedPlayer.getName()), SoundEnum.BAD);
+          org.leralix.tan.utils.FoliaScheduler.runTask(
+              org.leralix.tan.TownsAndNations.getPlugin(),
+              () -> {
+                Player player = kickedPlayer.getPlayer();
+                if (player != null && player.isOnline()) {
+                  TanChatUtils.message(
+                      player, Lang.GUI_TOWN_MEMBER_KICKED_SUCCESS_PLAYER.get(player), SoundEnum.BAD);
+                }
+              });
+        });
+  }
+
+  /**
+   * Kicks a player from the town (synchronous).
+   *
+   * <p><b>Deprecated:</b> Use {@link #kickPlayerAsync(OfflinePlayer)} instead to avoid blocking I/O.
+   * This synchronous version is kept for backwards compatibility.</p>
+   *
+   * @param kickedPlayer The player to kick
+   * @deprecated Use kickPlayerAsync instead
+   */
+  @Deprecated
   public void kickPlayer(OfflinePlayer kickedPlayer) {
     ITanPlayer kickedITanPlayer = PlayerDataStorage.getInstance().getSync(kickedPlayer);
     removePlayer(kickedITanPlayer);
