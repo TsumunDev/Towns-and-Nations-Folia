@@ -153,12 +153,51 @@ public abstract class TerritoryData {
     initUpgradesStatus();
   }
   protected abstract void initUpgradesStatus();
+
+  /**
+   * Gets the unique identifier of this territory.
+   *
+   * <p>The ID is generated automatically when the territory is created and remains
+   * constant for the lifetime of the territory. It is used as a primary key in
+   * database storage and for internal references.</p>
+   *
+   * @return the unique territory ID, never null
+   * @see #getName()
+   */
   public String getID() {
     return id;
   }
+
+  /**
+   * Gets the name of this territory.
+   *
+   * <p>The name can be changed using {@link #rename(Player, int, String)} or
+   * {@link #rename(String)}. Names are displayed in UI elements and used for
+   * player-facing references.</p>
+   *
+   * @return the territory name, never null or empty
+   * @see #getID()
+   * @see #rename(Player, int, String)
+   */
   public String getName() {
     return name;
   }
+
+  /**
+   * Renames this territory with a cost check.
+   *
+   * <p>Checks if the territory has sufficient balance to pay the rename cost,
+   * deducts the cost, updates the name, and logs the change. If insufficient
+   * funds are available, an error message is sent to the player.</p>
+   *
+   * <p><b>Thread Safety:</b> This method performs synchronous balance checks and
+   * database updates. For async operations, consider using {@code supplyAsync()}.</p>
+   *
+   * @param player the player requesting the rename (must be leader/admin)
+   * @param cost the cost to rename the territory
+   * @param newName the new name for the territory
+   * @see #rename(String)
+   */
   public void rename(Player player, int cost, String newName) {
     if (getBalance() < cost) {
       TanChatUtils.message(
@@ -176,32 +215,146 @@ public abstract class TerritoryData {
         player, Lang.CHANGE_MESSAGE_SUCCESS.get(player, name, newName), SoundEnum.GOOD);
     rename(newName);
   }
+
+  /**
+   * Renames this territory without cost check.
+   *
+   * <p>Directly updates the territory name. Use this for administrative operations
+   * or when the cost check has already been performed.</p>
+   *
+   * @param newName the new name for the territory
+   * @see #rename(Player, int, String)
+   */
   public void rename(String newName) {
     this.name = newName;
   }
   public abstract int getHierarchyRank();
   public abstract String getBaseColoredName();
+
+  /**
+   * Gets the territory name as a colored Adventure component.
+   *
+   * <p>Returns the territory name with the territory's configured color applied.
+   * Useful for displaying in modern UI components using Adventure API.</p>
+   *
+   * @return a colored Component with the territory name
+   * @see #getBaseColoredName()
+   * @see #getChunkColor()
+   */
   public Component getCustomColoredName() {
     Component coloredName = Component.text(getName());
     coloredName = coloredName.color(getChunkColor());
     return coloredName;
   }
+
+  /**
+   * Gets the unique ID of the territory leader.
+   *
+   * <p>Returns the player UUID of the current leader. For towns, this is the mayor.
+   * For regions, this is the nation leader.</p>
+   *
+   * @return the leader's player UUID as a string, or null if no leader
+   * @see #isLeader(String)
+   * @see #getLeaderData()
+   */
   public abstract String getLeaderID();
+
+  /**
+   * Gets the ITanPlayer object for the territory leader.
+   *
+   * <p>Returns the full player data object for the current leader. This includes
+   * the leader's balance, town membership, and other player-specific data.</p>
+   *
+   * @return the leader's ITanPlayer object, or null if leader not found
+   * @see #getLeaderID()
+   * @see #isLeader(ITanPlayer)
+   */
   public abstract ITanPlayer getLeaderData();
+
+  /**
+   * Sets a new leader for this territory.
+   *
+   * <p>Updates the territory leader to the specified player. The previous leader
+   * loses all leadership privileges and permissions.</p>
+   *
+   * @param leaderID the UUID of the new leader
+   * @see #getLeaderID()
+   * @see #isLeader(String)
+   */
   public abstract void setLeaderID(String leaderID);
+
+  /**
+   * Checks if the given player is the leader of this territory.
+   *
+   * <p>This is a convenience overload that extracts the UUID from the ITanPlayer.</p>
+   *
+   * @param tanPlayer the player to check
+   * @return true if the player is the leader, false otherwise
+   * @see #isLeader(String)
+   */
   public boolean isLeader(ITanPlayer tanPlayer) {
     return isLeader(tanPlayer.getID());
   }
+
+  /**
+   * Checks if the player with the given UUID is the leader of this territory.
+   *
+   * <p>This method must be implemented by concrete classes to determine
+   * leadership status. Implementation may vary between towns and regions.</p>
+   *
+   * @param playerID the UUID of the player to check
+   * @return true if the player is the leader, false otherwise
+   * @see #getLeaderID()
+   */
   public abstract boolean isLeader(String playerID);
+
+  /**
+   * Checks if the given Bukkit player is the leader of this territory.
+   *
+   * <p>This is a convenience overload that extracts the UUID from the Player.</p>
+   *
+   * @param player the Bukkit player to check
+   * @return true if the player is the leader, false otherwise
+   * @see #isLeader(String)
+   */
   public boolean isLeader(Player player) {
     return isLeader(player.getUniqueId().toString());
   }
+  /**
+   * Gets the description of this territory.
+   *
+   * <p>The description is a custom text that can be set by the leader to provide
+   * information about the territory. It is displayed in GUIs and territory info screens.</p>
+   *
+   * @return the territory description, may be empty
+   * @see #setDescription(String)
+   */
   public String getDescription() {
     return cosmetics.getDescription();
   }
+
+  /**
+   * Sets a new description for this territory.
+   *
+   * <p>Updates the cosmetic description. Changes are applied via the immutable
+   * CosmeticComponent pattern.</p>
+   *
+   * @param newDescription the new description text
+   * @see #getDescription()
+   */
   public void setDescription(String newDescription) {
     this.cosmetics = cosmetics.withDescription(newDescription);
   }
+
+  /**
+   * Gets the icon ItemStack for this territory.
+   *
+   * <p>Returns a custom icon for use in GUIs. If no custom icon is set,
+   * a player head icon or default barrier icon is returned.</p>
+   *
+   * @return the territory icon as an ItemStack
+   * @see #setIcon(ICustomIcon)
+   */
   public ItemStack getIcon() {
     ICustomIcon icon = cosmetics.getIcon();
     if (icon == null) {
@@ -214,6 +367,16 @@ public abstract class TerritoryData {
     }
     return icon.getIcon();
   }
+
+  /**
+   * Sets a custom icon for this territory.
+   *
+   * <p>Sets the icon displayed in GUIs and other UI elements. Accepts any
+   * implementation of ICustomIcon (player heads, custom items, etc.).</p>
+   *
+   * @param icon the custom icon to set
+   * @see #getIcon()
+   */
   public void setIcon(ICustomIcon icon) {
     this.cosmetics = cosmetics.withIcon(icon);
   }
