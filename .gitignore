@@ -133,3 +133,4 @@ src/test/resources/database/main.db
 *.temp
 *~
 .~lock.*
+.bmad-core/
