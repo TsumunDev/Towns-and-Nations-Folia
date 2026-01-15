@@ -178,20 +178,8 @@ public class IconDataMigrator {
     try (FileReader reader = new FileReader(file)) {
       T object = legacyGson.fromJson(reader, type);
 
-      // Trigger migration by accessing icon
-      if (object instanceof PropertyData propertyData) {
-        if (propertyData.getIcon() != null) {
-          propertyData.getIcon().getIcon(); // Triggers migration in getIcon()
-        }
-      } else if (object instanceof TerritoryData territoryData) {
-        if (territoryData.getIcon() != null) {
-          territoryData.getIcon().getIcon(); // Triggers migration
-        }
-      } else if (object instanceof RankData rankData) {
-        if (rankData.getRankIcon() != null) {
-          rankData.getRankIcon().getIcon(); // Triggers migration
-        }
-      }
+      // Migration triggered automatically on deserialization
+      // Note: CustomIcon.getIcon() calls are no longer needed as migration happens in CustomIcon's deserialize()
 
       // Save with new Gson (writes only base64Item format)
       try (FileWriter writer = new FileWriter(file)) {

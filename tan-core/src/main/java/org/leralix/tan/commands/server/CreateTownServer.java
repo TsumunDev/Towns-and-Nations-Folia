@@ -65,6 +65,6 @@ class CreateTownServer extends SubCommand {
       TanChatUtils.message(commandSender, Lang.NAME_ALREADY_USED);
       return;
     }
-    new CreateTown(0).createTown(player, townName);
+    new CreateTown(0).execute(player, townName);
   }
 }

@@ -1,15 +1,11 @@
 package org.leralix.tan.utils.gui;
 import dev.triumphteam.gui.guis.Gui;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.bukkit.entity.Player;
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.ITanPlayer;
-import org.leralix.tan.dataclass.territory.TownData;
-import org.leralix.tan.dataclass.territory.RegionData;
 import org.leralix.tan.gui.circuitbreaker.GuiCircuitBreaker;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.FoliaScheduler;
@@ -149,115 +145,5 @@ public class AsyncGuiHelper {
   }
   public static String getCircuitBreakerState() {
     return guiCircuitBreaker.getState();
-  }
-
-  // ===== NEW PREFETCHING AND PAGINATION METHODS (Story 6.2) =====
-
-  /**
-   * Prefetched data for main menu.
-   */
-  public static class MainMenuPrefetch {
-    private ITanPlayer player;
-    private TownData town;
-    private RegionData region;
-
-    public ITanPlayer getPlayer() { return player; }
-    public void setPlayer(ITanPlayer player) { this.player = player; }
-
-    public TownData getTown() { return town; }
-    public void setTown(TownData town) { this.town = town; }
-
-    public RegionData getRegion() { return region; }
-    public void setRegion(RegionData region) { this.region = region; }
-
-    public boolean hasTown() { return town != null; }
-    public boolean hasRegion() { return region != null; }
-  }
-
-  /**
-   * Prefetches all data needed for the main menu in parallel.
-   *
-   * <p>This loads player data, town data, and region data concurrently,
-   * significantly reducing total load time compared to sequential loading.</p>
-   *
-   * @param player the player opening the menu
-   * @return a CompletableFuture containing the prefetched data
-   */
-  public static CompletableFuture<MainMenuPrefetch> prefetchMainMenuData(Player player) {
-    logger.debug("[AsyncGuiHelper] Prefetching main menu data for: {}", player.getName());
-
-    long startTime = System.nanoTime();
-
-    return PlayerDataStorage.getInstance().get(player)
-        .thenCompose(tanPlayer -> {
-          // Load town and region in parallel
-          CompletableFuture<TownData> townFuture = tanPlayer.hasTown()
-              ? tanPlayer.getTown()
-              : CompletableFuture.completedFuture(null);
-
-          CompletableFuture<RegionData> regionFuture = tanPlayer.hasRegion()
-              ? tanPlayer.getRegion()
-              : CompletableFuture.completedFuture(null);
-
-          return CompletableFuture.allOf(townFuture, regionFuture)
-              .thenApply(v -> {
-                MainMenuPrefetch prefetch = new MainMenuPrefetch();
-                prefetch.setPlayer(tanPlayer);
-                prefetch.setTown(townFuture.join());
-                prefetch.setRegion(regionFuture.join());
-
-                long duration = (System.nanoTime() - startTime) / 1_000_000;
-                logger.debug("[AsyncGuiHelper] Main menu prefetch completed in {}ms for: {}",
-                    duration, player.getName());
-
-                return prefetch;
-              });
-        });
-  }
-
-  /**
-   * Loads town members with pagination support.
-   *
-   * <p>This method batches member loading to avoid N+1 query problems.
-   * Only loads the specified page of members.</p>
-   *
-   * @param town the town to load members for
-   * @param offset the offset to start from
-   * @param limit the maximum number of members to load
-   * @return a CompletableFuture containing the list of members
-   */
-  public static CompletableFuture<java.util.List<ITanPlayer>> loadTownMembersPaginated(
-      TownData town, int offset, int limit) {
-
-    java.util.List<java.util.UUID> memberIds = new java.util.ArrayList<>(town.getMemberIDs());
-
-    // Apply pagination
-    int fromIndex = Math.min(offset, memberIds.size());
-    int toIndex = Math.min(offset + limit, memberIds.size());
-    java.util.List<java.util.UUID> paginatedIds = memberIds.subList(fromIndex, toIndex);
-
-    if (paginatedIds.isEmpty()) {
-      return CompletableFuture.completedFuture(java.util.Collections.emptyList());
-    }
-
-    // Batch load all members in parallel
-    java.util.List<CompletableFuture<ITanPlayer>> futures = new java.util.ArrayList<>();
-    for (java.util.UUID memberId : paginatedIds) {
-      CompletableFuture<ITanPlayer> future = PlayerDataStorage.getInstance()
-          .get(memberId.toString());
-      futures.add(future);
-    }
-
-    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-        .thenApply(v -> {
-          java.util.List<ITanPlayer> members = new java.util.ArrayList<>();
-          for (CompletableFuture<ITanPlayer> future : futures) {
-            ITanPlayer member = future.join();
-            if (member != null) {
-              members.add(member);
-            }
-          }
-          return members;
-        });
   }
 }
