@@ -42,39 +42,20 @@ public class MainMenu extends BasicGui {
     this.regionData = regionData;
   }
   public static void open(Player player) {
-    logger.info("[MainMenu] Starting async load for player: {}", player.getName());
-    PlayerDataStorage.getInstance()
-        .get(player)
-        .thenCompose(
-            tanPlayer -> {
-              logger.info("[MainMenu] Player data loaded for: {}", player.getName());
-              CompletableFuture<TownData> townFuture =
-                  tanPlayer.hasTown()
-                      ? tanPlayer.getTown()
-                      : CompletableFuture.completedFuture(null);
-              CompletableFuture<RegionData> regionFuture =
-                  tanPlayer.hasRegion()
-                      ? tanPlayer.getRegion()
-                      : CompletableFuture.completedFuture(null);
-              return CompletableFuture.allOf(townFuture, regionFuture)
-                  .thenApply(v -> {
-                    logger.info("[MainMenu] Town/Region data loaded for: {}", player.getName());
-                    return new Object[] {tanPlayer, townFuture.join(), regionFuture.join()};
-                  });
-            })
+    logger.info("[MainMenu] Starting optimized async load for player: {}", player.getName());
+
+    // Use optimized prefetching (Story 6.2)
+    org.leralix.tan.utils.gui.AsyncGuiHelper.prefetchMainMenuData(player)
         .thenAccept(
-            data -> {
-              ITanPlayer tanPlayer = (ITanPlayer) ((Object[]) data)[0];
-              TownData townData = (TownData) ((Object[]) data)[1];
-              RegionData regionData = (RegionData) ((Object[]) data)[2];
-              logger.info("[MainMenu] Scheduling GUI open on player's thread for: {}", player.getName());
+            prefetch -> {
+              logger.info("[MainMenu] Data prefetched for: {}", player.getName());
               FoliaScheduler.runEntityTask(
                   TownsAndNations.getPlugin(),
                   player,
                   () -> {
                     try {
                       logger.info("[MainMenu] Opening GUI NOW for: {}", player.getName());
-                      new MainMenu(player, tanPlayer, townData, regionData).open();
+                      new MainMenu(player, prefetch.getPlayer(), prefetch.getTown(), prefetch.getRegion()).open();
                       logger.info("[MainMenu] GUI opened successfully for: {}", player.getName());
                     } catch (Exception e) {
                       logger.error("[MainMenu] FAILED to open GUI for: {}", player.getName(), e);
