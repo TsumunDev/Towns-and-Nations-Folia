@@ -20,7 +20,7 @@ public class EconomyUtil {
    *
    * @return The economy instance
    */
-  static AbstractTanEcon getEconInstance() {
+  public static AbstractTanEcon getEconInstance() {
     return econ;
   }
   public static double getBalance(OfflinePlayer offlinePlayer) {

@@ -380,7 +380,6 @@ public class TownData extends TerritoryData {
   public void swapRecruiting() {
     this.isRecruiting = !this.isRecruiting;
   }
-  @Override
   protected CompletableFuture<Void> collectTaxesAsync() {
     Collection<ITanPlayer> tanPlayers = getITanPlayerList();
 
