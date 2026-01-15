@@ -1,4 +1,5 @@
 package org.leralix.tan.storage.stored;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import java.lang.reflect.Type;
@@ -6,10 +7,69 @@ import java.sql.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.storage.database.DatabaseHandler;
 import org.leralix.tan.storage.exceptions.DatabaseNotReadyException;
+
+/**
+ * Abstract base class for database-backed storage with caching support.
+ *
+ * <p>This class provides a generic CRUD (Create, Read, Update, Delete) interface for
+ * storing objects in a SQLite/MySQL database with JSON serialization and optional
+ * in-memory caching. All database operations are asynchronous to prevent blocking
+ * in Folia's regionized threading model.</p>
+ *
+ * <p><b>Type Parameters:</b><br>
+ * <code>&lt;T&gt;</code> - The type of objects stored (e.g., ITanPlayer, TownData, RegionData)</p>
+ *
+ * <p><b>Architecture:</b></p>
+ * <ul>
+ *   <li>Storage: Objects are serialized to JSON and stored in SQLite/MySQL</li>
+ *   <li>Cache: Optional in-memory cache using ConcurrentHashMap (lock-free reads)</li>
+ *   <li>Async: All operations return CompletableFuture for non-blocking access</li>
+ *   <li>Thread-Safe: Safe for concurrent access from multiple regions</li>
+ * </ul>
+ *
+ * <p><b>Cache Behavior:</b></p>
+ * <ul>
+ *   <li>First {@link #get} loads from database and caches result</li>
+ *   <li>Subsequent {@link #get} calls return cached data (fast path)</li>
+ *   <li>Cache is invalidated when data is modified via {@link #put}</li>
+ *   <li>Use {@link #getAll()} to warm up cache for multiple items</li>
+ * </ul>
+ *
+ * <h2>Example Usage:</h2>
+ * <pre>{@code
+ * // Get object asynchronously (recommended)
+ * storage.get(playerId)
+ *     .thenAccept(object -> {
+ *         if (object != null) {
+ *             // Process object
+ *         }
+ *     });
+ *
+ * // Save object (invalidates cache)
+ * storage.putSync(objectId, object);
+ *
+ * // Delete object
+ * storage.delete(object);
+ * }</pre>
+ *
+ * <h3>Implementations:</h3>
+ * <ul>
+ *   <li>{@link PlayerDataStorage} - Player data storage</li>
+ *   <li>{@link TownDataStorage} - Town data storage</li>
+ *   <li>{@link RegionDataStorage} - Region data storage</li>
+ * </ul>
+ *
+ * @param <T> The type of objects stored in this storage
+ * @see PlayerDataStorage
+ * @see TownDataStorage
+ * @see RegionDataStorage
+ * @since 0.15.0
+ */
 public abstract class DatabaseStorage<T> {
   protected final Gson gson;
   protected final String tableName;
@@ -71,6 +131,26 @@ public abstract class DatabaseStorage<T> {
       cache.entrySet().removeIf(entry -> condition.test(entry.getValue()));
     }
   }
+
+  /**
+   * Gets an object by its ID asynchronously.
+   *
+   * <p>This is the primary method for retrieving stored objects. It checks the cache first
+   * (fast path) before loading from the database (slow path). The method is non-blocking
+   * and safe to call from any thread in Folia.</p>
+   *
+   * <p><b>Cache Behavior:</b></p>
+   * <ul>
+   *   <li>First call: Loads from database, caches result</li>
+   *   <li>Subsequent calls: Returns cached data (very fast)</li>
+   *   <li>Cache invalidated on: {@link #putSync}</li>
+   * </ul>
+   *
+   * @param id the unique identifier of the object to retrieve
+   * @return CompletableFuture that completes with the object, or null if not found
+   * @see #getSync(String) for blocking version
+   * @see #getAll() to load all objects
+   */
   public CompletableFuture<T> get(String id) {
     CompletableFuture<T> future = new CompletableFuture<>();
     if (id == null) {
