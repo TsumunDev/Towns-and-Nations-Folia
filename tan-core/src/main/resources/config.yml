@@ -758,3 +758,45 @@ CancelMobSpawnInTown:
   ZOMBIE: 1000
   ZOMBIE_HORSE: 0
   ZOMBIE_VILLAGER: 0
+
+########################
+##       Nexo         ##
+########################
+
+# Nexo plugin integration (custom items support)
+nexo:
+  # Enable Nexo integration (false = always use fallback materials)
+  enabled: true
+  
+  # Automatically detect Nexo version and API structure
+  auto-detect: true
+  
+  # Fallback material when Nexo is unavailable or item not found
+  fallback-material: "BARRIER"
+  
+  # Custom class paths (ONLY change if Nexo API changes)
+  # Most servers should use auto-detect: true instead
+  class-paths:
+    items: "com.nexomc.nexo.api.NexoItems"
+    blocks: "com.nexomc.nexo.api.NexoBlocks"
+    furniture: "com.nexomc.nexo.api.NexoFurniture"
+  
+  # Custom method names (ONLY change if Nexo API changes)
+  # Most servers should use auto-detect: true instead
+  method-names:
+    item-from-id: "itemFromId"
+    item-exists: "exists"
+    id-from-item: "idFromItem"
+    place-block: "place"
+    remove-block: "remove"
+    is-custom-block: "isCustomBlock"
+    place-furniture: "place"
+    remove-furniture: "remove"
+    is-furniture: "isFurniture"
+  
+  # Cache settings
+  cache:
+    # Cache items for 10 minutes (in milliseconds)
+    expire-after-write: 600000
+    # Maximum number of items to cache
+    maximum-size: 1000
