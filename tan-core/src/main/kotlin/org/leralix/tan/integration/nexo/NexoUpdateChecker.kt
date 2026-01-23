@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 object UpdateCheckerConfig {
     @JvmStatic
-    var autoCheckEnabled = true
+    var autoCheckEnabled = false  // Disabled by default to prevent network spam
     @JvmStatic
     var checkIntervalHours = 24
     @JvmStatic
