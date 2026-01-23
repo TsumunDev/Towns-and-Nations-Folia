@@ -123,29 +123,93 @@ public class PlayerDataStorage extends DatabaseStorage<ITanPlayer> {
       return;
     }
     String jsonData = gson.toJson(obj, typeToken);
+
+    // Check if new columns exist (v2.0 schema)
+    boolean useNewSchema = columnExists("balance");
+
     String upsertSQL;
     if (getDatabase().isMySQL()) {
-      upsertSQL =
-          "INSERT INTO "
-              + tableName
-              + " (id, player_name, town_name, nation_name, data) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE player_name = VALUES(player_name), town_name = VALUES(town_name), nation_name = VALUES(nation_name), data = VALUES(data)";
+      if (useNewSchema) {
+        // New schema with all columns
+        upsertSQL =
+            "INSERT INTO "
+                + tableName
+                + " (id, player_name, town_name, nation_name, ip_address, town_id, nation_id, balance, is_online, first_seen, last_seen, data) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE "
+                + "player_name = VALUES(player_name), "
+                + "town_name = VALUES(town_name), "
+                + "nation_name = VALUES(nation_name), "
+                + "ip_address = VALUES(ip_address), "
+                + "town_id = VALUES(town_id), "
+                + "nation_id = VALUES(nation_id), "
+                + "balance = VALUES(balance), "
+                + "is_online = VALUES(is_online), "
+                + "last_seen = VALUES(last_seen), "
+                + "data = VALUES(data)";
+      } else {
+        // Legacy schema (pre-v2.0)
+        upsertSQL =
+            "INSERT INTO "
+                + tableName
+                + " (id, player_name, town_name, nation_name, data) VALUES (?, ?, ?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE "
+                + "player_name = VALUES(player_name), "
+                + "town_name = VALUES(town_name), "
+                + "nation_name = VALUES(nation_name), "
+                + "data = VALUES(data)";
+      }
     } else {
-      upsertSQL =
-          "INSERT OR REPLACE INTO "
-              + tableName
-              + " (id, player_name, town_name, nation_name, data) VALUES (?, ?, ?, ?, ?)";
+      if (useNewSchema) {
+        // New schema with all columns (SQLite)
+        upsertSQL =
+            "INSERT OR REPLACE INTO "
+                + tableName
+                + " (id, player_name, town_name, nation_name, ip_address, town_id, nation_id, balance, is_online, first_seen, last_seen, data) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      } else {
+        // Legacy schema (pre-v2.0)
+        upsertSQL =
+            "INSERT OR REPLACE INTO "
+                + tableName
+                + " (id, player_name, town_name, nation_name, data) VALUES (?, ?, ?, ?, ?)";
+      }
     }
+
     FoliaScheduler.runTaskAsynchronously(
         TownsAndNations.getPlugin(),
         () -> {
           try (Connection conn = getDatabase().getDataSource().getConnection();
               PreparedStatement ps = conn.prepareStatement(upsertSQL)) {
-            ps.setString(1, id);
-            ps.setString(2, obj.getNameStored());
-            ps.setString(3, obj.getTownName());
-            ps.setString(4, obj.getNationName());
-            ps.setString(5, jsonData);
+            int paramIndex = 1;
+            ps.setString(paramIndex++, id);
+            ps.setString(paramIndex++, obj.getNameStored());
+            ps.setString(paramIndex++, obj.getTownName());
+            ps.setString(paramIndex++, obj.getNationName());
+
+            if (useNewSchema) {
+              // Get additional data for new columns
+              // TODO: Implement proper IP tracking, online status, first_seen
+              String ipAddress = null;
+              String townId = null; // Will be populated by migration
+              String nationId = null; // Will be populated by migration
+              double balance = obj.getBalance();
+              boolean isOnline = false;
+              long firstSeen = System.currentTimeMillis();
+              long lastSeen = System.currentTimeMillis();
+
+              ps.setString(paramIndex++, ipAddress);
+              ps.setString(paramIndex++, townId);
+              ps.setString(paramIndex++, nationId);
+              ps.setDouble(paramIndex++, balance);
+              ps.setBoolean(paramIndex++, isOnline);
+              ps.setLong(paramIndex++, firstSeen);
+              ps.setLong(paramIndex++, lastSeen);
+            }
+
+            ps.setString(paramIndex, jsonData);
             ps.executeUpdate();
+
             if (cacheEnabled && cache != null) {
               synchronized (cache) {
                 cache.put(id, obj);
@@ -163,6 +227,20 @@ public class PlayerDataStorage extends DatabaseStorage<ITanPlayer> {
                         + e.getMessage());
           }
         });
+  }
+
+  /**
+   * Check if a column exists in the table.
+   */
+  private boolean columnExists(String columnName) {
+    try (Connection conn = getDatabase().getDataSource().getConnection()) {
+      ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, columnName);
+      boolean exists = rs.next();
+      rs.close();
+      return exists;
+    } catch (SQLException e) {
+      return false;
+    }
   }
   public CompletableFuture<ITanPlayer> register(Player p) {
     ITanPlayer tanPlayer = new PlayerData(p);

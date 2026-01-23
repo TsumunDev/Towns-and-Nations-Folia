@@ -92,25 +92,75 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
       return;
     }
     String jsonData = gson.toJson(obj, typeToken);
+
+    // Check if new columns exist (v2.0 schema)
+    boolean useNewSchema = columnExists("members_count");
+
     String upsertSQL;
     if (getDatabase().isMySQL()) {
-      upsertSQL =
-          "INSERT INTO "
-              + tableName
-              + " (id, region_name, data) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE region_name = VALUES(region_name), data = VALUES(data)";
+      if (useNewSchema) {
+        // New schema with all columns
+        upsertSQL =
+            "INSERT INTO "
+                + tableName
+                + " (id, region_name, leader_uuid, leader_name, capital_id, members_count, data) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE "
+                + "region_name = VALUES(region_name), "
+                + "leader_uuid = VALUES(leader_uuid), "
+                + "leader_name = VALUES(leader_name), "
+                + "capital_id = VALUES(capital_id), "
+                + "members_count = VALUES(members_count), "
+                + "data = VALUES(data)";
+      } else {
+        // Legacy schema (pre-v2.0)
+        upsertSQL =
+            "INSERT INTO "
+                + tableName
+                + " (id, region_name, data) VALUES (?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE region_name = VALUES(region_name), data = VALUES(data)";
+      }
     } else {
-      upsertSQL =
-          "INSERT OR REPLACE INTO " + tableName + " (id, region_name, data) VALUES (?, ?, ?)";
+      if (useNewSchema) {
+        // New schema with all columns (SQLite)
+        upsertSQL =
+            "INSERT OR REPLACE INTO "
+                + tableName
+                + " (id, region_name, leader_uuid, leader_name, capital_id, members_count, data) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+      } else {
+        // Legacy schema (pre-v2.0)
+        upsertSQL =
+            "INSERT OR REPLACE INTO " + tableName + " (id, region_name, data) VALUES (?, ?, ?)";
+      }
     }
+
     FoliaScheduler.runTaskAsynchronously(
         TownsAndNations.getPlugin(),
         () -> {
           try (Connection conn = getDatabase().getDataSource().getConnection();
               PreparedStatement ps = conn.prepareStatement(upsertSQL)) {
-            ps.setString(1, id);
-            ps.setString(2, obj.getName());
-            ps.setString(3, jsonData);
+            int paramIndex = 1;
+            ps.setString(paramIndex++, id);
+            ps.setString(paramIndex++, obj.getName());
+
+            if (useNewSchema) {
+              // Get additional data for new columns
+              // TODO: Implement proper leader and capital retrieval from RegionData API
+              String leaderUuid = null;
+              String leaderName = null;
+              String capitalId = null;
+              int membersCount = 1;
+
+              ps.setString(paramIndex++, leaderUuid);
+              ps.setString(paramIndex++, leaderName);
+              ps.setString(paramIndex++, capitalId);
+              ps.setInt(paramIndex++, membersCount);
+            }
+
+            ps.setString(paramIndex, jsonData);
             ps.executeUpdate();
+
             if (cacheEnabled && cache != null) {
               synchronized (cache) {
                 cache.put(id, obj);
@@ -128,6 +178,20 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
                         + e.getMessage());
           }
         });
+  }
+
+  /**
+   * Check if a column exists in the table.
+   */
+  private boolean columnExists(String columnName) {
+    try (Connection conn = getDatabase().getDataSource().getConnection()) {
+      ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, columnName);
+      boolean exists = rs.next();
+      rs.close();
+      return exists;
+    } catch (SQLException e) {
+      return false;
+    }
   }
   private void loadNextID() {
     nextID = getDatabase().getNextRegionId();

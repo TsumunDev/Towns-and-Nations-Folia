@@ -137,32 +137,89 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
       return;
     }
     String jsonData = gson.toJson(obj, typeToken);
+
+    // Check if new columns exist (v2.0 schema)
+    boolean useNewSchema = columnExists("bank_balance");
+
     String upsertSQL;
     if (getDatabase().isMySQL()) {
-      upsertSQL =
-          "INSERT INTO "
-              + tableName
-              + " (id, town_name, creator_uuid, creator_name, data) VALUES (?, ?, ?, ?, ?) "
-              + "ON DUPLICATE KEY UPDATE town_name = VALUES(town_name), data = VALUES(data)";
+      if (useNewSchema) {
+        // New schema with all columns
+        upsertSQL =
+            "INSERT INTO "
+                + tableName
+                + " (id, town_name, creator_uuid, creator_name, leader_uuid, leader_name, nation_id, bank_balance, claims_count, members_count, is_open, data) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE "
+                + "town_name = VALUES(town_name), "
+                + "leader_uuid = VALUES(leader_uuid), "
+                + "leader_name = VALUES(leader_name), "
+                + "nation_id = VALUES(nation_id), "
+                + "bank_balance = VALUES(bank_balance), "
+                + "claims_count = VALUES(claims_count), "
+                + "members_count = VALUES(members_count), "
+                + "is_open = VALUES(is_open), "
+                + "data = VALUES(data)";
+      } else {
+        // Legacy schema (pre-v2.0)
+        upsertSQL =
+            "INSERT INTO "
+                + tableName
+                + " (id, town_name, creator_uuid, creator_name, data) VALUES (?, ?, ?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE town_name = VALUES(town_name), data = VALUES(data)";
+      }
     } else {
-      upsertSQL =
-          "INSERT OR REPLACE INTO "
-              + tableName
-              + " (id, town_name, creator_uuid, creator_name, data) VALUES (?, ?, ?, ?, ?)";
+      if (useNewSchema) {
+        // New schema with all columns (SQLite)
+        upsertSQL =
+            "INSERT OR REPLACE INTO "
+                + tableName
+                + " (id, town_name, creator_uuid, creator_name, leader_uuid, leader_name, nation_id, bank_balance, claims_count, members_count, is_open, data) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      } else {
+        // Legacy schema (pre-v2.0)
+        upsertSQL =
+            "INSERT OR REPLACE INTO "
+                + tableName
+                + " (id, town_name, creator_uuid, creator_name, data) VALUES (?, ?, ?, ?, ?)";
+      }
     }
+
     FoliaScheduler.runTaskAsynchronously(
         TownsAndNations.getPlugin(),
         () -> {
           try (Connection conn = getDatabase().getDataSource().getConnection();
               PreparedStatement ps = conn.prepareStatement(upsertSQL)) {
-            ps.setString(1, id);
-            ps.setString(2, obj.getName());
-            ps.setString(3, obj.getLeaderID());
+            int paramIndex = 1;
+            ps.setString(paramIndex++, id);
+            ps.setString(paramIndex++, obj.getName());
+            ps.setString(paramIndex++, obj.getLeaderID());
+
             ITanPlayer leaderData = obj.getLeaderData();
             String leaderName = (leaderData != null) ? leaderData.getNameStored() : null;
-            ps.setString(4, leaderName);
-            ps.setString(5, jsonData);
+            ps.setString(paramIndex++, leaderName);
+
+            if (useNewSchema) {
+              // Get additional data for new columns
+              // TODO: Implement proper stats calculation from TownData API
+              String nationId = null; // Will be populated by migration
+              double bankBalance = 0.0;
+              int claimsCount = 0;
+              int membersCount = 1;
+              boolean isOpen = false;
+
+              ps.setString(paramIndex++, obj.getLeaderID()); // leader_uuid (same as creator)
+              ps.setString(paramIndex++, leaderName);
+              ps.setString(paramIndex++, nationId);
+              ps.setDouble(paramIndex++, bankBalance);
+              ps.setInt(paramIndex++, claimsCount);
+              ps.setInt(paramIndex++, membersCount);
+              ps.setBoolean(paramIndex++, isOpen);
+            }
+
+            ps.setString(paramIndex, jsonData);
             ps.executeUpdate();
+
             if (cacheEnabled && cache != null) {
               synchronized (cache) {
                 cache.put(id, obj);
@@ -180,6 +237,20 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
                         + e.getMessage());
           }
         });
+  }
+
+  /**
+   * Check if a column exists in the table.
+   */
+  private boolean columnExists(String columnName) {
+    try (Connection conn = getDatabase().getDataSource().getConnection()) {
+      ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, columnName);
+      boolean exists = rs.next();
+      rs.close();
+      return exists;
+    } catch (SQLException e) {
+      return false;
+    }
   }
   private void loadNextTownId() {
     newTownId = getDatabase().getNextTownId();
