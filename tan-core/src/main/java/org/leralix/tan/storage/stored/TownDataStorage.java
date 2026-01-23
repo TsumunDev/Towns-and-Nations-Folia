@@ -201,12 +201,20 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
 
             if (useNewSchema) {
               // Get additional data for new columns
-              // TODO: Implement proper stats calculation from TownData API
-              String nationId = null; // Will be populated by migration
-              double bankBalance = 0.0;
-              int claimsCount = 0;
-              int membersCount = 1;
-              boolean isOpen = false;
+              String nationId = null;
+              try {
+                org.leralix.tan.dataclass.territory.RegionData region = obj.getRegionSync();
+                if (region != null) {
+                  nationId = region.getID();
+                }
+              } catch (Exception e) {
+                // Region not available
+              }
+
+              double bankBalance = obj.getBalance(); // TerritoryData.getBalance()
+              int claimsCount = obj.getNumberOfClaimedChunk();
+              int membersCount = obj.getPlayerIDList().size();
+              boolean isOpen = obj.isRecruiting();
 
               ps.setString(paramIndex++, obj.getLeaderID()); // leader_uuid (same as creator)
               ps.setString(paramIndex++, leaderName);

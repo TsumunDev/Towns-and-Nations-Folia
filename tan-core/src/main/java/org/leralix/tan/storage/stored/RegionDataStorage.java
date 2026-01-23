@@ -146,11 +146,29 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
 
             if (useNewSchema) {
               // Get additional data for new columns
-              // TODO: Implement proper leader and capital retrieval from RegionData API
-              String leaderUuid = null;
+              String leaderUuid = obj.getLeaderID();
               String leaderName = null;
               String capitalId = null;
               int membersCount = 1;
+
+              try {
+                // Get leader name
+                org.leralix.tan.dataclass.ITanPlayer leader = obj.getLeaderData();
+                if (leader != null) {
+                  leaderName = leader.getNameStored();
+                }
+
+                // Get capital info
+                org.leralix.tan.dataclass.territory.TerritoryData capital = obj.getCapital();
+                if (capital != null) {
+                  capitalId = capital.getID();
+                }
+
+                // Get members count (towns in region)
+                membersCount = obj.getSubjects().size();
+              } catch (Exception e) {
+                // Data not available, use defaults
+              }
 
               ps.setString(paramIndex++, leaderUuid);
               ps.setString(paramIndex++, leaderName);

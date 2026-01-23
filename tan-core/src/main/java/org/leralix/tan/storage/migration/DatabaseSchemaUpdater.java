@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.territory.RegionData;
+import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.dataclass.territory.TownData;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.RegionDataStorage;
@@ -227,8 +228,27 @@ public class DatabaseSchemaUpdater {
 
           ps.setDouble(1, player.getBalance());
           ps.setBoolean(2, false); // is_online - default to false
-          ps.setString(3, null); // town_id - TODO: get from player
-          ps.setString(4, null); // nation_id - TODO: get from town
+
+          // Get town_id and nation_id
+          String townId = null;
+          String nationId = null;
+          if (player.hasTown()) {
+            try {
+              townId = player.getTownId();
+              TownData town = player.getTownSync();
+              if (town != null) {
+                RegionData region = town.getRegionSync();
+                if (region != null) {
+                  nationId = region.getID();
+                }
+              }
+            } catch (Exception e) {
+              // Town or region not available
+            }
+          }
+
+          ps.setString(3, townId);
+          ps.setString(4, nationId);
           ps.setLong(5, System.currentTimeMillis()); // first_seen
           ps.setString(6, uuid);
 
@@ -290,12 +310,22 @@ public class DatabaseSchemaUpdater {
             // Leader data not available
           }
 
-          // TODO: Get nation_id, bank_balance, claims_count, members_count, is_open from TownData API
+          // Nation ID
           String nationId = null;
-          double bankBalance = 0.0;
-          int claimsCount = 0;
-          int membersCount = 1;
-          boolean isOpen = false;
+          try {
+            RegionData region = town.getRegionSync();
+            if (region != null) {
+              nationId = region.getID();
+            }
+          } catch (Exception e) {
+            // Region not available
+          }
+
+          // Stats from TownData API
+          double bankBalance = town.getBalance();
+          int claimsCount = town.getNumberOfClaimedChunk();
+          int membersCount = town.getPlayerIDList().size();
+          boolean isOpen = town.isRecruiting();
 
           ps.setString(1, leaderUuid);
           ps.setString(2, leaderName);
@@ -349,11 +379,36 @@ public class DatabaseSchemaUpdater {
           String id = entry.getKey();
           RegionData region = entry.getValue();
 
-          // TODO: Get leader_uuid, leader_name, capital_id, members_count from RegionData API
-          String leaderUuid = null;
+          // Get leader info from RegionData API
+          String leaderUuid = region.getLeaderID();
           String leaderName = null;
+          try {
+            ITanPlayer leader = region.getLeaderData();
+            if (leader != null) {
+              leaderName = leader.getNameStored();
+            }
+          } catch (Exception e) {
+            // Leader data not available
+          }
+
+          // Get capital info
           String capitalId = null;
-          int membersCount = 1;
+          try {
+            TerritoryData capital = region.getCapital();
+            if (capital != null) {
+              capitalId = capital.getID();
+            }
+          } catch (Exception e) {
+            // Capital not available
+          }
+
+          // Get members count
+          int membersCount = 1; // Default to 1 (capital)
+          try {
+            membersCount = region.getSubjects().size();
+          } catch (Exception e) {
+            // Members not available
+          }
 
           ps.setString(1, leaderUuid);
           ps.setString(2, leaderName);

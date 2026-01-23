@@ -189,14 +189,28 @@ public class PlayerDataStorage extends DatabaseStorage<ITanPlayer> {
 
             if (useNewSchema) {
               // Get additional data for new columns
-              // TODO: Implement proper IP tracking, online status, first_seen
-              String ipAddress = null;
-              String townId = null; // Will be populated by migration
-              String nationId = null; // Will be populated by migration
+              String ipAddress = null; // IP tracking not implemented yet
+              String townId = obj.hasTown() ? obj.getTownId() : null;
+              String nationId = null;
               double balance = obj.getBalance();
-              boolean isOnline = false;
-              long firstSeen = System.currentTimeMillis();
+              boolean isOnline = false; // Will be updated by player join/quit events
+              long firstSeen = System.currentTimeMillis(); // Default to now if not tracked
               long lastSeen = System.currentTimeMillis();
+
+              // Get nation_id from player's town
+              if (townId != null && obj.hasTown()) {
+                try {
+                  org.leralix.tan.dataclass.territory.TownData town = obj.getTownSync();
+                  if (town != null) {
+                    org.leralix.tan.dataclass.territory.RegionData region = town.getRegionSync();
+                    if (region != null) {
+                      nationId = region.getID();
+                    }
+                  }
+                } catch (Exception e) {
+                  // Town or region not available, ignore
+                }
+              }
 
               ps.setString(paramIndex++, ipAddress);
               ps.setString(paramIndex++, townId);
