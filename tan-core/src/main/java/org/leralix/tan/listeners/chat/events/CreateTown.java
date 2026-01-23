@@ -46,98 +46,147 @@ public class CreateTown extends ChatListenerEvent {
    * @param townName The proposed town name
    */
   private void createTownAsync(Player player, String townName) {
+    java.util.logging.Logger logger = TownsAndNations.getPlugin().getLogger();
+    String playerName = player.getName();
+
+    logger.info("[TOWN-CREATION] " + playerName + " attempting to create town: " + townName +
+        " (cost: " + cost + ")");
 
     // Step 1: Check player's balance asynchronously
     AsyncEconomyService.getBalance(player)
-        .thenAccept(balance -> {
+        .thenCompose(balance -> {
           // Step 2: Validate balance (on region thread after balance check)
           if (balance < cost) {
             double deficit = cost - balance;
+            logger.info("[TOWN-CREATION] " + playerName + " has insufficient funds (" +
+                balance + ", needs " + cost + ")");
             TanChatUtils.message(
                 player,
                 Lang.PLAYER_NOT_ENOUGH_MONEY_EXTENDED.get(player, Double.toString(deficit)));
-            return;
+            return java.util.concurrent.CompletableFuture.completedFuture(null);
           }
 
           // Step 3: Validate town name (synchronous, fast operation)
           FileConfiguration config = ConfigUtil.getCustomConfig(ConfigTag.MAIN);
           int maxSize = config.getInt("TownNameSize", 45);
           if (townName.length() > maxSize) {
+            logger.info("[TOWN-CREATION] " + playerName + "'s town name too long: " +
+                townName.length() + " (max: " + maxSize + ")");
             TanChatUtils.message(
                 player,
                 Lang.MESSAGE_TOO_LONG.get(player, Integer.toString(maxSize)));
-            return;
+            return java.util.concurrent.CompletableFuture.completedFuture(null);
           }
 
           if (TownDataStorage.getInstance().isNameUsed(townName)) {
+            logger.info("[TOWN-CREATION] " + playerName + " attempted to use existing name: " +
+                townName);
             TanChatUtils.message(player, Lang.NAME_ALREADY_USED.get(player));
-            return;
+            return java.util.concurrent.CompletableFuture.completedFuture(null);
           }
 
-          // Step 4: Load player data and create town
-          PlayerDataStorage.getInstance()
-              .get(player)
+          // Step 4: Load player data
+          return PlayerDataStorage.getInstance().get(player)
               .thenCompose(tanPlayer -> {
-                // Create the town (returns CompletableFuture<TownData>)
-                return TownDataStorage.getInstance().newTown(townName, tanPlayer);
-              })
-              .thenCompose(newTown -> {
-                // Step 5: Withdraw cost from player
+                // CRITICAL CHECK: Player already has a town?
+                if (tanPlayer.hasTown()) {
+                  logger.info("[TOWN-CREATION] " + playerName +
+                      " already belongs to a town (creation denied)");
+                  TanChatUtils.message(player,
+                      "§cYou already belong to a town! Leave it first.");
+                  return java.util.concurrent.CompletableFuture.completedFuture(null);
+                }
+
+                // Step 5: WITHDRAW MONEY FIRST (before town creation)
+                logger.info("[TOWN-CREATION] Withdrawing " + cost + " from " + playerName);
                 return AsyncEconomyService.withdraw(player, cost)
-                    .thenApply(newBalance -> newTown); // Pass newTown through
-              })
-              .thenAccept(newTown -> {
-                // Step 6: Town creation complete - fire event and update UI
-                org.leralix.tan.utils.FoliaScheduler.runTask(
-                    TownsAndNations.getPlugin(),
-                    () -> {
-                      // Reload player data to get updated state
-                      PlayerDataStorage.getInstance()
-                          .get(player)
-                          .thenAccept(updatedPlayer -> {
-                            // Fire town creation event
-                            EventManager.getInstance().callEvent(
-                                new TownCreatedInternalEvent(newTown, updatedPlayer));
+                    .thenCompose(newBalance -> {
+                      logger.info("[TOWN-CREATION] Payment successful! " + playerName +
+                          " new balance: " + newBalance);
 
-                            // Log to history
-                            FileUtil.addLineToHistory(
-                                Lang.TOWN_CREATED_NEWSLETTER.get(
-                                    player.getName(), newTown.getName()));
-
-                            // Update scoreboard
-                            TeamUtils.setIndividualScoreBoard(player);
-
-                            // Open town management GUI
-                            openGui(p -> newTown.openMainMenu(player), player);
+                      // Step 6: Create town AFTER successful payment
+                      return TownDataStorage.getInstance().newTown(townName, tanPlayer)
+                          .thenApply(newTown -> {
+                            logger.info("[TOWN-CREATION] Successfully created town '" +
+                                townName + "' for " + playerName);
+                            return newTown;
                           })
-                          .exceptionally(throwable -> {
-                            TownsAndNations.getPlugin()
-                                .getLogger()
-                                .warning("Failed to reload player data after town creation: "
-                                    + throwable.getMessage());
-                            // Still open GUI even if player data reload failed
-                            TeamUtils.setIndividualScoreBoard(player);
-                            openGui(p -> newTown.openMainMenu(player), player);
+                          .exceptionally(creationError -> {
+                            // CRITICAL: Town creation failed - REFUND MONEY
+                            logger.severe("[TOWN-CREATION] Town creation failed for " +
+                                playerName + ", refunding " + cost + ": " +
+                                    creationError.getMessage());
+
+                            AsyncEconomyService.deposit(player, cost)
+                                .thenAccept(refundSuccess -> {
+                                  logger.info("[TOWN-CREATION] Refunded " + cost + " to " +
+                                      playerName);
+                                  TanChatUtils.message(player,
+                                      "§cTown creation failed. Your money has been refunded.");
+                                })
+                                .exceptionally(refundError -> {
+                                  logger.severe("[TOWN-CREATION] FAILED TO REFUND " + cost +
+                                      " to " + playerName + ": " + refundError.getMessage());
+                                  TanChatUtils.message(player,
+                                      "§cTown creation failed. Contact admin for refund.");
+                                  return null;
+                                });
+
                             return null;
                           });
+                    })
+                    .exceptionally(paymentError -> {
+                      // Payment failed - no town created, no money lost
+                      logger.warning("[TOWN-CREATION] Payment failed for " + playerName +
+                          ": " + paymentError.getMessage());
+                      TanChatUtils.message(player,
+                          "§cPayment failed. Please try again.");
+                      return null;
                     });
-              })
-              .exceptionally(throwable -> {
-                // Town creation failed
-                TownsAndNations.getPlugin()
-                    .getLogger()
-                    .severe("Failed to create town '" + townName + "': " + throwable.getMessage());
-                TanChatUtils.message(
-                    player,
-                    Lang.SYNTAX_ERROR.get(player));
-                return null;
+              });
+        })
+        .thenAccept(newTown -> {
+          // Step 7: Town creation complete - fire event and update UI
+          if (newTown == null) {
+            return; // Something failed earlier in the chain
+          }
+
+          org.leralix.tan.utils.FoliaScheduler.runTask(
+              TownsAndNations.getPlugin(),
+              () -> {
+                // Reload player data to get updated state
+                PlayerDataStorage.getInstance()
+                    .get(player)
+                    .thenAccept(updatedPlayer -> {
+                      // Fire town creation event
+                      EventManager.getInstance().callEvent(
+                          new TownCreatedInternalEvent(newTown, updatedPlayer));
+
+                      // Log to history
+                      FileUtil.addLineToHistory(
+                          Lang.TOWN_CREATED_NEWSLETTER.get(
+                              player.getName(), newTown.getName()));
+
+                      // Update scoreboard
+                      TeamUtils.setIndividualScoreBoard(player);
+
+                      // Open town management GUI
+                      openGui(p -> newTown.openMainMenu(player), player);
+                    })
+                    .exceptionally(throwable -> {
+                      logger.warning("[TOWN-CREATION] Failed to reload player data after town creation: "
+                          + throwable.getMessage());
+                      // Still open GUI even if player data reload failed
+                      TeamUtils.setIndividualScoreBoard(player);
+                      openGui(p -> newTown.openMainMenu(player), player);
+                      return null;
+                    });
               });
         })
         .exceptionally(throwable -> {
           // Balance check failed
-          TownsAndNations.getPlugin()
-              .getLogger()
-              .warning("Failed to check balance for town creation: " + throwable.getMessage());
+          logger.warning("[TOWN-CREATION] Failed to check balance for " + playerName +
+              ": " + throwable.getMessage());
           TanChatUtils.message(
               player,
               Lang.SYNTAX_ERROR.get(player));
