@@ -10,7 +10,7 @@ import org.leralix.tan.storage.typeadapter.WargoalTypeAdapter;
 import org.leralix.tan.wars.War;
 import org.leralix.tan.wars.legacy.wargoals.WarGoal;
 public class WarStorage extends DatabaseStorage<War> {
-  private static final String TABLE_NAME = "tan_wars";
+  private static final String TABLE_NAME = "ccn_wars";
   private static WarStorage instance;
   private WarStorage() {
     super(

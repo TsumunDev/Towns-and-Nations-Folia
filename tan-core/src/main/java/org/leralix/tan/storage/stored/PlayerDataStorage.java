@@ -18,7 +18,7 @@ import org.leralix.tan.storage.exceptions.DatabaseNotReadyException;
 import org.leralix.tan.utils.FoliaScheduler;
 public class PlayerDataStorage extends DatabaseStorage<ITanPlayer> {
   private static final String ERROR_MESSAGE = "Error while creating player storage";
-  private static final String TABLE_NAME = "tan_players";
+  private static final String TABLE_NAME = "ccn_players";
   private static final int MAX_RETRY_ATTEMPTS = 3;
   private static final long RETRY_DELAY_MS = 500;
   private static volatile PlayerDataStorage instance;

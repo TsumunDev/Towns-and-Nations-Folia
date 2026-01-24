@@ -10,7 +10,7 @@ import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.Landmark;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 public class LandmarkStorage extends DatabaseStorage<Landmark> {
-  private static final String TABLE_NAME = "tan_landmarks";
+  private static final String TABLE_NAME = "ccn_landmarks";
   private int newLandmarkID;
   private static LandmarkStorage instance;
   private LandmarkStorage() {

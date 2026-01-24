@@ -9,7 +9,7 @@ import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.ActiveTruce;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 public class TruceStorage extends DatabaseStorage<HashMap<String, ActiveTruce>> {
-  private static final String TABLE_NAME = "tan_truces";
+  private static final String TABLE_NAME = "ccn_truces";
   private static TruceStorage instance;
   protected TruceStorage() {
     super(

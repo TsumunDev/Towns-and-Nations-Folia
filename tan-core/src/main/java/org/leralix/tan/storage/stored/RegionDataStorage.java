@@ -23,7 +23,7 @@ import org.leralix.tan.storage.typeadapter.IconAdapter;
 import org.leralix.tan.utils.FoliaScheduler;
 import org.leralix.tan.utils.file.FileUtil;
 public class RegionDataStorage extends DatabaseStorage<RegionData> {
-  private static final String TABLE_NAME = "tan_regions";
+  private static final String TABLE_NAME = "ccn_regions";
   private int nextID;
   private static RegionDataStorage instance;
   public static RegionDataStorage getInstance() {

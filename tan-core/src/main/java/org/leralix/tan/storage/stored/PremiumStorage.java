@@ -12,7 +12,7 @@ import java.sql.Statement;
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.utils.constants.Constants;
 public class PremiumStorage extends DatabaseStorage<Boolean> {
-  private static final String TABLE_NAME = "tan_premium_accounts";
+  private static final String TABLE_NAME = "ccn_premium_accounts";
   private static volatile PremiumStorage instance;
   private PremiumStorage() {
     super(TABLE_NAME, Boolean.class, new GsonBuilder().setPrettyPrinting().create());

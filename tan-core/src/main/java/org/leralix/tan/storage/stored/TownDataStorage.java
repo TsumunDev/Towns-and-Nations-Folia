@@ -25,7 +25,7 @@ import org.leralix.tan.storage.typeadapter.IconAdapter;
 import org.leralix.tan.storage.typeadapter.OwnerDeserializer;
 import org.leralix.tan.utils.FoliaScheduler;
 public class TownDataStorage extends DatabaseStorage<TownData> {
-  private static final String TABLE_NAME = "tan_towns";
+  private static final String TABLE_NAME = "ccn_towns";
   private static TownDataStorage instance;
   private int newTownId;
   private TownDataStorage() {

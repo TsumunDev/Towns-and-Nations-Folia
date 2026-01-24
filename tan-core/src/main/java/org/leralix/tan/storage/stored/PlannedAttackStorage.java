@@ -11,7 +11,7 @@ import org.leralix.tan.wars.War;
 import org.leralix.tan.wars.legacy.CreateAttackData;
 import org.leralix.tan.wars.legacy.wargoals.WarGoal;
 public class PlannedAttackStorage extends DatabaseStorage<PlannedAttack> {
-  private static final String TABLE_NAME = "tan_planned_attacks";
+  private static final String TABLE_NAME = "ccn_planned_attacks";
   private static PlannedAttackStorage instance;
   protected PlannedAttackStorage() {
     super(

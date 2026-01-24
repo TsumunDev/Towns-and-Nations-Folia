@@ -11,7 +11,7 @@ import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.chunk.*;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
-  private static final String TABLE_NAME = "tan_claimed_chunks";
+  private static final String TABLE_NAME = "ccn_claimed_chunks";
   private static volatile NewClaimedChunkStorage instance;
   private NewClaimedChunkStorage() {
     super(TABLE_NAME, ClaimedChunk2.class, new GsonBuilder().setPrettyPrinting().create());
