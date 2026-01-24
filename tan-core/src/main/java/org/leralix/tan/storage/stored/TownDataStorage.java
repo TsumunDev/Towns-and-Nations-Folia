@@ -89,6 +89,69 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
               .info("Added creator_name column to " + TABLE_NAME);
         }
       }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "leader_uuid")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN leader_uuid VARCHAR(255) NULL".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .info("Added leader_uuid column to " + TABLE_NAME);
+        }
+      }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "leader_name")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN leader_name VARCHAR(255) NULL".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .info("Added leader_name column to " + TABLE_NAME);
+        }
+      }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "nation_id")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN nation_id VARCHAR(255) NULL".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .info("Added nation_id column to " + TABLE_NAME);
+        }
+      }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "bank_balance")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN bank_balance DOUBLE NULL".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .info("Added bank_balance column to " + TABLE_NAME);
+        }
+      }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "claims_count")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN claims_count INT NULL".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .info("Added claims_count column to " + TABLE_NAME);
+        }
+      }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "members_count")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN members_count INT NULL".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .info("Added members_count column to " + TABLE_NAME);
+        }
+      }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "is_open")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN is_open BOOLEAN DEFAULT FALSE".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .info("Added is_open column to " + TABLE_NAME);
+        }
+      }
       try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "creation_date")) {
         if (!rs.next()) {
           if (getDatabase().isMySQL()) {

@@ -77,6 +77,48 @@ public class PlayerDataStorage extends DatabaseStorage<ITanPlayer> {
           TownsAndNations.getPlugin().getLogger().info("Added nation_name column to " + TABLE_NAME);
         }
       }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "ip_address")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN ip_address VARCHAR(255) NULL".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin().getLogger().info("Added ip_address column to " + TABLE_NAME);
+        }
+      }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "town_id")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN town_id VARCHAR(255) NULL".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin().getLogger().info("Added town_id column to " + TABLE_NAME);
+        }
+      }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "nation_id")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN nation_id VARCHAR(255) NULL".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin().getLogger().info("Added nation_id column to " + TABLE_NAME);
+        }
+      }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "balance")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN balance DOUBLE NULL".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin().getLogger().info("Added balance column to " + TABLE_NAME);
+        }
+      }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "is_online")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN is_online BOOLEAN DEFAULT FALSE".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin().getLogger().info("Added is_online column to " + TABLE_NAME);
+        }
+      }
+      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "first_seen")) {
+        if (!rs.next()) {
+          stmt.executeUpdate(
+              "ALTER TABLE %s ADD COLUMN first_seen BIGINT NULL".formatted(TABLE_NAME));
+          TownsAndNations.getPlugin().getLogger().info("Added first_seen column to " + TABLE_NAME);
+        }
+      }
       try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "last_seen")) {
         if (!rs.next()) {
           if (getDatabase().isMySQL()) {
