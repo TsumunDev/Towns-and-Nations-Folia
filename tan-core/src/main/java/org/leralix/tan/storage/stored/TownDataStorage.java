@@ -152,6 +152,8 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
                 + "ON DUPLICATE KEY UPDATE "
                 + "town_name = VALUES(town_name), "
+                + "creator_uuid = VALUES(creator_uuid), "
+                + "creator_name = VALUES(creator_name), "
                 + "leader_uuid = VALUES(leader_uuid), "
                 + "leader_name = VALUES(leader_name), "
                 + "nation_id = VALUES(nation_id), "
@@ -166,7 +168,7 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
             "INSERT INTO "
                 + tableName
                 + " (id, town_name, creator_uuid, creator_name, data) VALUES (?, ?, ?, ?, ?) "
-                + "ON DUPLICATE KEY UPDATE town_name = VALUES(town_name), data = VALUES(data)";
+                + "ON DUPLICATE KEY UPDATE town_name = VALUES(town_name), creator_uuid = VALUES(creator_uuid), creator_name = VALUES(creator_name), data = VALUES(data)";
       }
     } else {
       if (useNewSchema) {
@@ -193,10 +195,12 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
             int paramIndex = 1;
             ps.setString(paramIndex++, id);
             ps.setString(paramIndex++, obj.getName());
-            ps.setString(paramIndex++, obj.getLeaderID());
+            ps.setString(paramIndex++, obj.getCreatorID());
+            ps.setString(paramIndex++, obj.getCreatorName());
 
             ITanPlayer leaderData = obj.getLeaderData();
             String leaderName = (leaderData != null) ? leaderData.getNameStored() : null;
+            ps.setString(paramIndex++, obj.getLeaderID());
             ps.setString(paramIndex++, leaderName);
 
             if (useNewSchema) {
@@ -216,8 +220,6 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
               int membersCount = obj.getPlayerIDList().size();
               boolean isOpen = obj.isRecruiting();
 
-              ps.setString(paramIndex++, obj.getLeaderID()); // leader_uuid (same as creator)
-              ps.setString(paramIndex++, leaderName);
               ps.setString(paramIndex++, nationId);
               ps.setDouble(paramIndex++, bankBalance);
               ps.setInt(paramIndex++, claimsCount);

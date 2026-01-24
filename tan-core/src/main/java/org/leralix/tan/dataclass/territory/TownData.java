@@ -90,6 +90,11 @@ public class TownData extends TerritoryData {
   private TownProgressionComponent progression;
   private org.leralix.tan.domain.prestige.model.PrestigePoints prestigePoints;
   private Set<String> purchasedUpgrades;
+
+  // Creator tracking (v2.0) - stores original creator even if leader changes
+  private String creatorUuid;
+  private String creatorName;
+
   public TownData(String townId, String townName, ITanPlayer leader) {
     super(townId, townName, leader);
     this.playerJoinRequestSet = new HashSet<>();
@@ -97,7 +102,13 @@ public class TownData extends TerritoryData {
     this.isRecruiting = false;
     if (leader != null) {
       this.uuidLeader = leader.getID();
+      // Store creator information
+      this.creatorUuid = leader.getID();
+      this.creatorName = leader.getNameStored();
       addPlayer(leader);
+    } else {
+      this.creatorUuid = null;
+      this.creatorName = null;
     }
     int prefixSize = Constants.getPrefixSize();
     this.townTag =
@@ -261,6 +272,27 @@ public class TownData extends TerritoryData {
   public void setLeaderID(String leaderID) {
     this.uuidLeader = leaderID;
   }
+
+  /**
+   * Gets the UUID of the player who originally created this town.
+   * <p>This value never changes, even if leadership is transferred.</p>
+   *
+   * @return The creator's UUID, or null if unknown
+   */
+  public String getCreatorID() {
+    return creatorUuid;
+  }
+
+  /**
+   * Gets the name of the player who originally created this town.
+   * <p>This value never changes, even if leadership is transferred.</p>
+   *
+   * @return The creator's name at time of creation, or null if unknown
+   */
+  public String getCreatorName() {
+    return creatorName;
+  }
+
   @Override
   public boolean isLeader(String leaderID) {
     return getLeaderID().equals(leaderID);
