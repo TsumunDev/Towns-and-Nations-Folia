@@ -195,4 +195,27 @@ public class NoPlayerData implements ITanPlayer {
   public CompletableFuture<List<CurrentAttack>> getCurrentAttacks() {
     return CompletableFuture.completedFuture(List.of());
   }
+
+  // Database tracking fields (v2.0)
+  @Override
+  public String getLastKnownIP() {
+    return null;
+  }
+  @Override
+  public void setLastKnownIP(String ipAddress) {
+  }
+  @Override
+  public Long getFirstSeen() {
+    return null;
+  }
+  @Override
+  public void setFirstSeen(Long firstSeen) {
+  }
+  @Override
+  public boolean isOnline() {
+    return false;
+  }
+  @Override
+  public void setOnline(boolean isOnline) {
+  }
 }

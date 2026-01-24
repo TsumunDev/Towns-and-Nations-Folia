@@ -137,4 +137,45 @@ public interface ITanPlayer {
   TimeZoneEnum getTimeZone();
   void setTimeZone(TimeZoneEnum timeZone);
   CompletableFuture<List<CurrentAttack>> getCurrentAttacks();
+
+  // Database tracking fields (v2.0)
+
+  /**
+   * Gets the player's last known IP address.
+   * @return The IP address, or null if not tracked
+   */
+  String getLastKnownIP();
+
+  /**
+   * Sets the player's IP address.
+   * Called automatically on player join.
+   * @param ipAddress The IP address
+   */
+  void setLastKnownIP(String ipAddress);
+
+  /**
+   * Gets the timestamp when the player first joined.
+   * @return The first seen timestamp in milliseconds, or null if not tracked
+   */
+  Long getFirstSeen();
+
+  /**
+   * Sets the first seen timestamp.
+   * Only set once during player registration.
+   * @param firstSeen The timestamp in milliseconds
+   */
+  void setFirstSeen(Long firstSeen);
+
+  /**
+   * Checks if the player is currently online.
+   * @return true if online, false otherwise
+   */
+  boolean isOnline();
+
+  /**
+   * Sets the player's online status.
+   * Called automatically on join/quit.
+   * @param isOnline true if player is online
+   */
+  void setOnline(boolean isOnline);
 }

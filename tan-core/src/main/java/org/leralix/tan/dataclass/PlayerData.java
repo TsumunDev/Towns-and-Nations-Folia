@@ -34,6 +34,12 @@ public class PlayerData implements ITanPlayer {
   private List<String> attackInvolvedIn;
   private LangType lang;
   private TimeZoneEnum timeZone;
+
+  // Database tracking fields (v2.0)
+  private String ipAddress;
+  private Long firstSeen;
+  private boolean isOnline;
+
   public PlayerData(Player player) {
     this.uuid = player.getUniqueId().toString();
     this.storedName = player.getName();
@@ -43,6 +49,11 @@ public class PlayerData implements ITanPlayer {
     this.regionRankID = null;
     this.propertiesListID = new ArrayList<>();
     this.attackInvolvedIn = new ArrayList<>();
+
+    // Initialize tracking fields
+    this.ipAddress = player.getAddress() != null ? player.getAddress().getAddress().getHostAddress() : null;
+    this.firstSeen = System.currentTimeMillis();
+    this.isOnline = true;
   }
   public String getID() {
     return uuid;
@@ -326,5 +337,58 @@ public class PlayerData implements ITanPlayer {
               }
               return res;
             });
+  }
+
+  // Database tracking fields getters/setters (v2.0)
+
+  /**
+   * Gets the player's last known IP address.
+   * @return The IP address, or null if not tracked
+   */
+  public String getLastKnownIP() {
+    return ipAddress;
+  }
+
+  /**
+   * Sets the player's IP address.
+   * Called automatically on player join.
+   * @param ipAddress The IP address
+   */
+  public void setLastKnownIP(String ipAddress) {
+    this.ipAddress = ipAddress;
+  }
+
+  /**
+   * Gets the timestamp when the player first joined.
+   * @return The first seen timestamp in milliseconds, or null if not tracked
+   */
+  public Long getFirstSeen() {
+    return firstSeen;
+  }
+
+  /**
+   * Sets the first seen timestamp.
+   * Only set once during player registration.
+   * @param firstSeen The timestamp in milliseconds
+   */
+  public void setFirstSeen(Long firstSeen) {
+    this.firstSeen = firstSeen;
+  }
+
+  /**
+   * Checks if the player is currently online.
+   * @return true if online, false otherwise
+   */
+  public boolean isOnline() {
+    return isOnline;
+  }
+
+  /**
+   * Sets the player's online status.
+   * Called automatically on join/quit.
+   * @param isOnline true if player is online
+   */
+  public void setOnline(boolean isOnline) {
+    this.isOnline = isOnline;
   }
 }

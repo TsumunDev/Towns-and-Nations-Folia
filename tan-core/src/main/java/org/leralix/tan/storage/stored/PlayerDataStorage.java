@@ -189,12 +189,12 @@ public class PlayerDataStorage extends DatabaseStorage<ITanPlayer> {
 
             if (useNewSchema) {
               // Get additional data for new columns
-              String ipAddress = null; // IP tracking not implemented yet
+              String ipAddress = obj.getLastKnownIP();
               String townId = obj.hasTown() ? obj.getTownId() : null;
               String nationId = null;
               double balance = obj.getBalance();
-              boolean isOnline = false; // Will be updated by player join/quit events
-              long firstSeen = System.currentTimeMillis(); // Default to now if not tracked
+              boolean isOnline = obj.isOnline();
+              long firstSeen = obj.getFirstSeen() != null ? obj.getFirstSeen() : System.currentTimeMillis();
               long lastSeen = System.currentTimeMillis();
 
               // Get nation_id from player's town

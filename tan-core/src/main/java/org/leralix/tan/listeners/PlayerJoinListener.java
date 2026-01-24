@@ -32,6 +32,13 @@ public class PlayerJoinListener implements Listener {
                     .warning("TanPlayer is null for " + player.getName());
                 return;
               }
+
+              // Update tracking data (IP, online status)
+              String newIp = player.getAddress() != null ? player.getAddress().getAddress().getHostAddress() : null;
+              tanPlayer.setLastKnownIP(newIp);
+              tanPlayer.setOnline(true);
+              PlayerDataStorage.getInstance().update(tanPlayer);
+
               org.leralix.tan.utils.FoliaScheduler.runTask(
                   TownsAndNations.getPlugin(),
                   () -> {
