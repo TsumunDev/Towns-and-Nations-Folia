@@ -213,6 +213,19 @@ UseTanEconomy: false
 #If TownsAndNations economy is used, set the currency symbol
 moneyIcon: "✦"
 
+#Multi-Currency Support (requires ZEssentials with Vault)
+currencies:
+  cocos:
+    display-name: "Cocos"
+    zessentials-currency: "default"
+    default: true
+
+  prestige:
+    display-name: "Points de Prestige"
+    zessentials-currency: "prestige"
+    default: false
+
+
 #Show currency symbol in menus and messages
 showCurrency: true
 

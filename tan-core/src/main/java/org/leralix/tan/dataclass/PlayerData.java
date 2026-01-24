@@ -78,9 +78,13 @@ public class PlayerData implements ITanPlayer {
     this.storedName = null;
   }
   public double getBalance() {
-    return this.Balance;
+    // Always query the actual economy (Vault/ZEssentials) instead of cached balance
+    return org.leralix.tan.economy.EconomyUtil.getBalance(this);
   }
   public void setBalance(double balance) {
+    // Use EconomyUtil to set balance in Vault/ZEssentials
+    org.leralix.tan.economy.EconomyUtil.setBalance(this, balance);
+    // Also update local cache for compatibility
     this.Balance = balance;
   }
   public String getTownId() {

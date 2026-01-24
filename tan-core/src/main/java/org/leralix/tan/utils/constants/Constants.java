@@ -16,6 +16,7 @@ public class Constants {
   private Constants() {
     throw new AssertionError("Static class");
   }
+  private static FileConfiguration mainConfig;
   private static boolean onlineMode;
   private static DatabaseConstants databaseConstants;
   private static int dailyTaskHour;
@@ -83,6 +84,7 @@ public class Constants {
   private static NewUpgradeStorage upgradeStorage;
   private static final String ALWAYS = "ALWAYS";
   public static void init(FileConfiguration config) {
+    mainConfig = config;
     onlineMode = config.getBoolean("onlineMode", true);
     databaseConstants = new DatabaseConstants(config.getConfigurationSection("database"));
     dailyTaskHour = config.getInt("taxHourTime", 0);
@@ -378,5 +380,9 @@ public class Constants {
   }
   public static int getTimeBeforeTeleport() {
     return timeBeforeTeleport;
+  }
+
+  public static FileConfiguration getMainConfig() {
+    return mainConfig;
   }
 }

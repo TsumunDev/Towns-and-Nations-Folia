@@ -19,42 +19,28 @@ public class VaultManager {
       Bukkit.getServicesManager()
           .register(
               Economy.class, tanEconomyVault, TownsAndNations.getPlugin(), ServicePriority.Normal);
-      logger.log(Level.INFO, "[TaN] -Vault is detected, registering TaN Economy");
+      logger.log(Level.INFO, "[TaN] Using standalone TAN economy (configured in config.yml)");
+      CurrencyConfig.loadCurrencies();
       return;
     }
 
-    // Priority 2: Check for CurrenciesAPI + zEssentials (direct integration, bypasses Vault)
-    if (TanEconomyZessentials.isCurrenciesApiAvailable()) {
-      try {
-        tanEcon = new TanEconomyZessentials();
-        EconomyUtil.register(tanEcon);
-        logger.log(Level.INFO, "[TaN] -CurrenciesAPI detected, using zEssentials economy directly");
-        return;
-      } catch (Exception e) {
-        logger.log(
-            Level.WARNING,
-            "[TaN] -CurrenciesAPI available but zEssentials integration failed: {0}. Falling back to Vault.",
-            e.getMessage());
-      }
-    }
-
-    // Priority 3: Check for Vault economy (traditional integration)
+    // Priority 2: Check for Vault economy (ZEssentials, Essentials, etc.)
+    logger.log(Level.INFO, "[TaN] Checking for Vault economy provider...");
     RegisteredServiceProvider<Economy> rsp =
         Bukkit.getServer().getServicesManager().getRegistration(Economy.class);
     if (rsp != null) {
       tanEcon = new TanEconomyExternal(rsp.getProvider());
       EconomyUtil.register(tanEcon);
-      logger.log(
-          Level.INFO,
-          "[TaN] -Vault is detected, using {0} as economy",
-          rsp.getProvider().getName());
+      logger.log(Level.INFO, "[TaN] Vault economy detected: {0}", rsp.getProvider().getName());
+      logger.log(Level.INFO, "[TaN] Initializing multi-currency configuration...");
+      CurrencyConfig.loadCurrencies();
+      logger.log(Level.INFO, "[TaN] Economy initialization complete");
       return;
     }
 
-    // Priority 4: No economy found, use standalone
-    logger.log(
-        Level.INFO,
-        "[TaN] -No active vault economy. Running standalone and waiting for potential update");
+    // Priority 3: No economy found, use standalone
+    logger.log(Level.INFO, "[TaN] No Vault economy found. Using standalone TAN economy.");
     EconomyUtil.register(new TanEconomyStandalone());
+    CurrencyConfig.loadCurrencies();
   }
 }
