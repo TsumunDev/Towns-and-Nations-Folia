@@ -4,6 +4,7 @@ import dev.triumphteam.gui.guis.GuiItem;
 import java.util.ArrayList;
 import java.util.List;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -42,6 +43,7 @@ public class AdminPlayerMenu extends IteratorGUI {
   private List<GuiItem> getAllPlayers() {
     List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
     List<GuiItem> guiItems = new ArrayList<>();
+    MiniMessage mm = MiniMessage.miniMessage();
     for (Player targetPlayer : onlinePlayers) {
       ITanPlayer tanPlayerData = PlayerDataStorage.getInstance().get(targetPlayer).join();
       String townInfo =
@@ -50,8 +52,8 @@ public class AdminPlayerMenu extends IteratorGUI {
           tanPlayerData.hasRegion() ? tanPlayerData.getRegionSync().getColoredName() : "No Region";
       guiItems.add(
           ItemBuilder.from(Material.PLAYER_HEAD)
-              .name(Component.text(targetPlayer.getName()))
-              .lore(Component.text("Town: " + townInfo), Component.text("Region: " + regionInfo))
+              .name(mm.deserialize(targetPlayer.getName()))
+              .lore(mm.deserialize("Town: " + townInfo), mm.deserialize("Region: " + regionInfo))
               .asGuiItem(
                   event -> {
                     event.setCancelled(true);
