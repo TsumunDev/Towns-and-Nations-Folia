@@ -271,10 +271,14 @@ public class RegionData extends TerritoryData {
     return false;
   }
   @Override
-  public synchronized void delete() {
-    super.delete();
-    TeamUtils.updateAllScoreboardColor();
-    RegionDataStorage.getInstance().deleteRegion(this);
+  public CompletableFuture<Void> delete() {
+    // First execute parent's deletion logic (async)
+    return super.delete().thenRun(() -> {
+      // Update scoreboards (synchronous but fast)
+      TeamUtils.updateAllScoreboardColor();
+      // Delete from database storage (synchronous for now)
+      RegionDataStorage.getInstance().deleteRegion(this);
+    });
   }
   @Override
   public void openMainMenu(Player player) {

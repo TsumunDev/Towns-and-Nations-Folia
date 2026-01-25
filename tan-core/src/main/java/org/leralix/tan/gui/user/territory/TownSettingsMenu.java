@@ -30,7 +30,12 @@ import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.file.FileUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
+import org.leralix.tan.utils.FoliaScheduler;
+import org.leralix.tan.TownsAndNations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 public class TownSettingsMenu extends SettingsMenus {
+  private static final Logger LOGGER = LoggerFactory.getLogger(TownSettingsMenu.class);
   private final TownData townData;
   private TownSettingsMenu(Player player, ITanPlayer tanPlayer, TownData townData) {
     super(player, tanPlayer, Lang.HEADER_SETTINGS.get(tanPlayer.getLang()), townData, 4);
@@ -181,8 +186,22 @@ public class TownSettingsMenu extends SettingsMenus {
                         Lang.TOWN_DELETED_NEWSLETTER.get(player.getName(), townData.getName()));
                     EventManager.getInstance()
                         .callEvent(new TownDeletedInternalEvent(townData, tanPlayer));
-                    townData.delete();
-                    SoundUtil.playSound(player, GOOD);
+
+                    // Delete town asynchronously
+                    townData.delete().thenRun(() -> {
+                      // Success: close inventory and play sound (on region thread)
+                      FoliaScheduler.runTaskAtLocation(TownsAndNations.getPlugin(), player.getLocation(), () -> {
+                        player.closeInventory();
+                        SoundUtil.playSound(player, GOOD);
+                      });
+                    }).exceptionally(ex -> {
+                      // Error: log and notify player
+                      LOGGER.error("Failed to delete town {}", townData.getID(), ex);
+                      FoliaScheduler.runTaskAtLocation(TownsAndNations.getPlugin(), player.getLocation(), () -> {
+                        player.sendMessage("§cAn error occurred while deleting the town.");
+                      });
+                      return null;
+                    });
                   },
                   p -> open());
             })

@@ -1,5 +1,8 @@
 package org.leralix.tan.utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 public class CocoLogger {
+  private static final Logger LOGGER = LoggerFactory.getLogger(CocoLogger.class);
   public static final String RESET = "\u001B[0m";
   public static final String BLACK = "\u001B[30m";
   public static final String RED = "\u001B[31m";
@@ -68,7 +71,7 @@ public class CocoLogger {
             + "800+ Joueurs"
             + RESET
             + "\n\n";
-    System.out.println(banner);
+    LOGGER.info("{}", banner);
   }
   public static String success(String message) {
     return BRIGHT_YELLOW + "  ✓ " + RESET + BRIGHT_WHITE + message + RESET;
@@ -152,7 +155,7 @@ public class CocoLogger {
             + title
             + RESET
             + "\n";
-    System.out.println(titleLine);
+    LOGGER.info("{}", titleLine);
   }
   public static String progressBar(int current, int total, int barLength) {
     int filled = (int) ((double) current / total * barLength);

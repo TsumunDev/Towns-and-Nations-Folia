@@ -2,18 +2,18 @@ package org.leralix.tan.redis;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 public class TerritoryLazyLoader {
   private static final Logger logger = Logger.getLogger(TerritoryLazyLoader.class.getName());
   private static Cache<String, TerritoryData> territoryCache;
-  private static final Set<String> loadingTerritories = java.util.concurrent.ConcurrentHashMap.newKeySet();
+  // Map of territory IDs to pending futures - threads can wait on the same future
+  private static final ConcurrentHashMap<String, CompletableFuture<TerritoryData>> loadingFutures = new ConcurrentHashMap<>();
   private static int maxCachedTerritories = 5000;
   private static int unloadAfterMinutes = 10;
   public static void initialize(int maxTerritories, int evictionMinutes) {
@@ -57,35 +57,45 @@ public class TerritoryLazyLoader {
       return cached;
     }
     logger.fine("[TaN-LazyLoader] Cache MISS: " + territoryId + " - loading from database");
-    synchronized (loadingTerritories) {
-      if (loadingTerritories.contains(territoryId)) {
-        logger.fine("[TaN-LazyLoader] Territory " + territoryId + " already loading, waiting...");
-        while (loadingTerritories.contains(territoryId)) {
-          try {
-            loadingTerritories.wait(100);
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return null;
-          }
+
+    // Use computeIfAbsent to ensure only one thread loads the territory
+    // Other threads will wait on the same CompletableFuture
+    CompletableFuture<TerritoryData> loadingFuture = loadingFutures.computeIfAbsent(
+        territoryId,
+        id -> {
+          // This lambda only executes for the thread that wins the race
+          CompletableFuture<TerritoryData> future = new CompletableFuture<>();
+          CompletableFuture.runAsync(() -> {
+            try {
+              long startTime = System.currentTimeMillis();
+              TerritoryData territory = loadFunction.apply(id);
+              long loadTime = System.currentTimeMillis() - startTime;
+              if (territory != null) {
+                territoryCache.put(id, territory);
+                logger.fine("[TaN-LazyLoader] Loaded territory " + id + " in " + loadTime + "ms");
+                future.complete(territory);
+              } else {
+                future.complete(null);
+              }
+            } catch (Exception e) {
+              logger.warning("[TaN-LazyLoader] Failed to load territory " + id + ": " + e.getMessage());
+              future.completeExceptionally(e);
+            } finally {
+              // Remove the future from the map when done
+              loadingFutures.remove(id);
+            }
+          });
+          return future;
         }
-        return territoryCache.getIfPresent(territoryId);
-      }
-      loadingTerritories.add(territoryId);
-    }
+    );
+
     try {
-      long startTime = System.currentTimeMillis();
-      TerritoryData territory = loadFunction.apply(territoryId);
-      long loadTime = System.currentTimeMillis() - startTime;
-      if (territory != null) {
-        territoryCache.put(territoryId, territory);
-        logger.fine("[TaN-LazyLoader] Loaded territory " + territoryId + " in " + loadTime + "ms");
-      }
-      return territory;
-    } finally {
-      synchronized (loadingTerritories) {
-        loadingTerritories.remove(territoryId);
-        loadingTerritories.notifyAll();
-      }
+      // Wait for the loading to complete (non-blocking in async context)
+      return loadingFuture.join();
+    } catch (Exception e) {
+      logger.warning("[TaN-LazyLoader] Exception while waiting for territory " + territoryId + ": " + e.getMessage());
+      loadingFutures.remove(territoryId);
+      return null;
     }
   }
   public static CompletableFuture<Void> preloadTerritories(

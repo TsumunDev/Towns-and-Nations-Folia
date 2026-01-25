@@ -31,11 +31,10 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
       return null;
     }
     if (cacheEnabled && cache != null) {
-      synchronized (cache) {
-        ClaimedChunk2 cached = cache.get(id);
-        if (cached != null) {
-          return cached;
-        }
+      // Thread-safe: ConcurrentHashMap provides lock-free reads
+      ClaimedChunk2 cached = cache.get(id);
+      if (cached != null) {
+        return cached;
       }
     }
     get(id)
@@ -111,10 +110,9 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
   public boolean isChunkClaimed(Chunk chunk) {
     String key = getChunkKey(chunk);
     if (cacheEnabled && cache != null) {
-      synchronized (cache) {
-        if (cache.containsKey(key)) {
-          return true;
-        }
+      // Thread-safe: ConcurrentHashMap provides lock-free reads
+      if (cache.containsKey(key)) {
+        return true;
       }
     }
     return exists(key);

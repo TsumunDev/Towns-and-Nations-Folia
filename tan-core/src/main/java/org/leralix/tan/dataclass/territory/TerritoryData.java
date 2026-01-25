@@ -711,22 +711,39 @@ public abstract class TerritoryData {
   public int getClaimCost() {
     return getNewLevel().getStat(ChunkCost.class).getCost();
   }
-  public synchronized void delete() {
-    NewClaimedChunkStorage.getInstance()
-        .unclaimAllChunksFromTerritory(this);
+  /**
+   * Delete this territory and clean up all associated data.
+   * Now fully async to avoid blocking Folia region threads.
+   *
+   * @return CompletableFuture that completes when deletion is finished
+   */
+  public CompletableFuture<Void> delete() {
+    // Unclaim all chunks synchronously (already fast, DB operation)
+    NewClaimedChunkStorage.getInstance().unclaimAllChunksFromTerritory(this);
+
+    // Close inventories of all online players (synchronous but fast)
     applyToAllOnlinePlayer(Player::closeInventory);
+
+    // Remove overlord from vassals (synchronous in-memory)
     for (TerritoryData territory : getVassals()) {
       territory.removeOverlord();
     }
+
+    // Liberate occupied forts (synchronous)
     for (Fort occupiedFort : getOccupiedForts()) {
       occupiedFort.liberate();
     }
+
+    // Delete owned forts (synchronous for now - could be async in future)
     for (Fort ownedFort : getOwnedForts()) {
       FortStorage.getInstance().delete(ownedFort);
     }
-    getRelations()
-        .cleanAll(this);
-    PlannedAttackStorage.getInstance().territoryDeleted(this);
+
+    // Clean relations (synchronous)
+    getRelations().cleanAll(this);
+
+    // Handle war deletion asynchronously (this is the expensive part)
+    return PlannedAttackStorage.getInstance().territoryDeleted(this);
   }
   public boolean canConquerChunk(ClaimedChunk2 chunk) {
     if (getAvailableEnemyClaims().containsKey(chunk.getOwnerID())) {

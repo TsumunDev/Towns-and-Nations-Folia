@@ -180,9 +180,8 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
             ps.executeUpdate();
 
             if (cacheEnabled && cache != null) {
-              synchronized (cache) {
-                cache.put(id, obj);
-              }
+              // Thread-safe: ConcurrentHashMap provides lock-free writes
+              cache.put(id, obj);
             }
           } catch (SQLException e) {
             TownsAndNations.getPlugin()

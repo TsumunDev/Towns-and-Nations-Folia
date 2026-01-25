@@ -3,25 +3,23 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Location;
 import org.leralix.lib.position.Vector3D;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.PropertyData;
 import org.leralix.tan.dataclass.territory.TerritoryData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 public class TownPropertyComponent {
+  private static final Logger LOGGER = LoggerFactory.getLogger(TownPropertyComponent.class);
   private final String townId;
-  private Map<String, PropertyData> propertyDataMap;
+  private final Map<String, PropertyData> propertyDataMap = new ConcurrentHashMap<>();
   public TownPropertyComponent(String townId) {
     this.townId = townId;
   }
   public Map<String, PropertyData> getPropertyDataMap() {
-    if (this.propertyDataMap == null) {
-      synchronized (this) {
-        if (this.propertyDataMap == null) {
-          this.propertyDataMap = new HashMap<>();
-        }
-      }
-    }
+    // Thread-safe: ConcurrentHashMap initialized in field declaration
     return this.propertyDataMap;
   }
   public Collection<PropertyData> getProperties() {
@@ -43,7 +41,7 @@ public class TownPropertyComponent {
           }
         }
       } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-        System.err.println("Warning: Malformed property ID: " + propertyData.getTotalID());
+        LOGGER.warn("Malformed property ID: {}", propertyData.getTotalID());
       }
     }
     return "P" + (maxID + 1);

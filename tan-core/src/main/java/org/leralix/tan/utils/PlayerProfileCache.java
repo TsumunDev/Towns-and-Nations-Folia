@@ -1,5 +1,4 @@
 package org.leralix.tan.utils;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -17,16 +16,11 @@ public class PlayerProfileCache {
   private static final long CACHE_TTL_MS = TimeUnit.HOURS.toMillis(1);
   private static final int MAX_REQUESTS_PER_MINUTE = 20;
   private static final long RATE_LIMIT_WINDOW_MS = TimeUnit.MINUTES.toMillis(1);
-  private final Map<UUID, CachedProfile> profileCache =
-      new LinkedHashMap<UUID, CachedProfile>(CACHE_SIZE + 1, 0.75f, true) {
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<UUID, CachedProfile> eldest) {
-          return size() > CACHE_SIZE;
-        }
-      };
+  // Thread-safe: ConcurrentHashMap for Folia compatibility
+  private final Map<UUID, CachedProfile> profileCache = new ConcurrentHashMap<>(CACHE_SIZE);
   private final Map<UUID, Long> requestTimestamps = new ConcurrentHashMap<>();
-  private int requestsInCurrentWindow = 0;
-  private long windowStartTime = System.currentTimeMillis();
+  private volatile int requestsInCurrentWindow = 0;
+  private volatile long windowStartTime = System.currentTimeMillis();
   private PlayerProfileCache() {}
   public static PlayerProfileCache getInstance() {
     if (instance == null) {
@@ -36,12 +30,11 @@ public class PlayerProfileCache {
   }
   public CompletableFuture<PlayerProfile> getProfileAsync(OfflinePlayer player) {
     UUID uuid = player.getUniqueId();
-    synchronized (profileCache) {
-      CachedProfile cached = profileCache.get(uuid);
-      if (cached != null && !cached.isExpired()) {
-        LOGGER.debug("Profile cache HIT for {}", player.getName());
-        return CompletableFuture.completedFuture(cached.profile);
-      }
+    // Thread-safe: ConcurrentHashMap provides thread-safety without synchronized
+    CachedProfile cached = profileCache.get(uuid);
+    if (cached != null && !cached.isExpired()) {
+      LOGGER.debug("Profile cache HIT for {}", player.getName());
+      return CompletableFuture.completedFuture(cached.profile);
     }
     if (!canMakeRequest(uuid)) {
       LOGGER.warn("Rate limit exceeded for profile fetch: {} - Using fallback", player.getName());
@@ -64,21 +57,19 @@ public class PlayerProfileCache {
   }
   public PlayerProfile getProfileSync(OfflinePlayer player) {
     UUID uuid = player.getUniqueId();
-    synchronized (profileCache) {
-      CachedProfile cached = profileCache.get(uuid);
-      if (cached != null && !cached.isExpired()) {
-        return cached.profile;
-      }
+    // Thread-safe: ConcurrentHashMap provides thread-safety without synchronized
+    CachedProfile cached = profileCache.get(uuid);
+    if (cached != null && !cached.isExpired()) {
+      return cached.profile;
     }
     LOGGER.debug(
         "Profile not in cache for {} - Using fallback (no network request)", player.getName());
     return createFallbackProfile(player);
   }
   private void cacheProfile(UUID uuid, PlayerProfile profile) {
-    synchronized (profileCache) {
-      profileCache.put(uuid, new CachedProfile(profile));
-      LOGGER.debug("Cached profile for UUID: {}", uuid);
-    }
+    // Thread-safe: ConcurrentHashMap provides thread-safety without synchronized
+    profileCache.put(uuid, new CachedProfile(profile));
+    LOGGER.debug("Cached profile for UUID: {}", uuid);
   }
   private boolean canMakeRequest(UUID uuid) {
     long now = System.currentTimeMillis();
@@ -108,17 +99,15 @@ public class PlayerProfileCache {
     return Bukkit.createPlayerProfile(player.getUniqueId(), player.getName());
   }
   public void clearCache() {
-    synchronized (profileCache) {
-      profileCache.clear();
-      LOGGER.info("PlayerProfile cache cleared");
-    }
+    // Thread-safe: ConcurrentHashMap provides thread-safety without synchronized
+    profileCache.clear();
+    LOGGER.info("PlayerProfile cache cleared");
   }
   public String getCacheStats() {
-    synchronized (profileCache) {
-      return String.format(
-          "Cache size: %d/%d, Requests in window: %d/%d",
-          profileCache.size(), CACHE_SIZE, requestsInCurrentWindow, MAX_REQUESTS_PER_MINUTE);
-    }
+    // Thread-safe: ConcurrentHashMap provides thread-safety without synchronized
+    return String.format(
+        "Cache size: %d/%d, Requests in window: %d/%d",
+        profileCache.size(), CACHE_SIZE, requestsInCurrentWindow, MAX_REQUESTS_PER_MINUTE);
   }
   private static class CachedProfile {
     final PlayerProfile profile;

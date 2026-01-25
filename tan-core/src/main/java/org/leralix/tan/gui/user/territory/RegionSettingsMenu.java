@@ -18,7 +18,12 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.file.FileUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
+import org.leralix.tan.utils.FoliaScheduler;
+import org.leralix.tan.TownsAndNations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 public class RegionSettingsMenu extends SettingsMenus {
+  private static final Logger LOGGER = LoggerFactory.getLogger(RegionSettingsMenu.class);
   private final RegionData regionData;
   public RegionSettingsMenu(Player player, ITanPlayer tanPlayer, RegionData regionData) {
     super(player, tanPlayer, Lang.HEADER_SETTINGS.get(player), regionData, 3);
@@ -99,9 +104,22 @@ public class RegionSettingsMenu extends SettingsMenus {
                         Lang.REGION_DELETED_NEWSLETTER.get(player.getName(), regionData.getName()));
                     EventManager.getInstance()
                         .callEvent(new RegionDeletednternalEvent(regionData, tanPlayer));
-                    regionData.delete();
-                    SoundUtil.playSound(player, GOOD);
-                    MainMenu.open(player);
+
+                    // Delete region asynchronously
+                    regionData.delete().thenRun(() -> {
+                      // Success: play sound and open main menu (on region thread)
+                      FoliaScheduler.runTaskAtLocation(TownsAndNations.getPlugin(), player.getLocation(), () -> {
+                        SoundUtil.playSound(player, GOOD);
+                        MainMenu.open(player);
+                      });
+                    }).exceptionally(ex -> {
+                      // Error: log and notify player
+                      LOGGER.error("Failed to delete region {}", regionData.getID(), ex);
+                      FoliaScheduler.runTaskAtLocation(TownsAndNations.getPlugin(), player.getLocation(), () -> {
+                        player.sendMessage("§cAn error occurred while deleting the region.");
+                      });
+                      return null;
+                    });
                   },
                   p -> open());
             })

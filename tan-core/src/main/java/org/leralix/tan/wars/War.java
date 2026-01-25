@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.leralix.tan.dataclass.territory.TerritoryData;
@@ -60,23 +61,35 @@ public class War {
   public ItemStack getIcon() {
     return new ItemStack(Material.IRON_SWORD);
   }
-  public void territorySurrender(WarRole looserTerritory) {
+  public CompletableFuture<Void> territorySurrender(WarRole looserTerritory) {
     TerritoryData looser = getTerritory(looserTerritory);
     TerritoryData winner = getTerritory(looserTerritory.opposite());
     for (WarGoal goal : getGoals(looserTerritory.opposite())) {
       goal.applyWarGoal(winner, looser);
     }
-    endWar();
+    return endWar();
   }
-  public void endWar() {
-    getMainAttacker().setRelation(getMainDefender(), TownRelation.NEUTRAL);
-    for (PlannedAttack plannedAttack :
-        PlannedAttackStorage.getInstance().getAllAsync().join().values()) {
-      if (plannedAttack.getWar().getID().equals(getID())) {
-        plannedAttack.end();
-      }
-    }
-    WarStorage.getInstance().remove(this);
+
+  /**
+   * Ends the war asynchronously.
+   * <p>
+   * This method is non-blocking and will complete asynchronously.
+   * Callers should use {@code .thenAccept()} or {@code .thenRun()} to continue processing.
+   * </p>
+   *
+   * @return CompletableFuture that completes when the war is ended
+   */
+  public CompletableFuture<Void> endWar() {
+    return PlannedAttackStorage.getInstance().getAllAsync()
+        .thenAccept(plannedAttacks -> {
+          getMainAttacker().setRelation(getMainDefender(), TownRelation.NEUTRAL);
+          for (PlannedAttack plannedAttack : plannedAttacks.values()) {
+            if (plannedAttack.getWar().getID().equals(getID())) {
+              plannedAttack.end();
+            }
+          }
+          WarStorage.getInstance().remove(this);
+        });
   }
   public List<WarGoal> getGoals(WarRole warRole) {
     if (warRole == WarRole.MAIN_ATTACKER) {

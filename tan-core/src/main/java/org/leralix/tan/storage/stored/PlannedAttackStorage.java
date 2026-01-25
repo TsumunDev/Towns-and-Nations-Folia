@@ -3,6 +3,8 @@ import com.google.gson.GsonBuilder;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.storage.typeadapter.WargoalTypeAdapter;
@@ -65,16 +67,29 @@ public class PlannedAttackStorage extends DatabaseStorage<PlannedAttack> {
     }
     return "W" + ID;
   }
-  public synchronized void territoryDeleted(TerritoryData territoryData) {
-    for (PlannedAttack plannedAttack : getAll().values()) {
-      War war = plannedAttack.getWar();
-      if (war == null) {
-        continue;
+  /**
+   * Handle territory deletion by ending all planned attacks involving this territory.
+   * Now fully async to avoid blocking Folia region threads.
+   *
+   * @param territoryData The territory being deleted
+   * @return CompletableFuture that completes when all planned attacks are ended
+   */
+  public CompletableFuture<Void> territoryDeleted(TerritoryData territoryData) {
+    return getAllAsync().thenCompose(plannedAttacks -> {
+      List<CompletableFuture<Void>> endFutures = plannedAttacks.values().stream()
+          .filter(plannedAttack -> {
+            War war = plannedAttack.getWar();
+            return war != null && (war.isMainAttacker(territoryData) || war.isMainDefender(territoryData));
+          })
+          .map(plannedAttack -> CompletableFuture.runAsync(() -> plannedAttack.end()))
+          .toList();
+
+      if (endFutures.isEmpty()) {
+        return CompletableFuture.completedFuture(null);
       }
-      if (war.isMainAttacker(territoryData) || war.isMainDefender(territoryData)) {
-        plannedAttack.end();
-      }
-    }
+
+      return CompletableFuture.allOf(endFutures.toArray(new CompletableFuture[0]));
+    });
   }
   public void delete(PlannedAttack plannedAttack) {
     delete(plannedAttack.getID());

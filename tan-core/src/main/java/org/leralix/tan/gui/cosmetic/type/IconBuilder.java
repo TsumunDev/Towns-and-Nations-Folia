@@ -18,7 +18,10 @@ import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.utils.text.TanChatUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 public class IconBuilder {
+  private static final Logger LOGGER = LoggerFactory.getLogger(IconBuilder.class);
   private String name;
   private final List<FilledLang> description;
   private final Requirements requirements;
@@ -83,9 +86,9 @@ public class IconBuilder {
     ItemStack item = menuIcon.getItemStack(player);
     ItemMeta meta = item.getItemMeta();
     if (meta != null && meta.hasCustomModelData()) {
-      System.out.println("[IconBuilder] BEFORE Adventure API: Item=" + item.getType() + ", CMD=" + meta.getCustomModelData());
+      LOGGER.debug("[IconBuilder] BEFORE Adventure API: Item={}, CMD={}", item.getType(), meta.getCustomModelData());
     } else {
-      System.out.println("[IconBuilder] BEFORE Adventure API: Item=" + item.getType() + ", NO CMD");
+      LOGGER.debug("[IconBuilder] BEFORE Adventure API: Item={}, NO CMD", item.getType());
     }
     Integer originalCmd = null;
     if (meta != null && meta.hasCustomModelData()) {
@@ -105,9 +108,9 @@ public class IconBuilder {
         meta.setCustomModelData(originalCmd);
       }
       if (meta.hasCustomModelData()) {
-        System.out.println("[IconBuilder] AFTER restore: Item=" + item.getType() + ", CMD=" + meta.getCustomModelData());
+        LOGGER.debug("[IconBuilder] AFTER restore: Item={}, CMD={}", item.getType(), meta.getCustomModelData());
       } else {
-        System.out.println("[IconBuilder] AFTER restore: Item=" + item.getType() + ", NO CMD (original was " + originalCmd + ")");
+        LOGGER.debug("[IconBuilder] AFTER restore: Item={}, NO CMD (original was {})", item.getType(), originalCmd);
       }
       item.setItemMeta(meta);
     }
