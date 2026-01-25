@@ -71,24 +71,6 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
           TownsAndNations.getPlugin().getLogger().info("Added town_name column to " + TABLE_NAME);
         }
       }
-      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "creator_uuid")) {
-        if (!rs.next()) {
-          stmt.executeUpdate(
-              "ALTER TABLE %s ADD COLUMN creator_uuid VARCHAR(255) NULL".formatted(TABLE_NAME));
-          TownsAndNations.getPlugin()
-              .getLogger()
-              .info("Added creator_uuid column to " + TABLE_NAME);
-        }
-      }
-      try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "creator_name")) {
-        if (!rs.next()) {
-          stmt.executeUpdate(
-              "ALTER TABLE %s ADD COLUMN creator_name VARCHAR(255) NULL".formatted(TABLE_NAME));
-          TownsAndNations.getPlugin()
-              .getLogger()
-              .info("Added creator_name column to " + TABLE_NAME);
-        }
-      }
       try (ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, "leader_uuid")) {
         if (!rs.next()) {
           stmt.executeUpdate(
@@ -178,14 +160,14 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
   protected void createIndexes() {
     String createNameIndexSQL =
         "CREATE INDEX IF NOT EXISTS idx_town_name ON " + TABLE_NAME + " (town_name)";
-    String createCreatorUuidIndexSQL =
-        "CREATE INDEX IF NOT EXISTS idx_town_creator_uuid ON " + TABLE_NAME + " (creator_uuid)";
+    String createLeaderUuidIndexSQL =
+        "CREATE INDEX IF NOT EXISTS idx_town_leader_uuid ON " + TABLE_NAME + " (leader_uuid)";
     String createCreationDateIndexSQL =
         "CREATE INDEX IF NOT EXISTS idx_town_creation_date ON " + TABLE_NAME + " (creation_date)";
     try (Connection conn = getDatabase().getDataSource().getConnection();
         Statement stmt = conn.createStatement()) {
       stmt.execute(createNameIndexSQL);
-      stmt.execute(createCreatorUuidIndexSQL);
+      stmt.execute(createLeaderUuidIndexSQL);
       stmt.execute(createCreationDateIndexSQL);
       TownsAndNations.getPlugin().getLogger().info("Created indexes on " + TABLE_NAME);
     } catch (SQLException e) {
@@ -211,12 +193,10 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
         upsertSQL =
             "INSERT INTO "
                 + tableName
-                + " (id, town_name, creator_uuid, creator_name, leader_uuid, leader_name, nation_id, bank_balance, claims_count, members_count, is_open, data) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                + " (id, town_name, leader_uuid, leader_name, nation_id, bank_balance, claims_count, members_count, is_open, data) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
                 + "ON DUPLICATE KEY UPDATE "
                 + "town_name = VALUES(town_name), "
-                + "creator_uuid = VALUES(creator_uuid), "
-                + "creator_name = VALUES(creator_name), "
                 + "leader_uuid = VALUES(leader_uuid), "
                 + "leader_name = VALUES(leader_name), "
                 + "nation_id = VALUES(nation_id), "
@@ -230,8 +210,8 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
         upsertSQL =
             "INSERT INTO "
                 + tableName
-                + " (id, town_name, creator_uuid, creator_name, data) VALUES (?, ?, ?, ?, ?) "
-                + "ON DUPLICATE KEY UPDATE town_name = VALUES(town_name), creator_uuid = VALUES(creator_uuid), creator_name = VALUES(creator_name), data = VALUES(data)";
+                + " (id, town_name, leader_uuid, leader_name, data) VALUES (?, ?, ?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE town_name = VALUES(town_name), leader_uuid = VALUES(leader_uuid), leader_name = VALUES(leader_name), data = VALUES(data)";
       }
     } else {
       if (useNewSchema) {
@@ -239,14 +219,14 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
         upsertSQL =
             "INSERT OR REPLACE INTO "
                 + tableName
-                + " (id, town_name, creator_uuid, creator_name, leader_uuid, leader_name, nation_id, bank_balance, claims_count, members_count, is_open, data) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + " (id, town_name, leader_uuid, leader_name, nation_id, bank_balance, claims_count, members_count, is_open, data) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
       } else {
         // Legacy schema (pre-v2.0)
         upsertSQL =
             "INSERT OR REPLACE INTO "
                 + tableName
-                + " (id, town_name, creator_uuid, creator_name, data) VALUES (?, ?, ?, ?, ?)";
+                + " (id, town_name, leader_uuid, leader_name, data) VALUES (?, ?, ?, ?, ?)";
       }
     }
 
@@ -258,8 +238,6 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
             int paramIndex = 1;
             ps.setString(paramIndex++, id);
             ps.setString(paramIndex++, obj.getName());
-            ps.setString(paramIndex++, obj.getCreatorID());
-            ps.setString(paramIndex++, obj.getCreatorName());
 
             ITanPlayer leaderData = obj.getLeaderData();
             String leaderName = (leaderData != null) ? leaderData.getNameStored() : null;
@@ -294,9 +272,8 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
             ps.executeUpdate();
 
             if (cacheEnabled && cache != null) {
-              synchronized (cache) {
-                cache.put(id, obj);
-              }
+              // Thread-safe: ConcurrentHashMap provides lock-free writes
+              cache.put(id, obj);
             }
           } catch (SQLException e) {
             TownsAndNations.getPlugin()

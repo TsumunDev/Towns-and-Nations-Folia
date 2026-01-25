@@ -3,6 +3,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -36,6 +37,8 @@ import org.leralix.tan.utils.graphic.PrefixUtil;
 import org.leralix.tan.utils.graphic.TeamUtils;
 import org.leralix.tan.utils.text.StringUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a town within the Towns and Nations plugin.
@@ -79,21 +82,18 @@ import org.leralix.tan.utils.text.TanChatUtils;
  * @since 0.15.0
  */
 public class TownData extends TerritoryData {
+  private static final Logger LOGGER = LoggerFactory.getLogger(TownData.class);
   private String uuidLeader;
   private String townTag;
   private boolean isRecruiting;
   private HashSet<String> playerJoinRequestSet;
-  private Map<String, PropertyData> propertyDataMap;
+  private final Map<String, PropertyData> propertyDataMap = new ConcurrentHashMap<>();
   private TeleportationPosition teleportationPosition;
   private final HashSet<String> townPlayerListId;
   private Vector2D capitalLocation;
   private TownProgressionComponent progression;
   private org.leralix.tan.domain.prestige.model.PrestigePoints prestigePoints;
   private Set<String> purchasedUpgrades;
-
-  // Creator tracking (v2.0) - stores original creator even if leader changes
-  private String creatorUuid;
-  private String creatorName;
 
   public TownData(String townId, String townName, ITanPlayer leader) {
     super(townId, townName, leader);
@@ -102,13 +102,7 @@ public class TownData extends TerritoryData {
     this.isRecruiting = false;
     if (leader != null) {
       this.uuidLeader = leader.getID();
-      // Store creator information
-      this.creatorUuid = leader.getID();
-      this.creatorName = leader.getNameStored();
       addPlayer(leader);
-    } else {
-      this.creatorUuid = null;
-      this.creatorName = null;
     }
     int prefixSize = Constants.getPrefixSize();
     this.townTag =
@@ -271,26 +265,6 @@ public class TownData extends TerritoryData {
   @Override
   public void setLeaderID(String leaderID) {
     this.uuidLeader = leaderID;
-  }
-
-  /**
-   * Gets the UUID of the player who originally created this town.
-   * <p>This value never changes, even if leadership is transferred.</p>
-   *
-   * @return The creator's UUID, or null if unknown
-   */
-  public String getCreatorID() {
-    return creatorUuid;
-  }
-
-  /**
-   * Gets the name of the player who originally created this town.
-   * <p>This value never changes, even if leadership is transferred.</p>
-   *
-   * @return The creator's name at time of creation, or null if unknown
-   */
-  public String getCreatorName() {
-    return creatorName;
   }
 
   @Override
@@ -713,13 +687,7 @@ public class TownData extends TerritoryData {
     budget.addProfitLine(new PropertyCreationTaxLine(this));
   }
   public Map<String, PropertyData> getPropertyDataMap() {
-    if (this.propertyDataMap == null) {
-      synchronized (this) {
-        if (this.propertyDataMap == null) {
-          this.propertyDataMap = new HashMap<>();
-        }
-      }
-    }
+    // Thread-safe: ConcurrentHashMap initialized in field declaration
     return this.propertyDataMap;
   }
   public Collection<PropertyData> getProperties() {
@@ -739,8 +707,7 @@ public class TownData extends TerritoryData {
           }
         }
       } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-        System.err.println(
-            "Warning: Malformed property ID encountered: " + propertyData.getTotalID());
+        LOGGER.warn("Malformed property ID encountered: {}", propertyData.getTotalID());
       }
     }
     return "P" + (maxID + 1);
@@ -802,13 +769,7 @@ public class TownData extends TerritoryData {
    * @return the progression component
    */
   public TownProgressionComponent getProgression() {
-    if (progression == null) {
-      synchronized (this) {
-        if (progression == null) {
-          progression = new TownProgressionComponent();
-        }
-      }
-    }
+    // Thread-safe: Initialized in constructor, no lazy loading needed
     return progression;
   }
 
@@ -865,13 +826,7 @@ public class TownData extends TerritoryData {
    * @return the prestige points component
    */
   public org.leralix.tan.domain.prestige.model.PrestigePoints getPrestigePoints() {
-    if (prestigePoints == null) {
-      synchronized (this) {
-        if (prestigePoints == null) {
-          prestigePoints = org.leralix.tan.domain.prestige.model.PrestigePoints.create();
-        }
-      }
-    }
+    // Thread-safe: Initialized in constructor, no lazy loading needed
     return prestigePoints;
   }
 
@@ -904,13 +859,7 @@ public class TownData extends TerritoryData {
   }
 
   public Set<String> getPurchasedUpgrades() {
-    if (purchasedUpgrades == null) {
-      synchronized (this) {
-        if (purchasedUpgrades == null) {
-          purchasedUpgrades = new HashSet<>();
-        }
-      }
-    }
+    // Thread-safe: Initialized in constructor, no lazy loading needed
     return purchasedUpgrades;
   }
 
@@ -977,22 +926,35 @@ public class TownData extends TerritoryData {
     }
   }
   @Override
-  public synchronized void delete() {
-    super.delete();
-    if (haveOverlord()) {
-      RegionData regionData = RegionDataStorage.getInstance().getSync(this.overlordID);
-      if (regionData != null) {
-        regionData.removeVassal(this);
+  public CompletableFuture<Void> delete() {
+    // First execute parent's deletion logic (async)
+    return super.delete().thenRun(() -> {
+      // Remove from overlord region if applicable (synchronous DB call)
+      if (haveOverlord()) {
+        RegionData regionData = RegionDataStorage.getInstance().getSync(this.overlordID);
+        if (regionData != null) {
+          regionData.removeVassal(this);
+        }
       }
-    }
-    removeAllLandmark();
-    removeAllProperty();
-    List<String> playersToRemove = new ArrayList<>(getPlayerIDList());
-    for (String playerID : playersToRemove) {
-      removePlayer(playerID);
-    }
-    TeamUtils.updateAllScoreboardColor();
-    TownDataStorage.getInstance().deleteTown(this);
+
+      // Remove landmarks (synchronous)
+      removeAllLandmark();
+
+      // Remove all properties (synchronous)
+      removeAllProperty();
+
+      // Remove all players from town (synchronous in-memory)
+      List<String> playersToRemove = new ArrayList<>(getPlayerIDList());
+      for (String playerID : playersToRemove) {
+        removePlayer(playerID);
+      }
+
+      // Update scoreboards (synchronous but fast)
+      TeamUtils.updateAllScoreboardColor();
+
+      // Delete from database storage (synchronous for now)
+      TownDataStorage.getInstance().deleteTown(this);
+    });
   }
   private void removeAllProperty() {
     Iterator<PropertyData> iterator = getProperties().iterator();
