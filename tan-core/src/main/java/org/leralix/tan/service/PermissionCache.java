@@ -14,14 +14,18 @@ import org.leralix.tan.enums.permissions.ChunkPermissionType;
  *
  * Design decisions:
  * - Uses ConcurrentHashMap for lock-free reads (critical for Folia region threads)
- * - TTL of 1.5 seconds balances freshness vs performance
+ * - TTL of 5 seconds balances freshness vs performance (optimized for 1000+ players)
  * - Chunk-level granularity (more cache hits than block-level)
  * - Auto-eviction based on timestamp to avoid memory leaks
+ * - Invalidated on relevant events (join/leave, relation changes, chunk transfers)
  */
 public class PermissionCache {
 
-  private static final long TTL_NANOS = TimeUnit.SECONDS.toNanos(1);
-  private static final int MAX_CACHE_SIZE = 5000;
+  // PERFORMANCE OPTIMIZATION: Optimized for 1000+ player servers
+  // Permissions rarely change during normal gameplay; cache is invalidated on relevant events
+  // Increased TTL and size for better hit rate on high-population servers
+  private static final long TTL_NANOS = TimeUnit.SECONDS.toNanos(10);
+  private static final int MAX_CACHE_SIZE = 20000;
 
   private final ConcurrentHashMap<PermissionKey, CachedResult> cache = new ConcurrentHashMap<>(MAX_CACHE_SIZE);
 

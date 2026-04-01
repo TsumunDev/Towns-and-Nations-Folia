@@ -16,6 +16,8 @@ import org.leralix.tan.storage.stored.TownDataStorage;
 import org.leralix.tan.utils.file.FileUtil;
 import org.leralix.tan.utils.graphic.TeamUtils;
 import org.leralix.tan.utils.text.TanChatUtils;
+import org.leralix.tan.validation.InputValidator;
+import org.leralix.tan.validation.ValidationException;
 public class CreateTown extends ChatListenerEvent {
   int cost;
   public CreateTown(int cost) {
@@ -43,7 +45,7 @@ public class CreateTown extends ChatListenerEvent {
    * </ol>
    *
    * @param player The player creating the town
-   * @param townName The proposed town name
+   * @param finalTownName The proposed town name
    */
   private void createTownAsync(Player player, String townName) {
     java.util.logging.Logger logger = TownsAndNations.getPlugin().getLogger();
@@ -52,7 +54,19 @@ public class CreateTown extends ChatListenerEvent {
     logger.info("[TOWN-CREATION] " + playerName + " attempting to create town: " + townName +
         " (cost: " + cost + ")");
 
+    // VALIDATION STEP: Validate town name format first (fast, synchronous check)
+    String validatedTownName;
+    try {
+      validatedTownName = InputValidator.validateTownName(townName);
+      logger.info("[TOWN-CREATION] " + playerName + " - town name validation passed: " + validatedTownName);
+    } catch (ValidationException e) {
+      logger.warning("[TOWN-CREATION] " + playerName + " - invalid town name: " + e.getLogMessage());
+      TanChatUtils.message(player, "§c" + e.getUserMessage());
+      return;
+    }
+
     // Step 1: Check player's balance asynchronously
+    final String finalTownName = validatedTownName;
     AsyncEconomyService.getBalance(player)
         .thenCompose(balance -> {
           // Step 2: Validate balance (on region thread after balance check)
@@ -66,21 +80,11 @@ public class CreateTown extends ChatListenerEvent {
             return java.util.concurrent.CompletableFuture.completedFuture(null);
           }
 
-          // Step 3: Validate town name (synchronous, fast operation)
-          FileConfiguration config = ConfigUtil.getCustomConfig(ConfigTag.MAIN);
-          int maxSize = config.getInt("TownNameSize", 45);
-          if (townName.length() > maxSize) {
-            logger.info("[TOWN-CREATION] " + playerName + "'s town name too long: " +
-                townName.length() + " (max: " + maxSize + ")");
-            TanChatUtils.message(
-                player,
-                Lang.MESSAGE_TOO_LONG.get(player, Integer.toString(maxSize)));
-            return java.util.concurrent.CompletableFuture.completedFuture(null);
-          }
-
-          if (TownDataStorage.getInstance().isNameUsed(townName)) {
+          // Step 3: Check if name is already used (must be checked in storage)
+          // Note: format validation already done via InputValidator at method entry
+          if (TownDataStorage.getInstance().isNameUsed(finalTownName)) {
             logger.info("[TOWN-CREATION] " + playerName + " attempted to use existing name: " +
-                townName);
+                finalTownName);
             TanChatUtils.message(player, Lang.NAME_ALREADY_USED.get(player));
             return java.util.concurrent.CompletableFuture.completedFuture(null);
           }
@@ -105,10 +109,10 @@ public class CreateTown extends ChatListenerEvent {
                           " new balance: " + newBalance);
 
                       // Step 6: Create town AFTER successful payment
-                      return TownDataStorage.getInstance().newTown(townName, tanPlayer)
+                      return TownDataStorage.getInstance().newTown(finalTownName, tanPlayer)
                           .thenApply(newTown -> {
                             logger.info("[TOWN-CREATION] Successfully created town '" +
-                                townName + "' for " + playerName);
+                                finalTownName + "' for " + playerName);
                             return newTown;
                           })
                           .exceptionally(creationError -> {

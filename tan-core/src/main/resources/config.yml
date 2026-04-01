@@ -28,8 +28,9 @@ database:
     enabled: false
     require: false
     verify-server-certificate: false
-  pool-size: 200
-  min-idle: 50
+  # PERFORMANCE OPTIMIZATION: Optimized pool settings for 1000+ player servers
+  pool-size: 750
+  min-idle: 150
   connection-timeout: 10000
   idle-timeout: 300000
   max-lifetime: 900000
@@ -57,8 +58,8 @@ database:
 
 #Redis cluster for distributed caching and real-time synchronization
 redis:
-  enabled: true
-  mode: "cluster" # standalone, sentinel, or cluster
+  enabled: false
+  mode: "standalone" # standalone, sentinel, or cluster
   
   # Standalone mode
   host: "localhost"
@@ -87,12 +88,12 @@ redis:
       - "sentinel3.example.com:26379"
     database: 0
   
-  # Connection pool
+  # Connection pool - OPTIMIZED FOR 1000+ PLAYERS
   pool:
-    max-total: 512
-    max-idle: 256
-    min-idle: 128
-  
+    max-total: 768
+    max-idle: 384
+    min-idle: 192
+
   # Timeouts - OPTIMIZED FOR HIGH-LOAD SERVERS
   timeout: 2000 # Connection timeout in ms (reduced for faster failover)
   socket-timeout: 3000 # Socket timeout in ms - prevents hanging connections
@@ -104,27 +105,32 @@ redis:
 ##    Query Cache     ##
 ########################
 
-#Multi-level caching (Local Caffeine + Redis)
+#Multi-level caching (Local Caffeine + Redis) - OPTIMIZED FOR 1000+ PLAYERS
 cache:
   # Player cache
-  tan_players: 500
-  tan_towns: 300
-  tan_regions: 200
-  
+  tan_players: 1500
+  tan_towns: 500
+  tan_regions: 300
+
   # Query result cache
   query-cache:
     enabled: true
-    local-size: 5000 # Caffeine local cache size
-    ttl-seconds: 600 # Time-to-live for cached queries (10 min)
-    negative-ttl: 120 # TTL for null/empty results
-  
+    local-size: 15000 # Increased for 1000+ players
+    ttl-seconds: 300 # Reduced to 5 min for fresher data
+    negative-ttl: 60 # TTL for null/empty results
+
+  # Permission cache (in-memory, hot path)
+  permission-cache:
+    max-size: 20000
+    ttl-seconds: 10
+
   # Territory lazy loading
   lazy-loading:
     enabled: true
-    batch-size: 20 # Number of territories to preload (reduced for 800 players)
-    preload-delay: 50 # Delay between batches in ms (reduced)
+    batch-size: 30 # Increased batch size
+    preload-delay: 50 # Delay between batches in ms
     background-refresh: true
-    refresh-interval: 180000 # 3 minutes (more frequent refresh)
+    refresh-interval: 180000 # 3 minutes
 
 ########################
 ##     Monitoring     ##
@@ -165,11 +171,12 @@ onlineMode: true
 ##   Profile Caching  ##
 ########################
 
-# Minecraft Profile Caching to avoid HTTP 429 errors
+# Minecraft Profile Caching to avoid HTTP 429 errors - OPTIMIZED FOR 1000+ PLAYERS
 profile-cache:
   enabled: true
   ttl-seconds: 86400 # 24 hours - cache player profiles locally
   max-size: 10000
+  max-requests-per-minute: 100 # Increased for high-population servers
   async-fetch: true
   retry-on-429: true
   retry-delay-ms: 5000
@@ -813,3 +820,66 @@ nexo:
     expire-after-write: 600000
     # Maximum number of items to cache
     maximum-size: 1000
+
+########################
+##    Development     ##
+########################
+
+# Development options and feature flags
+# WARNING: Use with caution in production environments
+development:
+  # Use new MemberService for town member management (experimental)
+  # This is part of the Strangler Fig pattern refactoring to gradually migrate
+  # from monolithic TownData to a service-oriented architecture.
+  #
+  # When enabled: Rank lookups use the new domain service layer
+  # When disabled: Uses legacy TownData.getRank() implementation (safe default)
+  #
+  # Benefits of new service:
+  # - Better separation of concerns
+  # - Easier testing with mockable dependencies
+  # - Foundation for future async operations
+  # - Gradual migration path without breaking changes
+  #
+  # Default: false (use legacy code until proven stable)
+  use-new-member-service: false
+  #
+  # GUI Service Feature Flag
+  # - Enables new TownGuiService for icon and member list generation
+  # - Extracts GUI logic from TownData following Strangler Fig Pattern
+  # - Same benefits as member service above
+  #
+  # Default: false (use legacy code until proven stable)
+  use-new-gui-service: false
+  #
+  # Economy Service Feature Flag
+  # - Enables new TownEconomyService for tier, prestige, and upgrades
+  # - Extracts economy logic from TownData following Strangler Fig Pattern
+  # - Same benefits as member and GUI services above
+  #
+  # Default: false (use legacy code until proven stable)
+  use-new-economy-service: false
+  #
+  # Property Service Feature Flag
+  # - Enables new PropertyService for property management
+  # - Extracts property logic from TownData following Strangler Fig Pattern
+  # - Provides async operations for property lookup and removal
+  #
+  # Default: false (use legacy code until proven stable)
+  use-new-property-service: false
+  #
+  # Claim Service Feature Flag
+  # - Enables new ClaimService for land claim management
+  # - Extracts claim logic from TownData following Strangler Fig Pattern
+  # - Provides async operations for claiming and unclaiming chunks
+  #
+  # Default: false (use legacy code until proven stable)
+  use-new-claim-service: false
+  #
+  # Diplomacy Service Feature Flag
+  # - Enables new DiplomacyService for diplomatic relations
+  # - Extracts diplomacy logic from TerritoryData following Strangler Fig Pattern
+  # - Provides async operations for relations, alliances, wars, and vassalage
+  #
+  # Default: false (use legacy code until proven stable)
+  use-new-diplomacy-service: false

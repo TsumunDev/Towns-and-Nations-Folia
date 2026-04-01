@@ -44,7 +44,7 @@ object PlayerDataService {
     suspend fun playerExists(id: String): Boolean = getPlayer(id) != null
     suspend fun deletePlayer(id: String) {
         withContext(Dispatchers.IO) {
-            storage.delete(id)
+            storage.deleteAsync(id).join()
         }
     }
     @JvmStatic

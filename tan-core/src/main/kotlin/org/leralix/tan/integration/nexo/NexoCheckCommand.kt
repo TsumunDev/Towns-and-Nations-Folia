@@ -5,6 +5,9 @@ import org.bukkit.Material
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.leralix.lib.commands.SubCommand
+import org.leralix.tan.TownsAndNations
+import org.leralix.tan.coroutines.TanCoroutines
+import org.leralix.tan.utils.FoliaScheduler
 import kotlinx.coroutines.*
 import java.util.concurrent.CompletableFuture
 class NexoCheckCommand : SubCommand() {
@@ -246,21 +249,42 @@ class NexoDebugCommand : SubCommand() {
     }
     private fun handleCheckVersion(sender: CommandSender) {
         sender.sendMessage("§7Checking for Nexo updates...")
-        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+        TanCoroutines.launch(Dispatchers.IO) {
             try {
                 val info = NexoUpdateChecker.checkForUpdates().get()
-                withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    if (info != null) {
-                        NexoUpdateChecker.getDetailedInfo().forEach { line ->
-                            sender.sendMessage(line)
-                        }
-                    } else {
-                        sender.sendMessage("§cFailed to fetch version information.")
-                        sender.sendMessage("§7Check your internet connection or try again later.")
-                    }
+                val lines = if (info != null) {
+                    NexoUpdateChecker.getDetailedInfo()
+                } else {
+                    listOf(
+                        "§cFailed to fetch version information.",
+                        "§7Check your internet connection or try again later."
+                    )
+                }
+                // Send messages on the correct thread for the recipient
+                val plugin = TownsAndNations.getPlugin()
+                if (sender is Player) {
+                    FoliaScheduler.runEntityTask(plugin, sender, Runnable {
+                        if (!sender.isOnline) return@Runnable
+                        lines.forEach { sender.sendMessage(it) }
+                    })
+                } else {
+                    // Console sender — global region thread
+                    FoliaScheduler.runTask(plugin, Runnable {
+                        lines.forEach { sender.sendMessage(it) }
+                    })
                 }
             } catch (e: Exception) {
-                sender.sendMessage("§cError checking for updates: ${e.message}")
+                val plugin = TownsAndNations.getPlugin()
+                if (sender is Player) {
+                    FoliaScheduler.runEntityTask(plugin, sender, Runnable {
+                        if (!sender.isOnline) return@Runnable
+                        sender.sendMessage("§cError checking for updates: ${e.message}")
+                    })
+                } else {
+                    FoliaScheduler.runTask(plugin, Runnable {
+                        sender.sendMessage("§cError checking for updates: ${e.message}")
+                    })
+                }
             }
         }
     }

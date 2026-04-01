@@ -1,11 +1,11 @@
 package org.leralix.tan.storage;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.leralix.tan.wars.PlannedAttack;
 import org.leralix.tan.wars.legacy.CurrentAttack;
 public class CurrentAttacksStorage {
-  private static final Map<String, CurrentAttack> attackStatusMap = new HashMap<>();
+  private static final Map<String, CurrentAttack> attackStatusMap = new ConcurrentHashMap<>();
   public static void startAttack(PlannedAttack plannedAttack, long startTime, long endTime) {
     attackStatusMap.put(
         plannedAttack.getID(), new CurrentAttack(plannedAttack, startTime, endTime));

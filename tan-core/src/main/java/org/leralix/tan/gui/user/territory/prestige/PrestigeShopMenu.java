@@ -87,7 +87,7 @@ public class PrestigeShopMenu {
         gui.setItem(31, getInfoButton());
 
         // Back button
-        gui.setItem(36, getBackButton());
+        gui.setItem(35, getBackButton());
 
         // Fill empty slots
         fillBackground();

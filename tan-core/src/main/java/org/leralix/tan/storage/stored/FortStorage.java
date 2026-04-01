@@ -4,13 +4,19 @@ import org.leralix.lib.position.Vector3D;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.wars.fort.Fort;
 public abstract class FortStorage {
-  private static FortStorage instance;
+  private static volatile FortStorage instance;
   public static void init(FortStorage newInstance) {
-    instance = newInstance;
+    synchronized (FortStorage.class) {
+      instance = newInstance;
+    }
   }
   public static FortStorage getInstance() {
     if (instance == null) {
-      throw new IllegalStateException("FortStorage has not been initialized.");
+      synchronized (FortStorage.class) {
+        if (instance == null) {
+          throw new IllegalStateException("FortStorage has not been initialized.");
+        }
+      }
     }
     return instance;
   }

@@ -193,8 +193,9 @@ public class UpgradeShopMenu {
         }
 
         // Glow effect if can purchase
+        // PAPER 1.21+ UPGRADE: DURABILITY removed, use UNBREAKING instead
         if (canPurchase && canAfford && !purchased) {
-            item.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.DURABILITY, 1);
+            item.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.UNBREAKING, 1);
         }
 
         return ItemBuilder.from(item)

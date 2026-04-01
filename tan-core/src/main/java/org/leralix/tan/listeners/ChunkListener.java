@@ -24,6 +24,17 @@ import org.bukkit.inventory.FurnaceInventory;
 import org.leralix.tan.enums.permissions.ChunkPermissionType;
 import org.leralix.tan.service.PermissionService;
 import org.leralix.tan.storage.stored.NewClaimedChunkStorage;
+/**
+ * Listener for chunk-related events (block breaks, placements, interactions, etc.).
+ * <p>
+ * All permission and chunk ownership lookups use cache-first patterns:
+ * <ul>
+ *   <li>{@link PermissionService#canPlayerDoActionSync} checks PermissionCache before hitting DB</li>
+ *   <li>{@link NewClaimedChunkStorage#get(org.bukkit.Chunk)} returns WildernessChunk on cache miss</li>
+ * </ul>
+ * This ensures no blocking .join() calls freeze Folia region threads.
+ * Cache misses return permissive defaults (WildernessChunk allows all actions).
+ */
 public class ChunkListener implements Listener {
   private final PermissionService permissionService = new PermissionService();
   @EventHandler

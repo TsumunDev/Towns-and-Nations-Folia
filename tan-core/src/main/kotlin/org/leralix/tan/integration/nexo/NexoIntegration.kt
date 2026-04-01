@@ -61,7 +61,7 @@ object NexoIntegration {
             .recordStats()
             .build()
     )
-    private val notFoundCache = mutableSetOf<String>()
+    private val notFoundCache: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
     @JvmStatic
     fun initialize(): Boolean {
         if (_initialized) return _enabled

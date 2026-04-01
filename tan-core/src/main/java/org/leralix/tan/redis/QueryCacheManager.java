@@ -18,11 +18,11 @@ public class QueryCacheManager {
     redisClient = redissonClient;
     localCache =
         CacheBuilder.newBuilder()
-            .maximumSize(10000)
-            .expireAfterWrite(3, TimeUnit.MINUTES)
+            .maximumSize(20000)
+            .expireAfterWrite(5, TimeUnit.MINUTES)
             .recordStats()
             .build();
-    logger.info("[TaN-QueryCache] Initialized with L1 (local) + L2 (Redis) caching");
+    logger.info("[TaN-QueryCache] Initialized with L1 (local) + L2 (Redis) caching - Optimized for 1000+ players");
   }
   public static CompletableFuture<List<Object>> getTransactionHistoryCached(
       TerritoryData territory,

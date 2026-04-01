@@ -15,6 +15,7 @@ import org.bukkit.plugin.Plugin;
 import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 
 /**
  * RedisManager - Manages Redis communication for multi-server synchronization.
@@ -44,7 +45,7 @@ public class RedisManager {
   private static boolean heartbeatEnabled;
   private static int heartbeatInterval;
   private static int heartbeatTimeout;
-  private static int heartbeatTaskId = -1;
+  private static ScheduledTask heartbeatTask = null;
 
   // Server registry (server-id -> last heartbeat timestamp)
   private static final Map<String, Long> onlineServers = new ConcurrentHashMap<>();
@@ -108,24 +109,27 @@ public class RedisManager {
   }
 
   /**
-   * Start the heartbeat task.
+   * Start the heartbeat task using Folia's AsyncScheduler.
+   *
+   * <p>FOLIA COMPATIBILITY: Uses Bukkit.getAsyncScheduler() instead of
+   * the deprecated Bukkit.getScheduler().runTaskTimerAsynchronously().
+   * Folia does not have a global main thread, so global task scheduling
+   * is not available.</p>
    */
   private static void startHeartbeat(Plugin plugin) {
     // Clear any existing heartbeat data for this server
     String heartbeatKey = "tan:heartbeat:" + serverId;
     redisClient.getBucket(heartbeatKey).delete();
 
-    // Schedule heartbeat task
-    heartbeatTaskId = Bukkit.getScheduler()
-        .runTaskTimerAsynchronously(
-            plugin,
-            () -> sendHeartbeat(),
-            20L, // Initial delay: 1 second (20 ticks)
-            heartbeatInterval * 20L // Interval in ticks
-        )
-        .getTaskId();
+    // Schedule heartbeat task using Folia's AsyncScheduler
+    // Note: AsyncScheduler uses milliseconds, not ticks
+    long initialDelayMs = 1000L; // 1 second
+    long intervalMs = heartbeatInterval * 1000L; // Convert seconds to milliseconds
 
-    logger.info("[TaN-Redis] Heartbeat task scheduled (ID: " + heartbeatTaskId + ")");
+    heartbeatTask = Bukkit.getAsyncScheduler()
+        .runAtFixedRate(plugin, (task) -> sendHeartbeat(), initialDelayMs, intervalMs, TimeUnit.MILLISECONDS);
+
+    logger.info("[TaN-Redis] Heartbeat task scheduled (interval: " + heartbeatInterval + "s)");
   }
 
   /**
@@ -344,9 +348,9 @@ public class RedisManager {
    * Shutdown the RedisManager and cleanup resources.
    */
   public static void shutdown() {
-    if (heartbeatTaskId != -1) {
-      Bukkit.getScheduler().cancelTask(heartbeatTaskId);
-      heartbeatTaskId = -1;
+    if (heartbeatTask != null) {
+      heartbeatTask.cancel();
+      heartbeatTask = null;
     }
 
     if (redisClient != null) {

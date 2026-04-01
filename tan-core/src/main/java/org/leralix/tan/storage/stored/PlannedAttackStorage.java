@@ -14,7 +14,7 @@ import org.leralix.tan.wars.legacy.CreateAttackData;
 import org.leralix.tan.wars.legacy.wargoals.WarGoal;
 public class PlannedAttackStorage extends DatabaseStorage<PlannedAttack> {
   private static final String TABLE_NAME = "ccn_planned_attacks";
-  private static PlannedAttackStorage instance;
+  private static volatile PlannedAttackStorage instance;
   protected PlannedAttackStorage() {
     super(
         TABLE_NAME,
@@ -45,18 +45,22 @@ public class PlannedAttackStorage extends DatabaseStorage<PlannedAttack> {
   }
   public static PlannedAttackStorage getInstance() {
     if (instance == null) {
-      instance = new PlannedAttackStorage();
+      synchronized (PlannedAttackStorage.class) {
+        if (instance == null) {
+          instance = new PlannedAttackStorage();
+        }
+      }
     }
     return instance;
   }
   public PlannedAttack newAttack(CreateAttackData createAttackData) {
     String newID = getNewID();
     PlannedAttack plannedAttack = new PlannedAttack(newID, createAttackData);
-    put(newID, plannedAttack);
+    putSync(newID, plannedAttack);
     return plannedAttack;
   }
   private void setupAllAttacks() {
-    for (PlannedAttack plannedAttack : getAll().values()) {
+    for (PlannedAttack plannedAttack : getAllSync().values()) {
       plannedAttack.setUpStartOfAttack();
     }
   }
@@ -92,10 +96,12 @@ public class PlannedAttackStorage extends DatabaseStorage<PlannedAttack> {
     });
   }
   public void delete(PlannedAttack plannedAttack) {
-    delete(plannedAttack.getID());
+    deleteAsync(plannedAttack.getID()).join();
   }
   @Override
   public void reset() {
-    instance = null;
+    synchronized (PlannedAttackStorage.class) {
+      instance = null;
+    }
   }
 }

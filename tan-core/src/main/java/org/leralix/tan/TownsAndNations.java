@@ -169,21 +169,6 @@ public class TownsAndNations extends JavaPlugin {
     EventManager.getInstance().registerEvents(new NewsletterEvents());
     TruceStorage.getInstance();
 
-    // Migrate legacy icon data to new base64 format
-    LOGGER.info("[TaN] -Checking for icon data migration...");
-    try {
-      org.leralix.tan.storage.migration.IconDataMigrator migrator =
-          new org.leralix.tan.storage.migration.IconDataMigrator(this);
-      boolean migrationSuccess = migrator.migrateAll();
-      if (migrationSuccess) {
-        LOGGER.info("[TaN] -Icon data migration completed successfully");
-      } else {
-        LOGGER.warn("[TaN] -Icon data migration completed with errors (see logs above)");
-      }
-    } catch (Exception e) {
-      LOGGER.error("[TaN] -Icon data migration failed", e);
-    }
-
     // Initialize new progression services
     LOGGER.info("[TaN] -Initializing Progression Services");
     org.leralix.tan.service.quest.QuestService.getInstance().initialize();

@@ -76,9 +76,20 @@ public interface ITanPlayer {
   String getTownId();
   String getTownName();
   CompletableFuture<TownData> getTown();
+  /**
+   * Synchronously retrieves the player's town data.
+   * <p>
+   * <b>WARNING:</b> This method blocks the current thread. Use {@link #getTown()} instead.
+   * Has a 5-second timeout to prevent indefinite blocking.
+   * </p>
+   *
+   * @return the town data, or null if timeout occurs or player has no town
+   * @deprecated Use async {@link #getTown()} method instead for Folia compatibility
+   */
+  @Deprecated
   default TownData getTownSync() {
     try {
-      return getTown().join();
+      return getTown().get(5, java.util.concurrent.TimeUnit.SECONDS);
     } catch (Exception e) {
       return null;
     }
@@ -91,9 +102,20 @@ public interface ITanPlayer {
   void removeFromBalance(double amount);
   boolean hasRegion();
   CompletableFuture<RegionData> getRegion();
+  /**
+   * Synchronously retrieves the player's region data.
+   * <p>
+   * <b>WARNING:</b> This method blocks the current thread. Use {@link #getRegion()} instead.
+   * Has a 5-second timeout to prevent indefinite blocking.
+   * </p>
+   *
+   * @return the region data, or null if timeout occurs or player has no region
+   * @deprecated Use async {@link #getRegion()} method instead for Folia compatibility
+   */
+  @Deprecated
   default RegionData getRegionSync() {
     try {
-      return getRegion().join();
+      return getRegion().get(5, java.util.concurrent.TimeUnit.SECONDS);
     } catch (Exception e) {
       return null;
     }
@@ -122,9 +144,20 @@ public interface ITanPlayer {
   Integer getRankID(TerritoryData territoryData);
   RankData getRank(TerritoryData territoryData);
   CompletableFuture<List<TerritoryData>> getAllTerritoriesPlayerIsIn();
+  /**
+   * Synchronously retrieves all territories the player is in.
+   * <p>
+   * <b>WARNING:</b> This method blocks the current thread. Use {@link #getAllTerritoriesPlayerIsIn()} instead.
+   * Has a 5-second timeout to prevent indefinite blocking.
+   * </p>
+   *
+   * @return the list of territories, or null if timeout occurs
+   * @deprecated Use async {@link #getAllTerritoriesPlayerIsIn()} method instead for Folia compatibility
+   */
+  @Deprecated
   default List<TerritoryData> getAllTerritoriesPlayerIsInSync() {
     try {
-      return getAllTerritoriesPlayerIsIn().join();
+      return getAllTerritoriesPlayerIsIn().get(5, java.util.concurrent.TimeUnit.SECONDS);
     } catch (Exception e) {
       return null;
     }

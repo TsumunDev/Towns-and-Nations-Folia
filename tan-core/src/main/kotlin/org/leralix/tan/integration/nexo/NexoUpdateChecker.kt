@@ -3,6 +3,8 @@ package org.leralix.tan.integration.nexo
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import org.leralix.tan.TownsAndNations
+import org.leralix.tan.utils.FoliaScheduler
 import org.slf4j.LoggerFactory
 import kotlinx.coroutines.*
 import java.net.HttpURLConnection
@@ -327,8 +329,12 @@ object NexoUpdateChecker {
             delay(3000)
             val info = getNexoInfo() ?: return@launch
             if (info.isUpdateAvailable || (!info.isCompatible && info.currentVersion != null)) {
-                player.sendMessage("§7[§6TAN§7] §eNexo update available!")
-                player.sendMessage("§7Use §f/tandebug nexo checkversion §7for details")
+                val plugin = TownsAndNations.getPlugin()
+                FoliaScheduler.runEntityTask(plugin, player, Runnable {
+                    if (!player.isOnline) return@Runnable
+                    player.sendMessage("§7[§6TAN§7] §eNexo update available!")
+                    player.sendMessage("§7Use §f/tandebug nexo checkversion §7for details")
+                })
             }
         }
     }

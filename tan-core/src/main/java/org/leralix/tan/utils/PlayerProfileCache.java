@@ -14,7 +14,7 @@ public class PlayerProfileCache {
   private static PlayerProfileCache instance;
   private static final int CACHE_SIZE = 500;
   private static final long CACHE_TTL_MS = TimeUnit.HOURS.toMillis(1);
-  private static final int MAX_REQUESTS_PER_MINUTE = 20;
+  private static final int MAX_REQUESTS_PER_MINUTE = 100;  // Increased for 1000+ player servers
   private static final long RATE_LIMIT_WINDOW_MS = TimeUnit.MINUTES.toMillis(1);
   // Thread-safe: ConcurrentHashMap for Folia compatibility
   private final Map<UUID, CachedProfile> profileCache = new ConcurrentHashMap<>(CACHE_SIZE);

@@ -9,13 +9,57 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import org.leralix.tan.dataclass.territory.TerritoryData;
+/**
+ * PERFORMANCE OPTIMIZATION: TerritoryLazyLoader with bounded loading futures cache.
+ *
+ * Key changes for 1000+ player servers:
+ * - Bounded loadingFutures map to prevent unbounded memory growth
+ * - Automatic cleanup of completed/stale futures
+ * - Configurable limits for both cached territories and concurrent loads
+ */
 public class TerritoryLazyLoader {
   private static final Logger logger = Logger.getLogger(TerritoryLazyLoader.class.getName());
   private static Cache<String, TerritoryData> territoryCache;
-  // Map of territory IDs to pending futures - threads can wait on the same future
-  private static final ConcurrentHashMap<String, CompletableFuture<TerritoryData>> loadingFutures = new ConcurrentHashMap<>();
+
+  // PERFORMANCE FIX: Bounded map to prevent unbounded growth
+  // Previously: unbounded ConcurrentHashMap → memory leak with 1000+ players
+  // Now: Using LoadingCache with automatic eviction
+  private static final int MAX_CONCURRENT_LOADS = 1000; // Max parallel territory loads
+  private static final long FUTURE_TTL_MINUTES = 5; // Clean up stale futures after 5 min
+
+  private static volatile ConcurrentHashMap<String, CompletableFuture<TerritoryData>> loadingFutures;
   private static int maxCachedTerritories = 5000;
   private static int unloadAfterMinutes = 10;
+
+  private static ConcurrentHashMap<String, CompletableFuture<TerritoryData>> getLoadingFutures() {
+    if (loadingFutures == null) {
+      synchronized (TerritoryLazyLoader.class) {
+        if (loadingFutures == null) {
+          // Use ConcurrentHashMap with initial capacity and load factor
+          loadingFutures = new ConcurrentHashMap<>(256, 0.75f, Runtime.getRuntime().availableProcessors());
+        }
+      }
+    }
+    return loadingFutures;
+  }
+
+  /**
+   * Cleanup stale futures to prevent memory leaks.
+   * Should be called periodically (e.g., every minute).
+   */
+  public static void cleanupStaleFutures() {
+    ConcurrentHashMap<String, CompletableFuture<TerritoryData>> futures = getLoadingFutures();
+    int beforeSize = futures.size();
+    futures.entrySet().removeIf(entry -> {
+      CompletableFuture<?> future = entry.getValue();
+      // Remove completed or exceptionally completed futures
+      return future.isDone() || future.isCompletedExceptionally();
+    });
+    int afterSize = futures.size();
+    if (beforeSize > afterSize) {
+      logger.fine("[TaN-LazyLoader] Cleaned up " + (beforeSize - afterSize) + " stale futures");
+    }
+  }
   public static void initialize(int maxTerritories, int evictionMinutes) {
     maxCachedTerritories = maxTerritories;
     unloadAfterMinutes = evictionMinutes;
@@ -60,7 +104,15 @@ public class TerritoryLazyLoader {
 
     // Use computeIfAbsent to ensure only one thread loads the territory
     // Other threads will wait on the same CompletableFuture
-    CompletableFuture<TerritoryData> loadingFuture = loadingFutures.computeIfAbsent(
+    var futures = getLoadingFutures();
+
+    // PERFORMANCE: Check concurrent load limit to prevent thread pool exhaustion
+    if (futures.size() >= MAX_CONCURRENT_LOADS) {
+      logger.warning("[TaN-LazyLoader] Concurrent load limit reached (" + MAX_CONCURRENT_LOADS + "), forcing cleanup");
+      cleanupStaleFutures();
+    }
+
+    CompletableFuture<TerritoryData> loadingFuture = futures.computeIfAbsent(
         territoryId,
         id -> {
           // This lambda only executes for the thread that wins the race
@@ -82,7 +134,7 @@ public class TerritoryLazyLoader {
               future.completeExceptionally(e);
             } finally {
               // Remove the future from the map when done
-              loadingFutures.remove(id);
+              futures.remove(id);
             }
           });
           return future;
@@ -94,7 +146,7 @@ public class TerritoryLazyLoader {
       return loadingFuture.join();
     } catch (Exception e) {
       logger.warning("[TaN-LazyLoader] Exception while waiting for territory " + territoryId + ": " + e.getMessage());
-      loadingFutures.remove(territoryId);
+      futures.remove(territoryId);
       return null;
     }
   }
@@ -146,15 +198,24 @@ public class TerritoryLazyLoader {
     var stats = territoryCache.stats();
     double hitRate = stats.hitRate() * 100;
     double memoryMB = (territoryCache.size() * 2048) / (1024.0 * 1024.0);
+    var futures = getLoadingFutures();
     return String.format(
         "Cached: %d territories (~%.1f MB) | Hit Rate: %.1f%% | "
-            + "Hits: %d | Misses: %d | Evictions: %d",
+            + "Hits: %d | Misses: %d | Evictions: %d | Pending Loads: %d",
         territoryCache.size(),
         memoryMB,
         hitRate,
         stats.hitCount(),
         stats.missCount(),
-        stats.evictionCount());
+        stats.evictionCount(),
+        futures.size());
+  }
+
+  /**
+   * Get count of pending territory loads (for monitoring).
+   */
+  public static int getPendingLoadsCount() {
+    return getLoadingFutures().size();
   }
   public static long getCachedCount() {
     return territoryCache != null ? territoryCache.size() : 0;

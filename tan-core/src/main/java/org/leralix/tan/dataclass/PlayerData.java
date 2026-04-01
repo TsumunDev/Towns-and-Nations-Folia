@@ -40,6 +40,13 @@ public class PlayerData implements ITanPlayer {
   private Long firstSeen;
   private boolean isOnline;
 
+  // Performance optimization: Cache for town/region names to avoid blocking .join() calls
+  private transient String cachedTownName;
+  private transient String cachedNationName;
+  private transient Boolean cachedIsOverlord;
+  private transient long cacheTime;
+  private static final long CACHE_TTL_MS = 5000; // 5 seconds cache
+
   public PlayerData(Player player) {
     this.uuid = player.getUniqueId().toString();
     this.storedName = player.getName();
@@ -78,8 +85,12 @@ public class PlayerData implements ITanPlayer {
     this.storedName = null;
   }
   public double getBalance() {
-    // Always query the actual economy (Vault/ZEssentials) instead of cached balance
-    return org.leralix.tan.economy.EconomyUtil.getBalance(this);
+    // Return the local Balance field directly — this IS the source of truth in standalone mode.
+    // In external mode (Vault/ZEssentials), callers should use EconomyUtil.getBalance() which
+    // routes to TanEconomyExternal and reads from the external provider.
+    // NOTE: Must NOT delegate to EconomyUtil.getBalance(this) — that causes infinite recursion:
+    //   PlayerData.getBalance() → EconomyUtil → TanEconomyStandalone.getBalance() → tanPlayer.getBalance() → loop
+    return this.Balance != null ? this.Balance : 0.0;
   }
   public void setBalance(double balance) {
     // Use EconomyUtil to set balance in Vault/ZEssentials
@@ -92,10 +103,34 @@ public class PlayerData implements ITanPlayer {
   }
   @Override
   public String getTownName() {
-    if (hasTown()) {
-      return getTown().join().getName();
+    if (!hasTown()) {
+      return null;
     }
-    return null;
+    // Use cached value if available and fresh
+    long now = System.currentTimeMillis();
+    if (cachedTownName != null && (now - cacheTime) < CACHE_TTL_MS) {
+      return cachedTownName;
+    }
+    // Fetch async and cache for next call
+    getTown().thenAccept(town -> {
+      if (town != null) {
+        cachedTownName = town.getName();
+        cacheTime = now;
+      }
+    });
+    // Return cached value (might be slightly stale but non-blocking)
+    return cachedTownName;
+  }
+
+  /**
+   * Gets the town name asynchronously.
+   * @return CompletableFuture with the town name, or null if not in a town
+   */
+  public CompletableFuture<String> getTownNameAsync() {
+    if (!hasTown()) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return getTown().thenApply(town -> town != null ? town.getName() : null);
   }
   public CompletableFuture<TownData> getTown() {
     if (this.TownId == null) {
@@ -108,27 +143,100 @@ public class PlayerData implements ITanPlayer {
   }
   public boolean isTownOverlord() {
     if (!hasTown()) return false;
-    return getTown().join().isLeader(this.uuid);
+    // Use cached value if available and fresh
+    long now = System.currentTimeMillis();
+    if (cachedIsOverlord != null && (now - cacheTime) < CACHE_TTL_MS) {
+      return cachedIsOverlord;
+    }
+    // Fetch async and cache for next call
+    getTown().thenAccept(town -> {
+      if (town != null) {
+        cachedIsOverlord = town.isLeader(this.uuid);
+        cacheTime = now;
+      }
+    });
+    // Return cached value (might be slightly stale but non-blocking)
+    return cachedIsOverlord != null && cachedIsOverlord;
+  }
+
+  /**
+   * Checks if the player is town overlord asynchronously.
+   * @return CompletableFuture with true if player is town leader, false otherwise
+   */
+  public CompletableFuture<Boolean> isTownOverlordAsync() {
+    if (!hasTown()) {
+      return CompletableFuture.completedFuture(false);
+    }
+    return getTown().thenApply(town -> town != null && town.isLeader(this.uuid));
   }
   public RankData getTownRank() {
     if (!hasTown()) return null;
-    return getTown().join().getRank(getTownRankID());
+    // Try to get from cache first without blocking
+    TownData cachedTown = TownDataStorage.getInstance().getSync(this.TownId);
+    if (cachedTown != null) {
+      return cachedTown.getRank(getTownRankID());
+    }
+    // If not in cache, return null (non-blocking)
+    // Caller should use getTownRankAsync() for guaranteed result
+    return null;
   }
+
+  /**
+   * Gets the player's town rank asynchronously.
+   * @return CompletableFuture with the rank data, or null if not in a town
+   */
+  public CompletableFuture<RankData> getTownRankAsync() {
+    if (!hasTown()) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return getTown().thenApply(town -> town != null ? town.getRank(getTownRankID()) : null);
+  }
+  @Deprecated
   public RankData getRegionRank() {
     if (!hasRegion()) return null;
     return getRegion().join().getRank(getRegionRankID());
   }
+
+  /**
+   * Gets the player's region rank asynchronously.
+   * @return CompletableFuture with the rank data, or null if not in a region
+   */
+  public CompletableFuture<RankData> getRegionRankAsync() {
+    if (!hasRegion()) return CompletableFuture.completedFuture(null);
+    return getRegion().thenCombine(
+        CompletableFuture.completedFuture(getRegionRankID()),
+        (region, rankID) -> region != null ? region.getRank(rankID) : null
+    );
+  }
   public void addToBalance(double amount) {
-    this.Balance = this.Balance + amount;
+    this.Balance = (this.Balance != null ? this.Balance : 0.0) + amount;
   }
   public void removeFromBalance(double amount) {
-    this.Balance = this.Balance - amount;
+    this.Balance = (this.Balance != null ? this.Balance : 0.0) - amount;
   }
   public boolean hasRegion() {
     if (!this.hasTown()) {
       return false;
     }
-    return getTown().join().haveOverlord();
+    // Try cache first without blocking
+    TownData cachedTown = TownDataStorage.getInstance().getSync(this.TownId);
+    if (cachedTown != null) {
+      return cachedTown.haveOverlord();
+    }
+    // If not in cache, assume false for non-blocking call
+    // Use hasRegionAsync() for guaranteed result
+    return false;
+  }
+
+  /**
+   * Checks if player is in a region asynchronously.
+   * @return CompletableFuture with true if player is in a nation
+   */
+  public CompletableFuture<Boolean> hasRegionAsync() {
+    if (!this.hasTown()) {
+      return CompletableFuture.completedFuture(false);
+    }
+    return getTown().thenApply(town -> town != null && town.haveOverlord());
   }
   public CompletableFuture<RegionData> getRegion() {
     if (!hasRegion()) return CompletableFuture.completedFuture(null);
@@ -142,10 +250,34 @@ public class PlayerData implements ITanPlayer {
   }
   @Override
   public String getNationName() {
-    if (hasRegion()) {
-      return getRegion().join().getName();
+    if (!hasRegion()) {
+      return null;
     }
-    return null;
+    // Use cached value if available and fresh
+    long now = System.currentTimeMillis();
+    if (cachedNationName != null && (now - cacheTime) < CACHE_TTL_MS) {
+      return cachedNationName;
+    }
+    // Fetch async and cache for next call
+    getRegion().thenAccept(region -> {
+      if (region != null) {
+        cachedNationName = region.getName();
+        cacheTime = now;
+      }
+    });
+    // Return cached value (might be slightly stale but non-blocking)
+    return cachedNationName;
+  }
+
+  /**
+   * Gets the nation name asynchronously.
+   * @return CompletableFuture with the nation name, or null if not in a nation
+   */
+  public CompletableFuture<String> getNationNameAsync() {
+    if (!hasRegion()) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return getRegion().thenApply(region -> region != null ? region.getName() : null);
   }
   public UUID getUUID() {
     return java.util.UUID.fromString(uuid);
@@ -260,9 +392,47 @@ public class PlayerData implements ITanPlayer {
     if (!hasRegion()) {
       return null;
     }
-    if (regionRankID == null)
-      regionRankID = getRegion().join().getDefaultRankID();
+    // Return cached rankID if already set
+    if (regionRankID != null) {
+      return regionRankID;
+    }
+    // Try to get from cache without blocking
+    TownData town = TownDataStorage.getInstance().getSync(this.TownId);
+    if (town != null && town.haveOverlord()) {
+      TerritoryData overlord = town.getOverlord().orElse(null);
+      if (overlord instanceof RegionData) {
+        regionRankID = ((RegionData) overlord).getDefaultRankID();
+      }
+    }
+    // If still null, fetch async (won't be available this call but will be cached)
+    if (regionRankID == null) {
+      getRegion().thenAccept(region -> {
+        if (region != null) {
+          regionRankID = region.getDefaultRankID();
+        }
+      });
+    }
     return regionRankID;
+  }
+
+  /**
+   * Gets the region rank ID asynchronously.
+   * @return CompletableFuture with the rank ID, or null if not in a nation
+   */
+  public CompletableFuture<Integer> getRegionRankIDAsync() {
+    if (!hasRegion()) {
+      return CompletableFuture.completedFuture(null);
+    }
+    if (regionRankID != null) {
+      return CompletableFuture.completedFuture(regionRankID);
+    }
+    return getRegion().thenApply(region -> {
+      if (region != null) {
+        regionRankID = region.getDefaultRankID();
+        return regionRankID;
+      }
+      return null;
+    });
   }
   public void setRegionRankID(Integer rankID) {
     this.regionRankID = rankID;

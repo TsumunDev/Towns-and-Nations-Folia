@@ -1,23 +1,18 @@
 package org.leralix.tan.storage.invitation;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 public class TownInviteDataStorage {
-  private static final Map<String, ArrayList<String>> townInviteList = new HashMap<>();
+  private static final Map<String, List<String>> townInviteList = new ConcurrentHashMap<>();
   public static void addInvitation(String playerUUID, String townId) {
-    if (townInviteList.get(playerUUID) == null) {
-      ArrayList<String> list = new ArrayList<>();
-      list.add(townId);
-      townInviteList.put(playerUUID, list);
-    } else {
-      townInviteList.get(playerUUID).add(townId);
-    }
+    townInviteList.computeIfAbsent(playerUUID, k -> new CopyOnWriteArrayList<>()).add(townId);
   }
   public static void removeInvitation(String playerUUID) {
     townInviteList.remove(playerUUID);
   }
   public static boolean isInvited(String playerUUID, String townID) {
-    if (townInviteList.get(playerUUID) == null) return false;
-    return townInviteList.get(playerUUID).contains(townID);
+    List<String> invitations = townInviteList.get(playerUUID);
+    return invitations != null && invitations.contains(townID);
   }
 }

@@ -1,6 +1,7 @@
 package org.leralix.tan.storage.stored;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,7 +9,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.leralix.tan.TownsAndNations;
@@ -25,9 +29,10 @@ import org.leralix.tan.storage.typeadapter.IconAdapter;
 import org.leralix.tan.storage.typeadapter.OwnerDeserializer;
 import org.leralix.tan.utils.FoliaScheduler;
 public class TownDataStorage extends DatabaseStorage<TownData> {
+  private static final Set<String> knownColumns = ConcurrentHashMap.newKeySet();
   private static final String TABLE_NAME = "ccn_towns";
-  private static TownDataStorage instance;
-  private int newTownId;
+  private static volatile TownDataStorage instance;
+  private AtomicInteger newTownId;
   private TownDataStorage() {
     super(
         TABLE_NAME,
@@ -293,24 +298,38 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
    * Check if a column exists in the table.
    */
   private boolean columnExists(String columnName) {
+    if (knownColumns.contains(columnName)) {
+      return true;
+    }
     try (Connection conn = getDatabase().getDataSource().getConnection()) {
       ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, columnName);
       boolean exists = rs.next();
       rs.close();
+      if (exists) {
+        knownColumns.add(columnName);
+      }
       return exists;
     } catch (SQLException e) {
       return false;
     }
   }
   private void loadNextTownId() {
-    newTownId = getDatabase().getNextTownId();
+    newTownId = new AtomicInteger(getDatabase().getNextTownId());
   }
   @Override
   public void reset() {
-    instance = null;
+    synchronized (TownDataStorage.class) {
+      instance = null;
+    }
   }
   public static TownDataStorage getInstance() {
-    if (instance == null) instance = new TownDataStorage();
+    if (instance == null) {
+      synchronized (TownDataStorage.class) {
+        if (instance == null) {
+          instance = new TownDataStorage();
+        }
+      }
+    }
     return instance;
   }
   public CompletableFuture<TownData> newTown(String townName, ITanPlayer tanPlayer) {
@@ -320,10 +339,9 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
     return CompletableFuture.completedFuture(newTown);
   }
   private @NotNull String getNextTownID() {
-    String townId = "T" + newTownId;
-    newTownId++;
-    getDatabase().updateNextTownId(newTownId);
-    return townId;
+    int id = newTownId.getAndIncrement();
+    getDatabase().updateNextTownId(newTownId.get());
+    return "T" + id;
   }
   public CompletableFuture<TownData> newTown(String townName) {
     String townId = getNextTownID();
@@ -332,7 +350,7 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
     return CompletableFuture.completedFuture(newTown);
   }
   public void deleteTown(TownData townData) {
-    delete(townData.getID());
+    deleteAsync(townData.getID()).join();
   }
   public CompletableFuture<TownData> get(ITanPlayer tanPlayer) {
     return get(tanPlayer.getTownId());
@@ -367,7 +385,7 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
       TownsAndNations.getPlugin()
           .getLogger()
           .warning("json_extract not supported, falling back to full scan: " + e.getMessage());
-      for (TownData town : getAll().values()) {
+      for (TownData town : getAllSync().values()) {
         if (townName.equals(town.getName())) return true;
       }
     }
@@ -420,5 +438,112 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
       throw new IllegalArgumentException("Town cannot be null");
     }
     return putAsync(town.getID(), town);
+  }
+
+  /**
+   * Gets a town by its name asynchronously using SQL query with index.
+   * This is much more efficient than loading all towns and filtering.
+   *
+   * @param name The town name to search for (case-insensitive)
+   * @return CompletableFuture that completes with the town, or null if not found
+   */
+  public CompletableFuture<TownData> getByName(String name) {
+    if (name == null || name.isEmpty()) {
+      return CompletableFuture.completedFuture(null);
+    }
+    CompletableFuture<TownData> future = new CompletableFuture<>();
+
+    // First try to use the indexed town_name column
+    String selectSQL = "SELECT data FROM " + TABLE_NAME + " WHERE town_name = ? LIMIT 1";
+    runAsync(
+        () -> {
+          try (Connection conn = getDatabase().getDataSource().getConnection();
+              PreparedStatement ps = conn.prepareStatement(selectSQL)) {
+            ps.setString(1, name);
+            try (ResultSet rs = ps.executeQuery()) {
+              if (rs.next()) {
+                String jsonData = rs.getString("data");
+                TownData town = gson.fromJson(jsonData, TownData.class);
+                if (town != null && cacheEnabled && cache != null) {
+                  cache.put(town.getID(), town);
+                }
+                future.complete(town);
+                return;
+              }
+            }
+          } catch (SQLException e) {
+            // Fall through to JSON extraction if column doesn't exist
+          }
+
+          // Fallback: Try json_extract on the data column
+          String fallbackSQL = "SELECT data FROM " + TABLE_NAME + " WHERE json_extract(data, '$.name') = ? LIMIT 1";
+          try (Connection conn = getDatabase().getDataSource().getConnection();
+              PreparedStatement ps = conn.prepareStatement(fallbackSQL)) {
+            ps.setString(1, name);
+            try (ResultSet rs = ps.executeQuery()) {
+              if (rs.next()) {
+                String jsonData = rs.getString("data");
+                TownData town = gson.fromJson(jsonData, TownData.class);
+                if (town != null && cacheEnabled && cache != null) {
+                  cache.put(town.getID(), town);
+                }
+                future.complete(town);
+                return;
+              }
+            }
+          } catch (SQLException e2) {
+            // Both methods failed, log and continue to full scan
+          }
+
+          // Last resort: Full scan with case-insensitive comparison
+          String fullScanSQL = "SELECT id, data FROM " + TABLE_NAME;
+          try (Connection conn = getDatabase().getDataSource().getConnection();
+              PreparedStatement ps = conn.prepareStatement(fullScanSQL);
+              ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+              String jsonData = rs.getString("data");
+              try {
+                TownData town = gson.fromJson(jsonData, TownData.class);
+                if (town != null && town.getName().equalsIgnoreCase(name)) {
+                  if (cacheEnabled && cache != null) {
+                    cache.put(town.getID(), town);
+                  }
+                  future.complete(town);
+                  return;
+                }
+              } catch (JsonSyntaxException e) {
+                // Skip invalid entries
+              }
+            }
+            future.complete(null);
+          } catch (SQLException e) {
+            TownsAndNations.getPlugin()
+                .getLogger()
+                .warning("Error getting town by name: " + e.getMessage());
+            future.complete(null);
+          }
+        });
+    return future;
+  }
+
+  /**
+   * Gets a town by its name synchronously (uses cache if available).
+   *
+   * @param name The town name to search for
+   * @return The town, or null if not found
+   */
+  public TownData getByNameSync(String name) {
+    if (name == null || name.isEmpty()) {
+      return null;
+    }
+    // Check cache first
+    if (cacheEnabled && cache != null) {
+      for (TownData town : cache.values()) {
+        if (town.getName().equalsIgnoreCase(name)) {
+          return town;
+        }
+      }
+    }
+    return getByName(name).join();
   }
 }

@@ -1,6 +1,6 @@
 package org.leralix.tan.listeners.chat;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.leralix.lib.data.SoundEnum;
@@ -10,7 +10,7 @@ import org.leralix.tan.lang.LangType;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class PlayerChatListenerStorage {
-  private static final Map<Player, ChatListenerEvent> chatStorage = new HashMap<>();
+  private static final Map<Player, ChatListenerEvent> chatStorage = new ConcurrentHashMap<>();
   public static void register(Player player, ChatListenerEvent category) {
     chatStorage.put(player, category);
     LangType langType = PlayerDataStorage.getInstance().getSync(player).getLang();
@@ -39,5 +39,11 @@ public class PlayerChatListenerStorage {
       TanChatUtils.message(
           player, Lang.WRITE_CANCEL_TO_CANCEL.get(langType, Lang.CANCEL_WORD.get(langType)));
     }
+  }
+  /**
+   * Call from existing PlayerQuitListener to prevent memory leaks.
+   */
+  public static void cleanupOnQuit(Player player) {
+    chatStorage.remove(player);
   }
 }

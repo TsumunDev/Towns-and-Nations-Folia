@@ -1,8 +1,8 @@
 package org.leralix.tan.wars.capture;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import org.bukkit.entity.Player;
 import org.leralix.lib.position.Vector3D;
@@ -15,12 +15,16 @@ import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.wars.PlannedAttack;
 import org.leralix.tan.wars.fort.Fort;
 public class CaptureManager {
-  private final Map<TerritoryChunk, CaptureChunk> captures = new HashMap<>();
-  private final Map<String, CaptureFort> forts = new HashMap<>();
-  private static CaptureManager instance;
+  private final Map<TerritoryChunk, CaptureChunk> captures = new ConcurrentHashMap<>();
+  private final Map<String, CaptureFort> forts = new ConcurrentHashMap<>();
+  private static volatile CaptureManager instance;
   public static CaptureManager getInstance() {
     if (instance == null) {
-      instance = new CaptureManager();
+      synchronized (CaptureManager.class) {
+        if (instance == null) {
+          instance = new CaptureManager();
+        }
+      }
     }
     return instance;
   }
@@ -81,11 +85,9 @@ public class CaptureManager {
             attackData.getWar().getMainDefender())) {
           continue;
         }
-        if (!captures.containsKey(territoryChunk)) {
-          captures.putIfAbsent(
-              territoryChunk,
-              new CaptureChunk(0, territoryChunk, mainAttacker, attackData.getID()));
-        }
+        captures.computeIfAbsent(
+            territoryChunk,
+            k -> new CaptureChunk(0, territoryChunk, mainAttacker, attackData.getID()));
         captures.get(territoryChunk).addAttacker(attacker.getPlayer());
       }
     }
@@ -103,11 +105,9 @@ public class CaptureManager {
             attackData.getWar().getMainDefender())) {
           continue;
         }
-        if (!captures.containsKey(territoryChunk)) {
-          captures.putIfAbsent(
-              territoryChunk,
-              new CaptureChunk(100, territoryChunk, mainAttacker, attackData.getID()));
-        }
+        captures.computeIfAbsent(
+            territoryChunk,
+            k -> new CaptureChunk(100, territoryChunk, mainAttacker, attackData.getID()));
         captures.get(territoryChunk).addDefender(defender.getPlayer());
       }
     }

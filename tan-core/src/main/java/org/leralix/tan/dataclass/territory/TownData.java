@@ -37,6 +37,13 @@ import org.leralix.tan.utils.graphic.PrefixUtil;
 import org.leralix.tan.utils.graphic.TeamUtils;
 import org.leralix.tan.utils.text.StringUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
+import org.leralix.tan.domain.claim.ClaimHolder;
+import org.leralix.tan.domain.diplomacy.DiplomacyHolder;
+import org.leralix.tan.domain.gui.TownGuiHolder;
+import org.leralix.tan.domain.economy.TownEconomyHolder;
+import org.leralix.tan.domain.member.MemberHolder;
+import org.leralix.tan.domain.member.MemberService;
+import org.leralix.tan.domain.property.PropertyHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,7 +127,37 @@ public class TownData extends TerritoryData {
   }
   @Override
   public RankData getRank(ITanPlayer tanPlayer) {
-    return getRank(tanPlayer.getTownRankID());
+    // Strangler Fig Pattern: Use new service when feature flag is enabled
+    if (useNewMemberService()) {
+      RankData rank = getRankWithService(tanPlayer);
+      return rank != null ? rank : getRankLegacy(tanPlayer);
+    }
+    // Legacy code path
+    return getRankLegacy(tanPlayer);
+  }
+
+  /**
+   * Gets a player's rank asynchronously.
+   *
+   * <p>This is the non-blocking version of {@link #getRank(ITanPlayer)}. It returns a
+   * {@link CompletableFuture} and never blocks the calling thread, making it safe
+   * for Folia region threads.</p>
+   *
+   * @param tanPlayer The player to query
+   * @return CompletableFuture containing the player's rank
+   * @since 2.1.0
+   */
+  public CompletableFuture<RankData> getRankAsync(ITanPlayer tanPlayer) {
+    if (useNewMemberService()) {
+      return MemberHolder.getService()
+          .getRank(this.getID(), tanPlayer)
+          .exceptionally(throwable -> {
+            LOGGER.warn("MemberService.getRank failed, falling back to legacy", throwable);
+            return null;
+          })
+          .thenApply(rank -> rank != null ? rank : getRankLegacy(tanPlayer));
+    }
+    return CompletableFuture.completedFuture(getRankLegacy(tanPlayer));
   }
   public void addPlayer(ITanPlayer tanNewPlayer) {
     townPlayerListId.add(tanNewPlayer.getID());
@@ -190,8 +227,34 @@ public class TownData extends TerritoryData {
         PlayerDataStorage.getInstance().getBatchSync(getPlayerIDList());
     return new ArrayList<>(playerMap.values());
   }
-  @Override
-  public ItemStack getIconWithName() {
+  /**
+   * Gets the town icon with name asynchronously.
+   *
+   * <p>This is the non-blocking version of {@link #getIconWithName()}. It returns a
+   * {@link CompletableFuture} and never blocks the calling thread, making it safe
+   * for Folia region threads.</p>
+   *
+   * @return CompletableFuture containing the ItemStack with the town name
+   * @since 2.1.0
+   */
+  public CompletableFuture<ItemStack> getIconWithNameAsync() {
+    if (useNewGuiService()) {
+      try {
+        return TownGuiHolder.getService()
+            .getIconWithName(getID())
+            .exceptionally(e -> {
+              LOGGER.warn("TownGuiService.getIconWithName failed, using legacy: " + e.getMessage());
+              return null;
+            })
+            .thenApply(result -> result != null ? result : buildLegacyIconWithName());
+      } catch (Exception e) {
+        LOGGER.warn("TownGuiService.getIconWithName failed, using legacy: " + e.getMessage());
+      }
+    }
+    return CompletableFuture.completedFuture(buildLegacyIconWithName());
+  }
+
+  private ItemStack buildLegacyIconWithName() {
     ItemStack itemStack = getIcon();
     ItemMeta meta = itemStack.getItemMeta();
     if (meta != null) {
@@ -200,8 +263,51 @@ public class TownData extends TerritoryData {
     }
     return itemStack;
   }
+
   @Override
-  public ItemStack getIconWithInformations(LangType langType) {
+  @Deprecated
+  public ItemStack getIconWithName() {
+    // Route to new service if feature flag is enabled
+    if (useNewGuiService()) {
+      try {
+        return TownGuiHolder.getService()
+            .getIconWithName(getID())
+            .join();
+      } catch (Exception e) {
+        LOGGER.warn("TownGuiService.getIconWithName failed, using legacy: " + e.getMessage());
+      }
+    }
+    return buildLegacyIconWithName();
+  }
+  /**
+   * Gets the town icon with information asynchronously.
+   *
+   * <p>This is the non-blocking version of {@link #getIconWithInformations(LangType)}.
+   * It returns a {@link CompletableFuture} and never blocks the calling thread,
+   * making it safe for Folia region threads.</p>
+   *
+   * @param langType The language type for localization
+   * @return CompletableFuture containing the ItemStack with town information
+   * @since 2.1.0
+   */
+  public CompletableFuture<ItemStack> getIconWithInformationsAsync(LangType langType) {
+    if (useNewGuiService()) {
+      try {
+        return TownGuiHolder.getService()
+            .getIconWithInformations(getID(), langType)
+            .exceptionally(e -> {
+              LOGGER.warn("TownGuiService.getIconWithInformations failed, using legacy: " + e.getMessage());
+              return null;
+            })
+            .thenApply(result -> result != null ? result : buildLegacyIconWithInformations(langType));
+      } catch (Exception e) {
+        LOGGER.warn("TownGuiService.getIconWithInformations failed, using legacy: " + e.getMessage());
+      }
+    }
+    return CompletableFuture.completedFuture(buildLegacyIconWithInformations(langType));
+  }
+
+  private ItemStack buildLegacyIconWithInformations(LangType langType) {
     ItemStack icon = getIcon();
     ItemMeta meta = icon.getItemMeta();
     if (meta != null) {
@@ -219,6 +325,21 @@ public class TownData extends TerritoryData {
       icon.setItemMeta(meta);
     }
     return icon;
+  }
+
+  @Override
+  @Deprecated
+  public ItemStack getIconWithInformations(LangType langType) {
+    if (useNewGuiService()) {
+      try {
+        return TownGuiHolder.getService()
+            .getIconWithInformations(getID(), langType)
+            .join();
+      } catch (Exception e) {
+        LOGGER.warn("TownGuiService.getIconWithInformations failed, using legacy: " + e.getMessage());
+      }
+    }
+    return buildLegacyIconWithInformations(langType);
   }
   @Override
   public int getHierarchyRank() {
@@ -475,8 +596,37 @@ public class TownData extends TerritoryData {
   public TeleportationPosition getSpawn() {
     return this.teleportationPosition;
   }
-  @Override
-  public void abstractClaimChunk(Player player, Chunk chunk, boolean ignoreAdjacent) {
+  /**
+   * Claims a chunk asynchronously.
+   *
+   * <p>This is the non-blocking version of {@link #abstractClaimChunk(Player, Chunk, boolean)}.
+   * It returns a {@link CompletableFuture} and never blocks the calling thread,
+   * making it safe for Folia region threads.</p>
+   *
+   * @param player The player claiming the chunk
+   * @param chunk The chunk to claim
+   * @param ignoreAdjacent Whether to ignore adjacency requirements
+   * @return CompletableFuture that completes when the chunk is claimed
+   * @since 2.1.0
+   */
+  public CompletableFuture<Void> abstractClaimChunkAsync(Player player, Chunk chunk, boolean ignoreAdjacent) {
+    if (useNewClaimService()) {
+      try {
+        return ClaimHolder.getService()
+            .claimChunk(getID(), chunk)
+            .exceptionally(e -> {
+              LOGGER.warn("ClaimService.claimChunk failed, using legacy: " + e.getMessage());
+              return null;
+            })
+            .thenRun(() -> {}); // Ensure return type is CompletableFuture<Void>
+      } catch (Exception e) {
+        LOGGER.warn("ClaimService.claimChunk failed, using legacy: " + e.getMessage());
+      }
+    }
+    return CompletableFuture.runAsync(() -> claimChunkLegacy(chunk), Runnable::run);
+  }
+
+  private void claimChunkLegacy(Chunk chunk) {
     removeFromBalance(getClaimCost());
     NewClaimedChunkStorage.getInstance()
         .unclaimChunkAndUpdate(NewClaimedChunkStorage.getInstance().get(chunk));
@@ -485,6 +635,25 @@ public class TownData extends TerritoryData {
     if (getNumberOfClaimedChunk() == 1) {
       setCapitalLocation(chunkClaimed.getVector2D());
     }
+  }
+
+  @Override
+  @Deprecated
+  public void abstractClaimChunk(Player player, Chunk chunk, boolean ignoreAdjacent) {
+    // Route to new service if feature flag is enabled
+    if (useNewClaimService()) {
+      try {
+        ClaimHolder.getService()
+            .claimChunk(getID(), chunk)
+            .join();
+        return;
+      } catch (Exception e) {
+        LOGGER.warn("ClaimService.claimChunk failed, using legacy: " + e.getMessage());
+        // Fall through to legacy implementation
+      }
+    }
+    // Legacy implementation
+    claimChunkLegacy(chunk);
   }
   public void setCapitalLocation(Vector2D vector2D) {
     capitalLocation = vector2D;
@@ -532,7 +701,20 @@ public class TownData extends TerritoryData {
     return null;
   }
   @Override
+  @Deprecated
   public List<GuiItem> getOrderedMemberList(ITanPlayer tanPlayer) {
+    // Route to new service if feature flag is enabled
+    if (useNewGuiService()) {
+      try {
+        return TownGuiHolder.getService()
+            .getOrderedMemberList(getID(), tanPlayer)
+            .join();
+      } catch (Exception e) {
+        LOGGER.warn("TownGuiService.getOrderedMemberList failed, using legacy: " + e.getMessage());
+        // Fall through to legacy implementation
+      }
+    }
+    // Legacy implementation
     Player player = tanPlayer.getPlayer();
     List<GuiItem> res = new ArrayList<>();
     LangType langType = tanPlayer.getLang();
@@ -605,6 +787,16 @@ public class TownData extends TerritoryData {
    * @return CompletableFuture containing the list of GUI items for each member
    */
   public CompletableFuture<List<GuiItem>> getOrderedMemberListAsync(ITanPlayer tanPlayer) {
+    // Route to new service if feature flag is enabled
+    if (useNewGuiService()) {
+      try {
+        return TownGuiHolder.getService().getOrderedMemberList(getID(), tanPlayer);
+      } catch (Exception e) {
+        LOGGER.warn("TownGuiService.getOrderedMemberListAsync failed, using legacy: " + e.getMessage());
+        // Fall through to legacy implementation
+      }
+    }
+    // Legacy implementation
     Player player = tanPlayer.getPlayer();
     LangType langType = tanPlayer.getLang();
     Collection<String> playerUUIDs = getOrderedPlayerIDListSync();
@@ -734,10 +926,90 @@ public class TownData extends TerritoryData {
     owner.addProperty(newProperty);
     return newProperty;
   }
+  /**
+   * Gets a property by its ID asynchronously.
+   *
+   * <p>This is the non-blocking version of {@link #getProperty(String)}. It returns a
+   * {@link CompletableFuture} and never blocks the calling thread, making it safe
+   * for Folia region threads.</p>
+   *
+   * @param id The property ID (e.g., "P0", "P1")
+   * @return CompletableFuture containing the property, or null if not found
+   * @since 2.1.0
+   */
+  public CompletableFuture<PropertyData> getPropertyAsync(String id) {
+    if (useNewPropertyService()) {
+      try {
+        return PropertyHolder.getService()
+            .getProperty(getID(), id)
+            .exceptionally(e -> {
+              LOGGER.warn("PropertyService.getProperty failed, using legacy: {}", e.getMessage());
+              return null;
+            })
+            .thenApply(result -> result != null ? result : getPropertyDataMap().get(id));
+      } catch (Exception e) {
+        LOGGER.warn("PropertyService.getProperty failed, using legacy: {}", e.getMessage());
+      }
+    }
+    return CompletableFuture.completedFuture(getPropertyDataMap().get(id));
+  }
+
+  /**
+   * Gets a property by its ID.
+   * <p>
+   * Uses {@link org.leralix.tan.domain.property.PropertyService} when the feature flag
+   * {@code development.use-new-property-service} is enabled. Falls back to legacy
+   * implementation on error or if disabled.
+   * </p>
+   *
+   * @param id The property ID (e.g., "P0", "P1")
+   * @return The property, or null if not found
+   * @deprecated Use {@link #getPropertyAsync(String)} instead to avoid blocking Folia region threads
+   * @since 2.0.0
+   */
+  @Deprecated
   public PropertyData getProperty(String id) {
+    if (useNewPropertyService()) {
+      try {
+        return PropertyHolder.getService()
+            .getProperty(getID(), id)
+            .join();
+      } catch (Exception e) {
+        LOGGER.warn("PropertyService.getProperty failed, using legacy: {}", e.getMessage());
+      }
+    }
     return getPropertyDataMap().get(id);
   }
-  public PropertyData getProperty(Location location) {
+
+  /**
+   * Gets a property at a specific location asynchronously.
+   *
+   * <p>This is the non-blocking version of {@link #getProperty(Location)}. It returns a
+   * {@link CompletableFuture} and never blocks the calling thread, making it safe
+   * for Folia region threads.</p>
+   *
+   * @param location The location to search
+   * @return CompletableFuture containing the property at the location, or null if not found
+   * @since 2.1.0
+   */
+  public CompletableFuture<PropertyData> getPropertyAsync(Location location) {
+    if (useNewPropertyService()) {
+      try {
+        return PropertyHolder.getService()
+            .getPropertyAtLocation(getID(), location)
+            .exceptionally(e -> {
+              LOGGER.warn("PropertyService.getPropertyAtLocation failed, using legacy: {}", e.getMessage());
+              return null;
+            })
+            .thenApply(result -> result != null ? result : findPropertyAtLocationLegacy(location));
+      } catch (Exception e) {
+        LOGGER.warn("PropertyService.getPropertyAtLocation failed, using legacy: {}", e.getMessage());
+      }
+    }
+    return CompletableFuture.completedFuture(findPropertyAtLocationLegacy(location));
+  }
+
+  private PropertyData findPropertyAtLocationLegacy(Location location) {
     for (PropertyData propertyData : getProperties()) {
       if (propertyData.containsLocation(location)) {
         return propertyData;
@@ -745,7 +1017,86 @@ public class TownData extends TerritoryData {
     }
     return null;
   }
+
+  /**
+   * Gets a property at a specific location.
+   * <p>
+   * Uses {@link org.leralix.tan.domain.property.PropertyService} when the feature flag
+   * {@code development.use-new-property-service} is enabled. Falls back to legacy
+   * implementation on error or if disabled.
+   * </p>
+   *
+   * @param location The location to search
+   * @return The property at the location, or null if not found
+   * @deprecated Use {@link #getPropertyAsync(Location)} instead to avoid blocking Folia region threads
+   * @since 2.0.0
+   */
+  @Deprecated
+  public PropertyData getProperty(Location location) {
+    if (useNewPropertyService()) {
+      try {
+        return PropertyHolder.getService()
+            .getPropertyAtLocation(getID(), location)
+            .join();
+      } catch (Exception e) {
+        LOGGER.warn("PropertyService.getPropertyAtLocation failed, using legacy: {}", e.getMessage());
+      }
+    }
+    return findPropertyAtLocationLegacy(location);
+  }
+  /**
+   * Removes a property from the town asynchronously.
+   *
+   * <p>This is the non-blocking version of {@link #removeProperty(PropertyData)}.
+   * It returns a {@link CompletableFuture} and never blocks the calling thread,
+   * making it safe for Folia region threads.</p>
+   *
+   * @param propertyData The property to remove
+   * @return CompletableFuture that completes when the property is removed
+   * @since 2.1.0
+   */
+  public CompletableFuture<Void> removePropertyAsync(PropertyData propertyData) {
+    if (useNewPropertyService()) {
+      try {
+        return PropertyHolder.getService()
+            .removeProperty(getID(), propertyData)
+            .exceptionally(e -> {
+              LOGGER.warn("PropertyService.removeProperty failed, using legacy: {}", e.getMessage());
+              return null;
+            })
+            .thenRun(() -> this.propertyDataMap.remove(propertyData.getPropertyID()));
+      } catch (Exception e) {
+        LOGGER.warn("PropertyService.removeProperty failed, using legacy: {}", e.getMessage());
+      }
+    }
+    this.propertyDataMap.remove(propertyData.getPropertyID());
+    return CompletableFuture.completedFuture(null);
+  }
+
+  /**
+   * Removes a property from the town.
+   * <p>
+   * Uses {@link org.leralix.tan.domain.property.PropertyService} when the feature flag
+   * {@code development.use-new-property-service} is enabled. Falls back to legacy
+   * implementation on error or if disabled.
+   * </p>
+   *
+   * @param propertyData The property to remove
+   * @deprecated Use {@link #removePropertyAsync(PropertyData)} instead to avoid blocking Folia region threads
+   * @since 2.0.0
+   */
+  @Deprecated
   public void removeProperty(PropertyData propertyData) {
+    if (useNewPropertyService()) {
+      try {
+        PropertyHolder.getService()
+            .removeProperty(getID(), propertyData)
+            .join();
+        return;
+      } catch (Exception e) {
+        LOGGER.warn("PropertyService.removeProperty failed, using legacy: {}", e.getMessage());
+      }
+    }
     this.propertyDataMap.remove(propertyData.getPropertyID());
   }
   public String getTownTag() {
@@ -792,11 +1143,51 @@ public class TownData extends TerritoryData {
   }
 
   /**
+   * Gets the current civilization tier of the town asynchronously.
+   *
+   * <p>This is the non-blocking version of {@link #getTownTier()}. It returns a
+   * {@link CompletableFuture} and never blocks the calling thread, making it safe
+   * for Folia region threads.</p>
+   *
+   * @return CompletableFuture containing the current tier
+   * @since 2.1.0
+   */
+  public CompletableFuture<TownTier> getTownTierAsync() {
+    if (useNewEconomyService()) {
+      try {
+        return TownEconomyHolder.getService()
+            .getTownTier(getID())
+            .exceptionally(e -> {
+              LOGGER.warn("TownEconomyService.getTownTier failed, using legacy: " + e.getMessage());
+              return null;
+            })
+            .thenApply(result -> result != null ? result : getProgression().getCurrentTier());
+      } catch (Exception e) {
+        LOGGER.warn("TownEconomyService.getTownTier failed, using legacy: " + e.getMessage());
+      }
+    }
+    return CompletableFuture.completedFuture(getProgression().getCurrentTier());
+  }
+
+  /**
    * Gets the current civilization tier of the town.
    *
    * @return the current tier
+   * @deprecated Use {@link #getTownTierAsync()} instead to avoid blocking Folia region threads
    */
+  @Deprecated
   public TownTier getTownTier() {
+    // Route to new service if feature flag is enabled
+    if (useNewEconomyService()) {
+      try {
+        return TownEconomyHolder.getService()
+            .getTownTier(getID())
+            .join();
+      } catch (Exception e) {
+        LOGGER.warn("TownEconomyService.getTownTier failed, using legacy: " + e.getMessage());
+      }
+    }
+    // Legacy implementation
     return getProgression().getCurrentTier();
   }
 
@@ -844,11 +1235,103 @@ public class TownData extends TerritoryData {
    *
    * @return current prestige points
    */
+  /**
+   * Gets the current prestige balance asynchronously.
+   *
+   * <p>This is the non-blocking version of {@link #getPrestigeBalance()}. It returns a
+   * {@link CompletableFuture} and never blocks the calling thread, making it safe
+   * for Folia region threads.</p>
+   *
+   * @return CompletableFuture containing current prestige points
+   * @since 2.1.0
+   */
+  public CompletableFuture<Long> getPrestigeBalanceAsync() {
+    if (useNewEconomyService()) {
+      try {
+        return TownEconomyHolder.getService()
+            .getPrestigeBalance(getID())
+            .exceptionally(e -> {
+              LOGGER.warn("TownEconomyService.getPrestigeBalance failed, using legacy: " + e.getMessage());
+              return null;
+            })
+            .thenApply(result -> result != null ? result : getPrestigePoints().currentBalance());
+      } catch (Exception e) {
+        LOGGER.warn("TownEconomyService.getPrestigeBalance failed, using legacy: " + e.getMessage());
+      }
+    }
+    return CompletableFuture.completedFuture(getPrestigePoints().currentBalance());
+  }
+
+  /**
+   * Gets the current prestige balance.
+   *
+   * @return current prestige points
+   * @deprecated Use {@link #getPrestigeBalanceAsync()} instead to avoid blocking Folia region threads
+   */
+  @Deprecated
   public long getPrestigeBalance() {
+    // Route to new service if feature flag is enabled
+    if (useNewEconomyService()) {
+      try {
+        return TownEconomyHolder.getService()
+            .getPrestigeBalance(getID())
+            .join();
+      } catch (Exception e) {
+        LOGGER.warn("TownEconomyService.getPrestigeBalance failed, using legacy: " + e.getMessage());
+      }
+    }
+    // Legacy implementation
     return getPrestigePoints().currentBalance();
   }
 
+  /**
+   * Checks if the town has purchased a specific upgrade asynchronously.
+   *
+   * <p>This is the non-blocking version of {@link #hasPurchasedUpgrade(String)}. It returns a
+   * {@link CompletableFuture} and never blocks the calling thread, making it safe
+   * for Folia region threads.</p>
+   *
+   * @param upgradeId The upgrade ID to check
+   * @return CompletableFuture containing true if the upgrade has been purchased
+   * @since 2.1.0
+   */
+  public CompletableFuture<Boolean> hasPurchasedUpgradeAsync(String upgradeId) {
+    if (useNewEconomyService()) {
+      try {
+        return TownEconomyHolder.getService()
+            .hasPurchasedUpgrade(getID(), upgradeId)
+            .exceptionally(e -> {
+              LOGGER.warn("TownEconomyService.hasPurchasedUpgrade failed, using legacy: " + e.getMessage());
+              return null;
+            })
+            .thenApply(result -> result != null ? result : getPurchasedUpgrades().contains(upgradeId));
+      } catch (Exception e) {
+        LOGGER.warn("TownEconomyService.hasPurchasedUpgrade failed, using legacy: " + e.getMessage());
+      }
+    }
+    return CompletableFuture.completedFuture(getPurchasedUpgrades().contains(upgradeId));
+  }
+
+  /**
+   * Checks if the town has purchased a specific upgrade.
+   *
+   * @param upgradeId The upgrade ID to check
+   * @return true if the upgrade has been purchased
+   * @deprecated Use {@link #hasPurchasedUpgradeAsync(String)} instead to avoid blocking Folia region threads
+   */
+  @Deprecated
   public boolean hasPurchasedUpgrade(String upgradeId) {
+    // Route to new service if feature flag is enabled
+    if (useNewEconomyService()) {
+      try {
+        return TownEconomyHolder.getService()
+            .hasPurchasedUpgrade(getID(), upgradeId)
+            .join();
+      } catch (Exception e) {
+        LOGGER.warn("TownEconomyService.hasPurchasedUpgrade failed, using legacy: " + e.getMessage());
+      }
+    }
+    // Legacy implementation
     Set<String> upgrades = getPurchasedUpgrades();
     return upgrades.contains(upgradeId);
   }
@@ -983,5 +1466,165 @@ public class TownData extends TerritoryData {
   @Override
   public boolean isVassal(String territoryID) {
     return false;
+  }
+
+  // ===== FEATURE FLAGS (Strangler Fig Pattern) =====
+
+  /**
+   * Checks if the new MemberService should be used for rank lookups.
+   * <p>
+   * This is a feature flag for the Strangler Fig pattern refactoring.
+   * When enabled, rank lookups use the new {@link MemberService} instead
+   * of the legacy {@link #getRankLegacy(ITanPlayer)} method.
+   * </p>
+   * <p>
+   * <b>Configuration:</b><br>
+   * Enable via config.yml: {@code development.use-new-member-service: true}
+   * </p>
+   * <p>
+   * <b>Default:</b> false (uses legacy implementation for safety)
+   * </p>
+   *
+   * @return true if the new service should be used, false for legacy code
+   * @see #getRank(ITanPlayer)
+   * @see #getRankLegacy(ITanPlayer)
+   * @see org.leralix.tan.domain.town.MemberService
+   * @since 0.16.0
+   */
+  private boolean useNewMemberService() {
+    return TownsAndNations.getPlugin()
+        .getConfig()
+        .getBoolean("development.use-new-member-service", false);
+  }
+
+  /**
+   * Checks if the new GUI service should be used.
+   * <p>
+   * <b>Feature Flag:</b> {@code development.use-new-gui-service}
+   * </p>
+   *
+   * @return true if the new GUI service is enabled
+   * @since 2.0.0
+   */
+  private boolean useNewGuiService() {
+    return TownsAndNations.getPlugin()
+        .getConfig()
+        .getBoolean("development.use-new-gui-service", false);
+  }
+
+  /**
+   * Checks if the new economy service should be used.
+   * <p>
+   * <b>Feature Flag:</b> {@code development.use-new-economy-service}
+   * </p>
+   *
+   * @return true if the new economy service is enabled
+   * @since 2.0.0
+   */
+  private boolean useNewEconomyService() {
+    return TownsAndNations.getPlugin()
+        .getConfig()
+        .getBoolean("development.use-new-economy-service", false);
+  }
+
+  /**
+   * Checks if the new property service should be used.
+   * <p>
+   * <b>Feature Flag:</b> {@code development.use-new-property-service}
+   * </p>
+   *
+   * @return true if the new property service is enabled
+   * @since 2.0.0
+   */
+  private boolean useNewPropertyService() {
+    return TownsAndNations.getPlugin()
+        .getConfig()
+        .getBoolean("development.use-new-property-service", false);
+  }
+
+  /**
+   * Checks if the new claim service should be used.
+   * <p>
+   * <b>Feature Flag:</b> {@code development.use-new-claim-service}
+   * </p>
+   *
+   * @return true if the new claim service is enabled
+   * @since 2.0.0
+   */
+  private boolean useNewClaimService() {
+    TownsAndNations plugin = TownsAndNations.getPlugin();
+    if (plugin == null) {
+      return false;
+    }
+    return plugin.getConfig()
+        .getBoolean("development.use-new-claim-service", false);
+  }
+
+  /**
+   * Checks if the new diplomacy service should be used.
+   * <p>
+   * <b>Feature Flag:</b> {@code development.use-new-diplomacy-service}
+   * </p>
+   *
+   * @return true if the new diplomacy service is enabled
+   * @since 2.0.0
+   */
+  private boolean useNewDiplomacyService() {
+    TownsAndNations plugin = TownsAndNations.getPlugin();
+    if (plugin == null) {
+      return false;
+    }
+    return plugin.getConfig()
+        .getBoolean("development.use-new-diplomacy-service", false);
+  }
+
+  /**
+   * Gets a player's rank using the new service-based architecture.
+   * <p>
+   * This method delegates to {@link MemberService} when the feature flag
+   * is enabled. Falls back to legacy implementation on error or if disabled.
+   * </p>
+   * <p>
+   * <b>Feature Flag:</b> {@code development.use-new-member-service}
+   * </p>
+   *
+   * @param tanPlayer The player to query
+   * @return the player's rank, or null if not found
+   * @since 0.16.0
+   */
+  private RankData getRankWithService(ITanPlayer tanPlayer) {
+    try {
+      return MemberHolder.getService()
+          .getRank(this.getID(), tanPlayer)
+          .exceptionally(throwable -> {
+            LOGGER.warn("MemberService.getRank failed, falling back to legacy", throwable);
+            return getRankLegacy(tanPlayer);
+          })
+          .join();
+    } catch (Exception e) {
+      LOGGER.warn("MemberService.getRank failed with exception, falling back to legacy", e);
+      return getRankLegacy(tanPlayer);
+    }
+  }
+
+  /**
+   * Legacy implementation of rank lookup.
+   * <p>
+   * This is the original implementation preserved for rollback safety.
+   * It uses the TerritoryData.getRank(int) method.
+   * </p>
+   * <p>
+   * <b>Deprecated:</b> This method will be removed once the new service
+   * is proven stable. Use {@link #getRankWithService(ITanPlayer)} instead.
+   * </p>
+   *
+   * @param tanPlayer The player to query
+   * @return the player's rank, or null if not found
+   * @deprecated Use getRankWithService instead (to be fully async)
+   * @since 0.16.0
+   */
+  @Deprecated
+  private RankData getRankLegacy(ITanPlayer tanPlayer) {
+    return getRank(tanPlayer.getTownRankID());
   }
 }

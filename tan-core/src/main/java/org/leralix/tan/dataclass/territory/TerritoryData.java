@@ -708,6 +708,86 @@ public abstract class TerritoryData {
     }
     return true;
   }
+
+  /**
+   * Async version of canClaimChunk that does not block Folia region threads.
+   * All database and external service calls are performed asynchronously.
+   *
+   * @param player the player attempting to claim
+   * @param chunk the chunk to claim
+   * @param ignoreAdjacent whether to skip adjacent chunk check
+   * @return CompletableFuture with true if the player can claim the chunk
+   */
+  public CompletableFuture<Boolean> canClaimChunkAsync(Player player, Chunk chunk, boolean ignoreAdjacent) {
+    return PlayerDataStorage.getInstance().get(player).thenCompose(tanPlayer -> {
+      // Blacklist check (synchronous, in-memory)
+      if (ClaimBlacklistStorage.cannotBeClaimed(chunk)) {
+        TanChatUtils.message(player, Lang.CHUNK_IS_BLACKLISTED.get(player));
+        return CompletableFuture.completedFuture(false);
+      }
+      // Permission check (in-memory)
+      if (!doesPlayerHavePermission(tanPlayer, RolePermission.CLAIM_CHUNK)) {
+        TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(player));
+        return CompletableFuture.completedFuture(false);
+      }
+      TerritoryStats territoryStats = getNewLevel();
+      int nbOfClaimedChunks = getNumberOfClaimedChunk();
+
+      // Biome check (in-memory)
+      if (!territoryStats.getStat(BiomeStat.class).canClaimBiome(chunk)) {
+        TanChatUtils.message(player, Lang.CHUNK_BIOME_NOT_ALLOWED.get(player));
+        return CompletableFuture.completedFuture(false);
+      }
+      // Chunk cap check (in-memory)
+      if (!territoryStats.getStat(ChunkCap.class).canDoAction(nbOfClaimedChunks)) {
+        TanChatUtils.message(player, Lang.MAX_CHUNK_LIMIT_REACHED.get(player));
+        return CompletableFuture.completedFuture(false);
+      }
+      int cost = getClaimCost();
+      if (getBalance() < cost) {
+        TanChatUtils.message(
+            player,
+            Lang.TERRITORY_NOT_ENOUGH_MONEY.get(
+                player, getColoredName(), Double.toString(cost - getBalance())));
+        return CompletableFuture.completedFuture(false);
+      }
+
+      // Get chunk data asynchronously
+      String chunkKey = chunk.getX() + "," + chunk.getZ() + "," + chunk.getWorld().getUID().toString();
+      return NewClaimedChunkStorage.getInstance().get(chunkKey)
+          .thenCompose(chunkData -> {
+            if (chunkData == null) {
+              chunkData = new org.leralix.tan.dataclass.chunk.WildernessChunk(chunk);
+            }
+            if (!chunkData.canTerritoryClaim(player, this)) {
+              return CompletableFuture.completedFuture(false);
+            }
+            if (ignoreAdjacent) {
+              return CompletableFuture.completedFuture(true);
+            }
+            if (getNumberOfClaimedChunk() == 0) {
+              if (ChunkUtil.isInBufferZone(chunkData, this)) {
+                TanChatUtils.message(
+                    player,
+                    Lang.CHUNK_IN_BUFFER_ZONE.get(
+                        player, Integer.toString(Constants.territoryClaimBufferZone())));
+                return CompletableFuture.completedFuture(false);
+              }
+              return CompletableFuture.completedFuture(true);
+            }
+            // Adjacent chunk check (async)
+            return NewClaimedChunkStorage.getInstance()
+                .isOneAdjacentChunkClaimedBySameTerritoryAsync(chunk, getID())
+                .thenApply(isAdjacent -> {
+                  if (!isAdjacent) {
+                    TanChatUtils.message(player, Lang.CHUNK_NOT_ADJACENT.get(player));
+                  }
+                  return isAdjacent;
+                });
+          });
+    });
+  }
+
   public int getClaimCost() {
     return getNewLevel().getStat(ChunkCost.class).getCost();
   }

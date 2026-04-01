@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.CompletableFuture;
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.utils.constants.Constants;
 public class PremiumStorage extends DatabaseStorage<Boolean> {
@@ -46,6 +47,7 @@ public class PremiumStorage extends DatabaseStorage<Boolean> {
     }
     return instance;
   }
+  @Deprecated
   public boolean isPremium(String playerName) {
     if (Constants.onlineMode()) {
       return true;
@@ -59,8 +61,33 @@ public class PremiumStorage extends DatabaseStorage<Boolean> {
       return cachedValue;
     }
     boolean premium = fetchPremium(playerName);
-    put(key, premium);
+    putSync(key, premium);
     return premium;
+  }
+
+  /**
+   * Checks if a player is premium asynchronously — does not block the calling thread.
+   * Checks cache first, then falls back to Mojang API if needed.
+   *
+   * @param playerName the player name to check
+   * @return CompletableFuture with true if the player has a premium account
+   */
+  public CompletableFuture<Boolean> isPremiumAsync(String playerName) {
+    if (Constants.onlineMode()) {
+      return CompletableFuture.completedFuture(true);
+    }
+    if (playerName == null) {
+      return CompletableFuture.completedFuture(false);
+    }
+    String key = playerName.toLowerCase();
+    return get(key).thenCompose(cachedValue -> {
+      if (cachedValue != null) {
+        return CompletableFuture.completedFuture(cachedValue);
+      }
+      // fetchPremium does HTTP — run it asynchronously via thenApply on an async pool
+      return CompletableFuture.supplyAsync(() -> fetchPremium(playerName))
+          .thenCompose(premium -> putAsync(key, premium).thenApply(v -> premium));
+    });
   }
   private boolean fetchPremium(String playerName) {
     HttpURLConnection connection = null;

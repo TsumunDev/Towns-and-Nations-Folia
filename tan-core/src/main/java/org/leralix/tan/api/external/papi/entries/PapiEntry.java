@@ -31,16 +31,12 @@ public abstract class PapiEntry {
     return values.toArray(new String[0]);
   }
   protected TerritoryData getTerritoryByName(String name) {
-    for (TownData townData : TownDataStorage.getInstance().getAllAsync().join().values()) {
-      if (townData.getName().equalsIgnoreCase(name)) {
-        return townData;
-      }
+    // Use optimized SQL query instead of loading all towns/regions
+    TownData town = TownDataStorage.getInstance().getByNameSync(name);
+    if (town != null) {
+      return town;
     }
-    for (RegionData regionData : RegionDataStorage.getInstance().getAllAsync().join().values()) {
-      if (regionData.getName().equalsIgnoreCase(name)) {
-        return regionData;
-      }
-    }
-    return null;
+    RegionData region = RegionDataStorage.getInstance().getByNameSync(name);
+    return region;
   }
 }

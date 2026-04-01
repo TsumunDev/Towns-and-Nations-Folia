@@ -1,5 +1,5 @@
 package org.leralix.tan.storage;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.leralix.lib.data.SoundEnum;
@@ -16,7 +16,7 @@ public class TeleportationRegister {
   private TeleportationRegister() {
     throw new IllegalStateException("Utility class");
   }
-  private static final HashMap<String, TeleportationData> spawnRegister = new HashMap<>();
+  private static final ConcurrentHashMap<String, TeleportationData> spawnRegister = new ConcurrentHashMap<>();
   public static void registerSpawn(ITanPlayer player, TownData town) {
     spawnRegister.put(player.getID(), new TeleportationData(town.getSpawn()));
   }
@@ -62,20 +62,17 @@ public class TeleportationRegister {
         TownsAndNations.getPlugin(), () -> confirmTeleportation(tanPlayer), delay);
   }
   public static void confirmTeleportation(ITanPlayer tanPlayer) {
-    if (!spawnRegister.containsKey(tanPlayer.getID())) {
-      return;
-    }
-    if (spawnRegister.get(tanPlayer.getID()).isCancelled()) {
-      removePlayer(tanPlayer);
-      return;
-    }
-    TeleportationPosition teleportationPosition =
-        spawnRegister.get(tanPlayer.getID()).getTeleportationPosition();
-    Player player = Bukkit.getPlayer(tanPlayer.getUUID());
-    if (player != null) {
-      teleportationPosition.teleport(player);
-      TanChatUtils.message(player, Lang.SPAWN_TELEPORTED.get(tanPlayer), SoundEnum.MINOR_GOOD);
-    }
-    removePlayer(tanPlayer);
+    spawnRegister.computeIfPresent(tanPlayer.getID(), (id, data) -> {
+      if (data.isCancelled()) {
+        return null; // removes the entry
+      }
+      TeleportationPosition teleportationPosition = data.getTeleportationPosition();
+      Player player = Bukkit.getPlayer(tanPlayer.getUUID());
+      if (player != null) {
+        teleportationPosition.teleport(player);
+        TanChatUtils.message(player, Lang.SPAWN_TELEPORTED.get(tanPlayer), SoundEnum.MINOR_GOOD);
+      }
+      return null; // remove after teleport
+    });
   }
 }

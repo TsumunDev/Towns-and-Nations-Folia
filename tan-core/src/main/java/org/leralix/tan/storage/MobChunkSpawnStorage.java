@@ -1,11 +1,11 @@
 package org.leralix.tan.storage;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.leralix.lib.utils.config.ConfigTag;
 import org.leralix.lib.utils.config.ConfigUtil;
 import org.leralix.tan.enums.MobChunkSpawnEnum;
 public class MobChunkSpawnStorage {
-  private static final Map<String, MobChunkSpawnEnum> mobSpawnStorage = new HashMap<>();
+  private static final Map<String, MobChunkSpawnEnum> mobSpawnStorage = new ConcurrentHashMap<>();
   public static void init() {
     for (MobChunkSpawnEnum mob : MobChunkSpawnEnum.values()) {
       if (ConfigUtil.getCustomConfig(ConfigTag.MAIN).get("CancelMobSpawnInTown." + mob.name())

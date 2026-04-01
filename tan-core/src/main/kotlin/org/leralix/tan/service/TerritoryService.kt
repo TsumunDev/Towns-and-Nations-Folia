@@ -43,7 +43,7 @@ object TerritoryService {
     }
     suspend fun deleteTown(id: String) {
         withContext(Dispatchers.IO) {
-            townStorage.delete(id)
+            townStorage.deleteAsync(id).join()
         }
     }
     suspend fun getRegion(id: String): RegionData? {
@@ -76,7 +76,7 @@ object TerritoryService {
     }
     suspend fun deleteRegion(id: String) {
         withContext(Dispatchers.IO) {
-            regionStorage.delete(id)
+            regionStorage.deleteAsync(id).join()
         }
     }
     suspend fun getTerritory(id: String): TerritoryData? {

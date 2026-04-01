@@ -104,6 +104,18 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
   private static String getChunkKey(int x, int z, String chunkWorldUID) {
     return x + "," + z + "," + chunkWorldUID;
   }
+  /**
+   * Get all claimed chunks asynchronously.
+   * @return CompletableFuture with map of all claimed chunks
+   */
+  public CompletableFuture<Map<String, ClaimedChunk2>> getClaimedChunksMapAsync() {
+    return getAllAsync();
+  }
+
+  /**
+   * @deprecated Use {@link #getClaimedChunksMapAsync()} to avoid blocking Folia region threads
+   */
+  @Deprecated
   public Map<String, ClaimedChunk2> getClaimedChunksMap() {
     return getAllAsync().join();
   }
@@ -116,6 +128,23 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
       }
     }
     return exists(key);
+  }
+
+  /**
+   * Check if a chunk is claimed asynchronously.
+   * Checks cache first (fast path), then database without blocking.
+   *
+   * @param chunk the chunk to check
+   * @return CompletableFuture with true if the chunk is claimed
+   */
+  public CompletableFuture<Boolean> isChunkClaimedAsync(Chunk chunk) {
+    String key = getChunkKey(chunk);
+    if (cacheEnabled && cache != null) {
+      if (cache.containsKey(key)) {
+        return CompletableFuture.completedFuture(true);
+      }
+    }
+    return get(key).thenApply(Objects::nonNull);
   }
   public Collection<TerritoryChunk> getAllChunkFrom(TerritoryData territoryData) {
     return getAllChunkFrom(territoryData.getID());
@@ -150,6 +179,63 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
       return Collections.unmodifiableCollection(chunks);
     }
   }
+
+  /**
+   * Get all territory chunks for a given territory asynchronously.
+   * Uses optimized SQL query with async fallback.
+   *
+   * @param territoryData the territory to get chunks for
+   * @return CompletableFuture with the collection of territory chunks
+   */
+  public CompletableFuture<Collection<TerritoryChunk>> getAllChunkFromAsync(TerritoryData territoryData) {
+    return getAllChunkFromAsync(territoryData.getID());
+  }
+
+  /**
+   * Get all territory chunks for a given territory ID asynchronously.
+   *
+   * @param territoryDataID the territory ID to get chunks for
+   * @return CompletableFuture with the collection of territory chunks
+   */
+  public CompletableFuture<Collection<TerritoryChunk>> getAllChunkFromAsync(String territoryDataID) {
+    CompletableFuture<Collection<TerritoryChunk>> future = new CompletableFuture<>();
+    runAsync(() -> {
+      List<TerritoryChunk> chunks = new ArrayList<>();
+      String selectSQL =
+          "SELECT id, data FROM " + TABLE_NAME + " WHERE json_extract(data, '$.ownerID') = ?";
+      try (Connection conn = getDatabase().getDataSource().getConnection();
+          PreparedStatement ps = conn.prepareStatement(selectSQL)) {
+        ps.setString(1, territoryDataID);
+        try (ResultSet rs = ps.executeQuery()) {
+          while (rs.next()) {
+            String jsonData = rs.getString("data");
+            ClaimedChunk2 chunk = deserializeChunk(jsonData);
+            if (chunk instanceof TerritoryChunk territoryChunk) {
+              chunks.add(territoryChunk);
+            }
+          }
+        }
+        future.complete(Collections.unmodifiableCollection(chunks));
+      } catch (SQLException e) {
+        TownsAndNations.getPlugin()
+            .getLogger()
+            .warning("Error optimized async query, falling back to full scan: " + e.getMessage());
+        getAllAsync().thenAccept(allChunks -> {
+          for (ClaimedChunk2 chunk : allChunks.values()) {
+            if (chunk instanceof TerritoryChunk territoryChunk
+                && territoryChunk.getOwnerID().equals(territoryDataID)) {
+              chunks.add(territoryChunk);
+            }
+          }
+          future.complete(Collections.unmodifiableCollection(chunks));
+        }).exceptionally(ex -> {
+          future.completeExceptionally(ex);
+          return null;
+        });
+      }
+    });
+    return future;
+  }
   private ClaimedChunk2 deserializeChunk(String jsonData) {
     JsonObject jsonObject = gson.fromJson(jsonData, JsonObject.class);
     JsonElement ownerIdElement = jsonObject.get("ownerID");
@@ -166,25 +252,72 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
     }
     return null;
   }
-  public TownClaimedChunk claimTownChunk(Chunk chunk, String ownerID) {
+  /**
+   * Claim a chunk for a town (ASYNC for Folia performance).
+   * PERFORMANCE: Returns CompletableFuture instead of blocking with .join()
+   */
+  public CompletableFuture<TownClaimedChunk> claimTownChunkAsync(Chunk chunk, String ownerID) {
     TownClaimedChunk townClaimedChunk = new TownClaimedChunk(chunk, ownerID);
-    putAsync(getChunkKey(chunk), townClaimedChunk).join();
-    // Invalidate permission cache for this chunk
-    org.leralix.tan.service.PermissionCache.getInstance().invalidateChunk(
-        chunk.getX(), chunk.getZ(), chunk.getWorld().getUID().toString());
-    return townClaimedChunk;
+    return putAsync(getChunkKey(chunk), townClaimedChunk)
+        .thenApply(v -> {
+          // Invalidate permission cache for this chunk
+          org.leralix.tan.service.PermissionCache.getInstance().invalidateChunk(
+              chunk.getX(), chunk.getZ(), chunk.getWorld().getUID().toString());
+          return townClaimedChunk;
+        });
   }
+
+  /**
+   * Claim a chunk for a town (SYNC - deprecated, use async version).
+   * @deprecated Use {@link #claimTownChunkAsync(Chunk, String)} for Folia compatibility
+   */
+  @Deprecated
+  public TownClaimedChunk claimTownChunk(Chunk chunk, String ownerID) {
+    return claimTownChunkAsync(chunk, ownerID).join();
+  }
+
+  /**
+   * Claim a chunk for a region (ASYNC for Folia performance).
+   * PERFORMANCE: Returns CompletableFuture instead of blocking with .join()
+   */
+  public CompletableFuture<Void> claimRegionChunkAsync(Chunk chunk, String ownerID) {
+    return putAsync(getChunkKey(chunk), new RegionClaimedChunk(chunk, ownerID))
+        .thenAccept(v -> {
+          // Invalidate permission cache for this chunk
+          org.leralix.tan.service.PermissionCache.getInstance().invalidateChunk(
+              chunk.getX(), chunk.getZ(), chunk.getWorld().getUID().toString());
+        });
+  }
+
+  /**
+   * Claim a chunk for a region (SYNC - deprecated, use async version).
+   * @deprecated Use {@link #claimRegionChunkAsync(Chunk, String)} for Folia compatibility
+   */
+  @Deprecated
   public void claimRegionChunk(Chunk chunk, String ownerID) {
-    putAsync(getChunkKey(chunk), new RegionClaimedChunk(chunk, ownerID)).join();
-    // Invalidate permission cache for this chunk
-    org.leralix.tan.service.PermissionCache.getInstance().invalidateChunk(
-        chunk.getX(), chunk.getZ(), chunk.getWorld().getUID().toString());
+    claimRegionChunkAsync(chunk, ownerID).join();
   }
+
+  /**
+   * Claim a chunk for a landmark (ASYNC for Folia performance).
+   * PERFORMANCE: Returns CompletableFuture instead of blocking with .join()
+   */
+  public CompletableFuture<Void> claimLandmarkChunkAsync(Chunk chunk, String ownerID) {
+    return putAsync(getChunkKey(chunk), new LandmarkClaimedChunk(chunk, ownerID))
+        .thenAccept(v -> {
+          // Invalidate permission cache for this chunk
+          org.leralix.tan.service.PermissionCache.getInstance().invalidateChunk(
+              chunk.getX(), chunk.getZ(), chunk.getWorld().getUID().toString());
+        });
+  }
+
+  /**
+   * Claim a chunk for a landmark (SYNC - deprecated, use async version).
+   * @deprecated Use {@link #claimLandmarkChunkAsync(Chunk, String)} for Folia compatibility
+   */
+  @Deprecated
   public void claimLandmarkChunk(Chunk chunk, String ownerID) {
-    putAsync(getChunkKey(chunk), new LandmarkClaimedChunk(chunk, ownerID)).join();
-    // Invalidate permission cache for this chunk
-    org.leralix.tan.service.PermissionCache.getInstance().invalidateChunk(
-        chunk.getX(), chunk.getZ(), chunk.getWorld().getUID().toString());
+    claimLandmarkChunkAsync(chunk, ownerID).join();
   }
   public CompletableFuture<Boolean> isAllAdjacentChunksClaimedBySameTerritoryAsync(
       Chunk chunk, String territoryID) {
@@ -262,14 +395,46 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
     unclaimChunk(claimedChunk);
     claimedChunk.notifyUpdate();
   }
-  public void unclaimChunk(ClaimedChunk2 claimedChunk) {
-    deleteAsync(getChunkKey(claimedChunk)).join();
-    // Invalidate permission cache for this chunk
+
+  /**
+   * Unclaim a chunk (ASYNC for Folia performance).
+   * PERFORMANCE: Returns CompletableFuture instead of blocking with .join()
+   */
+  public CompletableFuture<Void> unclaimChunkAsync(ClaimedChunk2 claimedChunk) {
+    // Invalidate permission cache first (fast, non-blocking)
     org.leralix.tan.service.PermissionCache.getInstance().invalidateChunk(
         claimedChunk.getX(), claimedChunk.getZ(), claimedChunk.getWorldUUID());
+    // Then delete from database asynchronously
+    return deleteAsync(getChunkKey(claimedChunk));
   }
+
+  /**
+   * Unclaim a chunk (SYNC - deprecated, use async version).
+   * @deprecated Use {@link #unclaimChunkAsync(ClaimedChunk2)} for Folia compatibility
+   */
+  @Deprecated
+  public void unclaimChunk(ClaimedChunk2 claimedChunk) {
+    unclaimChunkAsync(claimedChunk).join();
+  }
+
+  /**
+   * Unclaim a chunk by location (ASYNC for Folia performance).
+   */
+  public CompletableFuture<Void> unclaimChunkAsync(Chunk chunk) {
+    ClaimedChunk2 claimedChunk = get(chunk);
+    if (claimedChunk instanceof WildernessChunk) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return unclaimChunkAsync(claimedChunk);
+  }
+
+  /**
+   * Unclaim a chunk by location (SYNC - deprecated, use async version).
+   * @deprecated Use {@link #unclaimChunkAsync(Chunk)} for Folia compatibility
+   */
+  @Deprecated
   public void unclaimChunk(Chunk chunk) {
-    unclaimChunk(get(chunk));
+    unclaimChunkAsync(chunk).join();
   }
   public @NotNull List<ClaimedChunk2> getFourAjacentChunks(ClaimedChunk2 chunk) {
     return Arrays.asList(
@@ -312,16 +477,57 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
           .getLogger()
           .warning(
               "Error in optimized delete, falling back to individual deletes: " + e.getMessage());
-      Map<String, ClaimedChunk2> allChunks = getAllAsync().join();
-      List<String> toDelete = new ArrayList<>();
-      for (Map.Entry<String, ClaimedChunk2> entry : allChunks.entrySet()) {
-        ClaimedChunk2 chunk = entry.getValue();
-        if (chunk.getOwnerID().equals(id)) {
-          toDelete.add(entry.getKey());
-        }
-      }
-      deleteAll(toDelete);
+      // Use async version for the fallback to avoid blocking
+      unclaimAllChunkFromIDAsync(id).exceptionally(ex -> {
+        TownsAndNations.getPlugin()
+            .getLogger()
+            .severe("Error in async fallback delete for territory " + id + ": " + ex.getMessage());
+        return null;
+      });
     }
+  }
+
+  /**
+   * Unclaim all chunks for a territory asynchronously.
+   *
+   * @param id the territory ID whose chunks should be removed
+   * @return CompletableFuture that completes when all chunks are removed
+   */
+  public CompletableFuture<Void> unclaimAllChunkFromIDAsync(String id) {
+    CompletableFuture<Void> future = new CompletableFuture<>();
+    runAsync(() -> {
+      String deleteSQL = "DELETE FROM " + TABLE_NAME + " WHERE json_extract(data, '$.ownerID') = ?";
+      try (Connection conn = getDatabase().getDataSource().getConnection();
+          PreparedStatement ps = conn.prepareStatement(deleteSQL)) {
+        ps.setString(1, id);
+        int deleted = ps.executeUpdate();
+        TownsAndNations.getPlugin()
+            .getLogger()
+            .info("Deleted " + deleted + " chunks for territory " + id);
+        invalidateCacheIf(chunk -> chunk.getOwnerID().equals(id));
+        future.complete(null);
+      } catch (SQLException e) {
+        TownsAndNations.getPlugin()
+            .getLogger()
+            .warning(
+                "Error in async optimized delete, falling back to individual deletes: " + e.getMessage());
+        getAllAsync().thenAccept(allChunks -> {
+          List<String> toDelete = new ArrayList<>();
+          for (Map.Entry<String, ClaimedChunk2> entry : allChunks.entrySet()) {
+            ClaimedChunk2 chunk = entry.getValue();
+            if (chunk.getOwnerID().equals(id)) {
+              toDelete.add(entry.getKey());
+            }
+          }
+          deleteAll(toDelete);
+          future.complete(null);
+        }).exceptionally(ex -> {
+          future.completeExceptionally(ex);
+          return null;
+        });
+      }
+    });
+    return future;
   }
   public ClaimedChunk2 get(int x, int z, String worldID) {
     ClaimedChunk2 claimedChunk = getFromCacheOrNull(getChunkKey(x, z, worldID));

@@ -261,7 +261,8 @@ public class ProgressionMenu {
             if (isCurrent) {
                 meta.displayName(Component.text("§a✓ ") .append(tier.getColoredName()));
                 // Add glow effect by making it enchanted
-                item.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.DURABILITY, 1);
+                // PAPER 1.21+ UPGRADE: DURABILITY removed, use UNBREAKING instead
+                item.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.UNBREAKING, 1);
             } else {
                 meta.displayName(Component.text("§7○ ") .append(Component.text(tier.getName(), tier.getColor())));
             }

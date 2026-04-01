@@ -1,6 +1,6 @@
 package org.leralix.tan.storage;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.leralix.lib.data.SoundEnum;
@@ -8,7 +8,11 @@ import org.leralix.tan.lang.Lang;
 import org.leralix.tan.utils.file.FileUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class SudoPlayerStorage {
-  private static final List<String> sudoPlayersID = new ArrayList<>();
+  /**
+   * Thread-safe set of player UUIDs currently in sudo mode.
+   * Uses ConcurrentHashMap.newKeySet() for Folia compatibility.
+   */
+  private static final Set<String> sudoPlayersID = ConcurrentHashMap.newKeySet();
   public static void addSudoPlayer(Player player) {
     addSudoPlayer(player.getUniqueId().toString());
   }

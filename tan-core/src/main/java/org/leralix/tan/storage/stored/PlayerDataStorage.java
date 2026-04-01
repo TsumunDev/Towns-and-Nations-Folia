@@ -5,8 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -17,6 +19,7 @@ import org.leralix.tan.dataclass.PlayerData;
 import org.leralix.tan.storage.exceptions.DatabaseNotReadyException;
 import org.leralix.tan.utils.FoliaScheduler;
 public class PlayerDataStorage extends DatabaseStorage<ITanPlayer> {
+  private static final Set<String> knownColumns = ConcurrentHashMap.newKeySet();
   private static final String ERROR_MESSAGE = "Error while creating player storage";
   private static final String TABLE_NAME = "ccn_players";
   private static final int MAX_RETRY_ATTEMPTS = 3;
@@ -288,10 +291,16 @@ public class PlayerDataStorage extends DatabaseStorage<ITanPlayer> {
    * Check if a column exists in the table.
    */
   private boolean columnExists(String columnName) {
+    if (knownColumns.contains(columnName)) {
+      return true;
+    }
     try (Connection conn = getDatabase().getDataSource().getConnection()) {
       ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, columnName);
       boolean exists = rs.next();
       rs.close();
+      if (exists) {
+        knownColumns.add(columnName);
+      }
       return exists;
     } catch (SQLException e) {
       return false;

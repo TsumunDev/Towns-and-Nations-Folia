@@ -1,5 +1,5 @@
 package org.leralix.tan.storage;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.entity.Player;
 import org.leralix.lib.data.SoundEnum;
 import org.leralix.lib.utils.config.ConfigTag;
@@ -16,15 +16,12 @@ import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.gameplay.TerritoryUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class LocalChatStorage {
-  private static final HashMap<String, ChatScope> playerChatScope = new HashMap<>();
+  private static final ConcurrentHashMap<String, ChatScope> playerChatScope = new ConcurrentHashMap<>();
   public static void setPlayerChatScope(Player player, ChatScope scope) {
     playerChatScope.put(player.getUniqueId().toString(), scope);
   }
   public static ChatScope getPlayerChatScope(String uuid) {
-    if (!playerChatScope.containsKey(uuid)) {
-      return ChatScope.GLOBAL;
-    }
-    return playerChatScope.get(uuid);
+    return playerChatScope.getOrDefault(uuid, ChatScope.GLOBAL);
   }
   public static ChatScope getPlayerChatScope(Player player) {
     return getPlayerChatScope(player.getUniqueId().toString());

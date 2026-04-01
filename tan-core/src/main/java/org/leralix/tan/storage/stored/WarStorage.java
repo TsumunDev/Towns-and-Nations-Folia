@@ -13,7 +13,7 @@ import org.leralix.tan.wars.War;
 import org.leralix.tan.wars.legacy.wargoals.WarGoal;
 public class WarStorage extends DatabaseStorage<War> {
   private static final String TABLE_NAME = "ccn_wars";
-  private static WarStorage instance;
+  private static volatile WarStorage instance;
   private WarStorage() {
     super(
         TABLE_NAME,
@@ -50,15 +50,28 @@ public class WarStorage extends DatabaseStorage<War> {
   }
   public static WarStorage getInstance() {
     if (instance == null) {
-      instance = new WarStorage();
+      synchronized (WarStorage.class) {
+        if (instance == null) {
+          instance = new WarStorage();
+        }
+      }
     }
     return instance;
   }
   private void add(War plannedAttack) {
-    put(plannedAttack.getID(), plannedAttack);
+    putSync(plannedAttack.getID(), plannedAttack);
   }
+  @Deprecated
   public void remove(War plannedAttack) {
-    delete(plannedAttack.getID());
+    deleteAsync(plannedAttack.getID()).join();
+  }
+  /**
+   * Removes a war asynchronously.
+   * @param plannedAttack the war to remove
+   * @return CompletableFuture that completes when the war is deleted
+   */
+  public CompletableFuture<Void> removeAsync(War plannedAttack) {
+    return deleteAsync(plannedAttack.getID());
   }
   private String getNewID() {
     int ID = 0;
@@ -89,7 +102,7 @@ public class WarStorage extends DatabaseStorage<War> {
     });
   }
   public List<War> getWarsOfTerritory(TerritoryData territoryData) {
-    return getAll().values().stream()
+    return getAllSync().values().stream()
         .filter(war -> war.isMainAttacker(territoryData) || war.isMainDefender(territoryData))
         .toList();
   }
@@ -103,6 +116,8 @@ public class WarStorage extends DatabaseStorage<War> {
   }
   @Override
   public void reset() {
-    instance = null;
+    synchronized (WarStorage.class) {
+      instance = null;
+    }
   }
 }

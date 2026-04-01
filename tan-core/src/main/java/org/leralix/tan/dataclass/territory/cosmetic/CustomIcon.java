@@ -1,44 +1,27 @@
 package org.leralix.tan.dataclass.territory.cosmetic;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.jetbrains.annotations.NotNull;
 import org.leralix.tan.utils.gameplay.ItemStackSerializer;
+/**
+ * Custom icon implementation using base64 serialized ItemStack.
+ *
+ * <p>Legacy fields (materialTypeName, customModelData) were removed in version 0.15.2.
+ * Old icon data will display as BARRIER icon - re-save your custom icons through GUI to update.</p>
+ *
+ * @since 0.15.1
+ */
 public class CustomIcon implements ICustomIcon {
-  @Deprecated(since = "0.15.1", forRemoval = true)
-  private String materialTypeName;
-  @Deprecated(since = "0.15.1", forRemoval = true)
-  private Integer customModelData;
   private String base64Item;
+
   public CustomIcon(ItemStack icon) {
     this.base64Item = ItemStackSerializer.serializeItemStack(icon);
   }
+
   public ItemStack getIcon() {
     if (base64Item == null) {
-      this.base64Item = ItemStackSerializer.serializeItemStack(getOldIcon());
+      // Legacy data without base64 serialization - return fallback icon
+      return new ItemStack(Material.BARRIER);
     }
     return ItemStackSerializer.deserializeItemStack(base64Item);
-  }
-  private @NotNull ItemStack getOldIcon() {
-    Material material = null;
-    if (materialTypeName != null) {
-      material = Material.getMaterial(materialTypeName, false);
-    }
-    if (material == null) {
-      material = Material.BARRIER;
-    }
-    ItemStack icon = new ItemStack(material);
-    if (icon.getType() == Material.AIR) {
-      materialTypeName = Material.COBBLESTONE.name();
-      icon = new ItemStack(Material.COBBLESTONE);
-    }
-    if (customModelData != null) {
-      ItemMeta meta = icon.getItemMeta();
-      if (meta != null) {
-        meta.setCustomModelData(customModelData);
-        icon.setItemMeta(meta);
-      }
-    }
-    return icon;
   }
 }

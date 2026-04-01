@@ -6,7 +6,6 @@ import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.ITanPlayer;
@@ -27,7 +26,7 @@ import org.leralix.tan.storage.exceptions.DatabaseNotReadyException;
  * <p><b>Architecture:</b></p>
  * <ul>
  *   <li>Storage: Objects are serialized to JSON and stored in SQLite/MySQL</li>
- *   <li>Cache: Optional in-memory cache using ConcurrentHashMap (lock-free reads)</li>
+ *   <li>Cache: Optional in-memory cache using synchronized LRU LinkedHashMap (thread-safe with automatic eviction)</li>
  *   <li>Async: All operations return CompletableFuture for non-blocking access</li>
  *   <li>Thread-Safe: Safe for concurrent access from multiple regions</li>
  * </ul>
@@ -71,6 +70,15 @@ import org.leralix.tan.storage.exceptions.DatabaseNotReadyException;
  * @since 0.15.0
  */
 public abstract class DatabaseStorage<T> {
+  /** SQL keywords that must not be allowed as table names */
+  private static final java.util.Set<String> SQL_KEYWORDS = java.util.Set.of(
+      "SELECT", "FROM", "WHERE", "INSERT", "UPDATE", "DELETE", "DROP", "CREATE", "ALTER",
+      "TABLE", "INDEX", "VIEW", "JOIN", "UNION", "OR", "AND", "NOT", "IN", "LIKE", "IS",
+      "NULL", "TRUE", "FALSE", "CASE", "WHEN", "THEN", "ELSE", "END", "AS", "ORDER", "BY",
+      "GROUP", "HAVING", "LIMIT", "OFFSET", "DISTINCT", "EXISTS", "BETWEEN", "VALUES",
+      "SET", "INTO", "DESC", "ASC", "GRANT", "REVOKE", "COMMIT", "ROLLBACK", "TRANSACTION"
+  );
+
   protected final Gson gson;
   protected final String tableName;
   protected final Class<T> typeClass;
@@ -78,6 +86,39 @@ public abstract class DatabaseStorage<T> {
   protected final Map<String, T> cache;
   protected final int cacheSize;
   protected final boolean cacheEnabled;
+  /** LRU cache wrapper for automatic eviction when cacheSize limit is reached */
+  protected static class LRUCache<K, V> extends LinkedHashMap<K, V> {
+    private final int maxSize;
+    public LRUCache(int maxSize) {
+      super(maxSize, 0.75f, true); // access-order for LRU
+      this.maxSize = maxSize;
+    }
+    @Override
+    protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+      return size() > maxSize;
+    }
+  }
+
+  /**
+   * Validates table name to prevent SQL injection.
+   * Only allows alphanumeric + underscore, 1-64 chars, not starting with digit,
+   * and not a SQL keyword.
+   */
+  private static boolean isValidTableName(String tableName) {
+    if (tableName == null || tableName.isEmpty() || tableName.length() > 64) {
+      return false;
+    }
+    // Must start with letter or underscore, contain only alphanumeric/underscore
+    if (!tableName.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
+      return false;
+    }
+    // Must not be a SQL keyword (case-insensitive)
+    String upperName = tableName.toUpperCase();
+    if (SQL_KEYWORDS.contains(upperName)) {
+      return false;
+    }
+    return true;
+  }
   protected DatabaseStorage(String tableName, Class<T> typeClass, Gson gson) {
     this(tableName, typeClass, typeClass, gson, true);
   }
@@ -104,9 +145,17 @@ public abstract class DatabaseStorage<T> {
     this.gson = gson;
     this.cacheEnabled = enableCache;
     this.cacheSize = cacheSize;
-    // Use ConcurrentHashMap for lock-free reads and better performance in Folia
-    // Note: ConcurrentHashMap doesn't support LRU eviction, so we use a simpler approach
-    this.cache = enableCache ? new ConcurrentHashMap<>(cacheSize) : null;
+    // Use LRU cache with synchronized wrapper for thread-safety in Folia
+    // LinkedHashMap with access-order provides LRU eviction via removeEldestEntry
+    this.cache = enableCache
+        ? java.util.Collections.synchronizedMap(new LRUCache<>(cacheSize))
+        : null;
+    // Validate tableName to prevent SQL injection
+    if (!isValidTableName(tableName)) {
+      throw new IllegalArgumentException(
+          "Invalid table name: '" + tableName + "'. Must be 1-64 alphanumeric/underscore characters, "
+              + "not starting with a digit, and not a SQL keyword.");
+    }
     createTable();
     createIndexes();
   }
@@ -180,7 +229,7 @@ public abstract class DatabaseStorage<T> {
         });
     return future;
   }
-  private void runAsync(Runnable task) {
+  protected void runAsync(Runnable task) {
     org.leralix.tan.utils.FoliaScheduler.runTaskAsynchronously(TownsAndNations.getPlugin(), task);
   }
   private T loadFromDatabase(String id) {
@@ -364,9 +413,6 @@ public abstract class DatabaseStorage<T> {
     if (id == null || obj == null) {
       return CompletableFuture.completedFuture(null);
     }
-    if (cacheEnabled && cache != null) {
-      cache.put(id, obj);
-    }
     CompletableFuture<Void> future = new CompletableFuture<>();
     String jsonData = gson.toJson(obj, typeToken);
     String upsertSQL = getDatabase().getUpsertSQL(tableName);
@@ -377,6 +423,11 @@ public abstract class DatabaseStorage<T> {
             ps.setString(1, id);
             ps.setString(2, jsonData);
             ps.executeUpdate();
+            // Update cache ONLY after successful database write
+            // This prevents cache corruption if SQL fails
+            if (cacheEnabled && cache != null) {
+              cache.put(id, obj);
+            }
             future.complete(null);
           } catch (SQLException e) {
             TownsAndNations.getPlugin()
@@ -398,31 +449,33 @@ public abstract class DatabaseStorage<T> {
       return;
     }
     String upsertSQL = getDatabase().getUpsertSQL(tableName);
-    Connection conn = null;
-    try {
-      conn = getDatabase().getDataSource().getConnection();
-      conn.setAutoCommit(false);
-      try (PreparedStatement ps = conn.prepareStatement(upsertSQL)) {
-        for (Map.Entry<String, T> entry : objects.entrySet()) {
-          String id = entry.getKey();
-          T obj = entry.getValue();
-          if (id != null && obj != null) {
-            String jsonData = gson.toJson(obj, typeToken);
-            ps.setString(1, id);
-            ps.setString(2, jsonData);
-            ps.addBatch();
+    // Use try-with-resources to ensure connection is always closed, even on error
+    try (Connection conn = getDatabase().getDataSource().getConnection()) {
+      boolean originalAutoCommit = conn.getAutoCommit();
+      try {
+        conn.setAutoCommit(false);
+        try (PreparedStatement ps = conn.prepareStatement(upsertSQL)) {
+          for (Map.Entry<String, T> entry : objects.entrySet()) {
+            String id = entry.getKey();
+            T obj = entry.getValue();
+            if (id != null && obj != null) {
+              String jsonData = gson.toJson(obj, typeToken);
+              ps.setString(1, id);
+              ps.setString(2, jsonData);
+              ps.addBatch();
+            }
           }
-        }
-        ps.executeBatch();
-        conn.commit();
-        if (cacheEnabled && cache != null) {
-          cache.putAll(objects);
+          ps.executeBatch();
+          conn.commit();
+          // Update cache ONLY after successful database commit
+          if (cacheEnabled && cache != null) {
+            cache.putAll(objects);
+          }
         }
       } catch (SQLException e) {
+        // Rollback on any SQL error
         try {
-          if (conn != null) {
-            conn.rollback();
-          }
+          conn.rollback();
         } catch (SQLException rollbackEx) {
           TownsAndNations.getPlugin()
               .getLogger()
@@ -434,8 +487,13 @@ public abstract class DatabaseStorage<T> {
         }
         throw e;
       } finally {
-        if (conn != null) {
-          conn.setAutoCommit(true);
+        // Always restore original autoCommit setting
+        try {
+          conn.setAutoCommit(originalAutoCommit);
+        } catch (SQLException e) {
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .warning("Error restoring autoCommit: " + e.getMessage());
         }
       }
     } catch (SQLException e) {
@@ -443,16 +501,6 @@ public abstract class DatabaseStorage<T> {
           .getLogger()
           .severe(
               "Error batch storing " + typeClass.getSimpleName() + " objects: " + e.getMessage());
-    } finally {
-      if (conn != null) {
-        try {
-          conn.close();
-        } catch (SQLException e) {
-          TownsAndNations.getPlugin()
-              .getLogger()
-              .warning("Error closing connection: " + e.getMessage());
-        }
-      }
     }
   }
   @Deprecated
@@ -512,29 +560,31 @@ public abstract class DatabaseStorage<T> {
       return;
     }
     String deleteSQL = "DELETE FROM " + tableName + " WHERE id = ?";
-    Connection conn = null;
-    try {
-      conn = getDatabase().getDataSource().getConnection();
-      conn.setAutoCommit(false);
-      try (PreparedStatement ps = conn.prepareStatement(deleteSQL)) {
-        for (String id : ids) {
-          if (id != null) {
-            ps.setString(1, id);
-            ps.addBatch();
+    // Use try-with-resources to ensure connection is always closed, even on error
+    try (Connection conn = getDatabase().getDataSource().getConnection()) {
+      boolean originalAutoCommit = conn.getAutoCommit();
+      try {
+        conn.setAutoCommit(false);
+        try (PreparedStatement ps = conn.prepareStatement(deleteSQL)) {
+          for (String id : ids) {
+            if (id != null) {
+              ps.setString(1, id);
+              ps.addBatch();
+            }
           }
-        }
-        ps.executeBatch();
-        conn.commit();
-        for (String id : ids) {
-          if (id != null) {
-            invalidateCache(id);
+          ps.executeBatch();
+          conn.commit();
+          // Invalidate cache ONLY after successful database commit
+          for (String id : ids) {
+            if (id != null) {
+              invalidateCache(id);
+            }
           }
         }
       } catch (SQLException e) {
+        // Rollback on any SQL error
         try {
-          if (conn != null) {
-            conn.rollback();
-          }
+          conn.rollback();
         } catch (SQLException rollbackEx) {
           TownsAndNations.getPlugin()
               .getLogger()
@@ -546,8 +596,13 @@ public abstract class DatabaseStorage<T> {
         }
         throw e;
       } finally {
-        if (conn != null) {
-          conn.setAutoCommit(true);
+        // Always restore original autoCommit setting
+        try {
+          conn.setAutoCommit(originalAutoCommit);
+        } catch (SQLException e) {
+          TownsAndNations.getPlugin()
+              .getLogger()
+              .warning("Error restoring autoCommit: " + e.getMessage());
         }
       }
     } catch (SQLException e) {
@@ -555,21 +610,11 @@ public abstract class DatabaseStorage<T> {
           .getLogger()
           .severe(
               "Error batch deleting " + typeClass.getSimpleName() + " objects: " + e.getMessage());
-    } finally {
-      if (conn != null) {
-        try {
-          conn.close();
-        } catch (SQLException e) {
-          TownsAndNations.getPlugin()
-              .getLogger()
-              .warning("Error closing connection: " + e.getMessage());
-        }
-      }
     }
   }
   public boolean exists(String id) {
     if (cacheEnabled && cache != null) {
-      // ConcurrentHashMap.containsKey is thread-safe and non-blocking
+      // Synchronized LRUCache.containsKey is thread-safe
       if (cache.containsKey(id)) {
         return true;
       }
@@ -618,7 +663,7 @@ public abstract class DatabaseStorage<T> {
     Map<String, T> result = new LinkedHashMap<>();
     List<String> uncachedIds = new ArrayList<>();
     if (cacheEnabled && cache != null) {
-      // ConcurrentHashMap.get is thread-safe and non-blocking
+      // Synchronized LRUCache.get is thread-safe
       for (String id : ids) {
         T cached = cache.get(id);
         if (cached != null) {
@@ -691,7 +736,7 @@ public abstract class DatabaseStorage<T> {
     Map<String, T> result = new LinkedHashMap<>();
     List<String> uncachedIds = new ArrayList<>();
     if (cacheEnabled && cache != null) {
-      // ConcurrentHashMap.get is thread-safe and non-blocking
+      // Synchronized LRUCache.get is thread-safe
       for (String id : ids) {
         T cached = cache.get(id);
         if (cached != null) {
@@ -809,7 +854,9 @@ public abstract class DatabaseStorage<T> {
             int offset = 0;
             boolean hasMore = true;
             while (hasMore) {
-              Map<String, T> batch = getPaginated(offset, batchSize).join();
+              // Use synchronous DB load directly — we're already on an async thread,
+              // so no need to schedule another async task via getPaginated().join().
+              Map<String, T> batch = loadPaginatedSync(offset, batchSize);
               if (batch.isEmpty()) {
                 hasMore = false;
               } else {
@@ -831,5 +878,51 @@ public abstract class DatabaseStorage<T> {
         });
     return future;
   }
+
+  /**
+   * Loads a paginated batch synchronously — intended for use inside already-async contexts
+   * (like processBatches) to avoid nested async scheduling and .join() blocking.
+   */
+  private Map<String, T> loadPaginatedSync(int offset, int limit) {
+    Map<String, T> result = new LinkedHashMap<>();
+    String selectSQL = "SELECT id, data FROM " + tableName + " LIMIT ? OFFSET ?";
+    try (Connection conn = getDatabase().getDataSource().getConnection();
+        PreparedStatement ps = conn.prepareStatement(selectSQL)) {
+      ps.setInt(1, limit);
+      ps.setInt(2, offset);
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          String id = rs.getString("id");
+          String jsonData = rs.getString("data");
+          try {
+            T object = gson.fromJson(jsonData, typeToken);
+            if (object != null) {
+              result.put(id, object);
+            }
+          } catch (JsonSyntaxException e) {
+            TownsAndNations.getPlugin()
+                .getLogger()
+                .warning(
+                    "Failed to deserialize "
+                        + typeClass.getSimpleName()
+                        + " with ID "
+                        + id
+                        + ": "
+                        + e.getMessage());
+          }
+        }
+      }
+    } catch (SQLException e) {
+      TownsAndNations.getPlugin()
+          .getLogger()
+          .severe(
+              "Error loading paginated "
+                  + typeClass.getSimpleName()
+                  + " objects: "
+                  + e.getMessage());
+    }
+    return result;
+  }
+
   public abstract void reset();
 }

@@ -1,6 +1,7 @@
 package org.leralix.tan.storage.stored;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,7 +9,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.leralix.tan.TownsAndNations;
@@ -23,11 +27,18 @@ import org.leralix.tan.storage.typeadapter.IconAdapter;
 import org.leralix.tan.utils.FoliaScheduler;
 import org.leralix.tan.utils.file.FileUtil;
 public class RegionDataStorage extends DatabaseStorage<RegionData> {
+  private static final Set<String> knownColumns = ConcurrentHashMap.newKeySet();
   private static final String TABLE_NAME = "ccn_regions";
-  private int nextID;
-  private static RegionDataStorage instance;
+  private AtomicInteger nextID;
+  private static volatile RegionDataStorage instance;
   public static RegionDataStorage getInstance() {
-    if (instance == null) instance = new RegionDataStorage();
+    if (instance == null) {
+      synchronized (RegionDataStorage.class) {
+        if (instance == null) {
+          instance = new RegionDataStorage();
+        }
+      }
+    }
     return instance;
   }
   private RegionDataStorage() {
@@ -201,17 +212,23 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
    * Check if a column exists in the table.
    */
   private boolean columnExists(String columnName) {
+    if (knownColumns.contains(columnName)) {
+      return true;
+    }
     try (Connection conn = getDatabase().getDataSource().getConnection()) {
       ResultSet rs = conn.getMetaData().getColumns(null, null, TABLE_NAME, columnName);
       boolean exists = rs.next();
       rs.close();
+      if (exists) {
+        knownColumns.add(columnName);
+      }
       return exists;
     } catch (SQLException e) {
       return false;
     }
   }
   private void loadNextID() {
-    nextID = getDatabase().getNextRegionId();
+    nextID = new AtomicInteger(getDatabase().getNextRegionId());
   }
   public CompletableFuture<RegionData> createNewRegion(String name, TownData capital) {
     ITanPlayer newLeader = capital.getLeaderData();
@@ -223,10 +240,9 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
     return CompletableFuture.completedFuture(newRegion);
   }
   private @NotNull String generateNextID() {
-    String regionID = "R" + nextID;
-    nextID++;
-    getDatabase().updateNextRegionId(nextID);
-    return regionID;
+    int id = nextID.getAndIncrement();
+    getDatabase().updateNextRegionId(nextID.get());
+    return "R" + id;
   }
   public CompletableFuture<RegionData> get(Player player) {
     return PlayerDataStorage.getInstance().get(player).thenCompose(this::get);
@@ -240,8 +256,18 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
               return CompletableFuture.completedFuture(town.getRegionSync());
             });
   }
+  @Deprecated
   public void deleteRegion(RegionData region) {
-    delete(region.getID());
+    deleteAsync(region.getID()).join();
+  }
+
+  /**
+   * Deletes a region asynchronously.
+   * @param region the region to delete
+   * @return CompletableFuture that completes when the region is deleted
+   */
+  public CompletableFuture<Void> deleteRegionAsync(RegionData region) {
+    return deleteAsync(region.getID());
   }
   public boolean isNameUsed(String name) {
     if (name == null) {
@@ -259,7 +285,7 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
       TownsAndNations.getPlugin()
           .getLogger()
           .warning("json_extract not supported, falling back to full scan: " + e.getMessage());
-      for (RegionData region : getAll().values()) {
+      for (RegionData region : getAllSync().values()) {
         if (name.equals(region.getName())) return true;
       }
     }
@@ -272,7 +298,9 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
   }
   @Override
   public void reset() {
-    instance = null;
+    synchronized (RegionDataStorage.class) {
+      instance = null;
+    }
   }
   public RegionData getSync(String id) {
     if (cacheEnabled && cache != null) {
@@ -290,6 +318,7 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
             });
     return null;
   }
+  @Deprecated
   public RegionData getSync(ITanPlayer tanPlayer) {
     try {
       return get(tanPlayer).join();
@@ -299,5 +328,113 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
           .warning("Error getting region data synchronously: " + e.getMessage());
       return null;
     }
+  }
+
+  /**
+   * Gets a region by its name asynchronously using SQL query with index.
+   * This is much more efficient than loading all regions and filtering.
+   *
+   * @param name The region name to search for (case-insensitive)
+   * @return CompletableFuture that completes with the region, or null if not found
+   */
+  public CompletableFuture<RegionData> getByName(String name) {
+    if (name == null || name.isEmpty()) {
+      return CompletableFuture.completedFuture(null);
+    }
+    CompletableFuture<RegionData> future = new CompletableFuture<>();
+
+    // First try to use the indexed region_name column
+    String selectSQL = "SELECT data FROM " + TABLE_NAME + " WHERE region_name = ? LIMIT 1";
+    runAsync(
+        () -> {
+          try (Connection conn = getDatabase().getDataSource().getConnection();
+              PreparedStatement ps = conn.prepareStatement(selectSQL)) {
+            ps.setString(1, name);
+            try (ResultSet rs = ps.executeQuery()) {
+              if (rs.next()) {
+                String jsonData = rs.getString("data");
+                RegionData region = gson.fromJson(jsonData, RegionData.class);
+                if (region != null && cacheEnabled && cache != null) {
+                  cache.put(region.getID(), region);
+                }
+                future.complete(region);
+                return;
+              }
+            }
+          } catch (SQLException e) {
+            // Fall through to JSON extraction if column doesn't exist
+          }
+
+          // Fallback: Try json_extract on the data column
+          String fallbackSQL = "SELECT data FROM " + TABLE_NAME + " WHERE json_extract(data, '$.name') = ? LIMIT 1";
+          try (Connection conn = getDatabase().getDataSource().getConnection();
+              PreparedStatement ps = conn.prepareStatement(fallbackSQL)) {
+            ps.setString(1, name);
+            try (ResultSet rs = ps.executeQuery()) {
+              if (rs.next()) {
+                String jsonData = rs.getString("data");
+                RegionData region = gson.fromJson(jsonData, RegionData.class);
+                if (region != null && cacheEnabled && cache != null) {
+                  cache.put(region.getID(), region);
+                }
+                future.complete(region);
+                return;
+              }
+            }
+          } catch (SQLException e2) {
+            // Both methods failed, log and continue to full scan
+          }
+
+          // Last resort: Full scan with case-insensitive comparison
+          String fullScanSQL = "SELECT id, data FROM " + TABLE_NAME;
+          try (Connection conn = getDatabase().getDataSource().getConnection();
+              PreparedStatement ps = conn.prepareStatement(fullScanSQL);
+              ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+              String jsonData = rs.getString("data");
+              try {
+                RegionData region = gson.fromJson(jsonData, RegionData.class);
+                if (region != null && region.getName().equalsIgnoreCase(name)) {
+                  if (cacheEnabled && cache != null) {
+                    cache.put(region.getID(), region);
+                  }
+                  future.complete(region);
+                  return;
+                }
+              } catch (com.google.gson.JsonSyntaxException e) {
+                // Skip invalid entries
+              }
+            }
+            future.complete(null);
+          } catch (SQLException e) {
+            TownsAndNations.getPlugin()
+                .getLogger()
+                .warning("Error getting region by name: " + e.getMessage());
+            future.complete(null);
+          }
+        });
+    return future;
+  }
+
+  /**
+   * Gets a region by its name synchronously (uses cache if available).
+   *
+   * @param name The region name to search for
+   * @return The region, or null if not found
+   */
+  @Deprecated
+  public RegionData getByNameSync(String name) {
+    if (name == null || name.isEmpty()) {
+      return null;
+    }
+    // Check cache first
+    if (cacheEnabled && cache != null) {
+      for (RegionData region : cache.values()) {
+        if (region.getName().equalsIgnoreCase(name)) {
+          return region;
+        }
+      }
+    }
+    return getByName(name).join();
   }
 }

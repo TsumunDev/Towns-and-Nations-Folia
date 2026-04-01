@@ -5,6 +5,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.leralix.tan.TownsAndNations;
+import org.leralix.tan.listeners.chat.PlayerChatListenerStorage;
+import org.leralix.tan.listeners.interact.RightClickListener;
+import org.leralix.tan.storage.PlayerAutoClaimStorage;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 
 /**
@@ -21,6 +24,11 @@ public class PlayerQuitListener implements Listener {
     if (player == null) {
       return;
     }
+
+    // Clean up Player-keyed static maps to prevent memory leaks
+    RightClickListener.cleanupOnQuit(player);
+    PlayerChatListenerStorage.cleanupOnQuit(player);
+    PlayerAutoClaimStorage.cleanupOnQuit(player);
 
     PlayerDataStorage.getInstance()
         .get(player)

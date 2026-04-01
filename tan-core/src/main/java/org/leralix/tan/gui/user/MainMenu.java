@@ -59,6 +59,8 @@ public class MainMenu extends BasicGui {
               return CompletableFuture.allOf(townFuture, regionFuture)
                   .thenApply(v -> {
                     logger.info("[MainMenu] Town/Region data loaded for: {}", player.getName());
+                    // Note: join() is safe here as allOf() guarantees both futures are completed
+                    // The join() call won't block, just retrieve the already-completed result
                     return new Object[] {tanPlayer, townFuture.join(), regionFuture.join()};
                   });
             })

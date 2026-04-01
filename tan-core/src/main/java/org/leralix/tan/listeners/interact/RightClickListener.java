@@ -1,5 +1,5 @@
 package org.leralix.tan.listeners.interact;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -11,7 +11,7 @@ import org.leralix.tan.lang.LangType;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.utils.text.TanChatUtils;
 public class RightClickListener implements Listener {
-  private static final HashMap<Player, RightClickListenerEvent> events = new HashMap<>();
+  private static final ConcurrentHashMap<Player, RightClickListenerEvent> events = new ConcurrentHashMap<>();
   @EventHandler
   public void OnPlayerInteractEvent(PlayerInteractEvent event) {
     if (event.getHand() == EquipmentSlot.OFF_HAND) return;
@@ -19,9 +19,11 @@ public class RightClickListener implements Listener {
       return;
     }
     Player player = event.getPlayer();
-    if (event.getAction().isRightClick() && events.containsKey(player)) {
+    if (event.getAction().isRightClick()) {
+      RightClickListenerEvent listenerEvent = events.get(player);
+      if (listenerEvent == null) return;
       event.setCancelled(true);
-      ListenerState state = events.get(player).execute(event);
+      ListenerState state = listenerEvent.execute(event);
       if (state == ListenerState.SUCCESS) {
         events.remove(player);
       }
@@ -33,6 +35,12 @@ public class RightClickListener implements Listener {
     }
   }
   public static void removePlayer(Player player) {
+    events.remove(player);
+  }
+  /**
+   * Call from existing PlayerQuitListener to prevent memory leaks.
+   */
+  public static void cleanupOnQuit(Player player) {
     events.remove(player);
   }
   public static void register(Player player, RightClickListenerEvent rightClickListenerEvent) {
