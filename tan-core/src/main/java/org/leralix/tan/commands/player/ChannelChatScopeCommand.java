@@ -82,50 +82,57 @@ public class ChannelChatScopeCommand extends PlayerSubCommand {
   private static void registerPlayerToScope(
       Player player, org.leralix.tan.dataclass.ITanPlayer tanPlayer, String channelName) {
     LangType langType = tanPlayer.getLang();
-    TownData town = tanPlayer.getTownSync();
-    if (town == null) {
-      TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(langType));
-      return;
-    }
-    if (channelName.equalsIgnoreCase(GLOBAL)) {
-      LocalChatStorage.removePlayerChatScope(player);
-      TanChatUtils.message(player, Lang.CHAT_CHANGED.get(langType, channelName));
-      return;
-    }
-    ChatScope scope = LocalChatStorage.getPlayerChatScope(player);
-    if (channelName.equalsIgnoreCase(TOWN)) {
-      if (scope == ChatScope.CITY) {
-        TanChatUtils.message(
-            player, Lang.TOWN_CHAT_ALREADY_IN_CHAT.get(langType, ChatScope.CITY.getName(langType)));
-        return;
-      }
-      LocalChatStorage.setPlayerChatScope(player, ChatScope.CITY);
-      TanChatUtils.message(player, Lang.CHAT_CHANGED.get(langType, channelName));
-      return;
-    }
-    if (channelName.equalsIgnoreCase(ALLIANCE)) {
-      if (scope == ChatScope.ALLIANCE) {
-        TanChatUtils.message(
-            player,
-            Lang.TOWN_CHAT_ALREADY_IN_CHAT.get(langType, ChatScope.ALLIANCE.getName(langType)));
-        return;
-      }
-      LocalChatStorage.setPlayerChatScope(player, ChatScope.ALLIANCE);
-      TanChatUtils.message(player, Lang.CHAT_CHANGED.get(langType, channelName));
-      return;
-    }
-    if (channelName.equalsIgnoreCase(REGION)) {
-      if (scope == ChatScope.REGION) {
-        TanChatUtils.message(
-            player,
-            Lang.TOWN_CHAT_ALREADY_IN_CHAT.get(langType, ChatScope.REGION.getName(langType)));
-        return;
-      }
-      LocalChatStorage.setPlayerChatScope(player, ChatScope.REGION);
-      TanChatUtils.message(player, Lang.CHAT_CHANGED.get(langType, channelName));
-      return;
-    }
-    TanChatUtils.message(player, Lang.CHAT_SCOPE_NOT_FOUND.get(langType, channelName));
+    tanPlayer.getTown().thenAccept(
+        town -> {
+          FoliaScheduler.runTask(
+              TownsAndNations.getPlugin(),
+              () -> {
+                if (town == null) {
+                  TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(langType));
+                  return;
+                }
+                if (channelName.equalsIgnoreCase(GLOBAL)) {
+                  LocalChatStorage.removePlayerChatScope(player);
+                  TanChatUtils.message(player, Lang.CHAT_CHANGED.get(langType, channelName));
+                  return;
+                }
+                ChatScope scope = LocalChatStorage.getPlayerChatScope(player);
+                if (channelName.equalsIgnoreCase(TOWN)) {
+                  if (scope == ChatScope.CITY) {
+                    TanChatUtils.message(
+                        player,
+                        Lang.TOWN_CHAT_ALREADY_IN_CHAT.get(langType, ChatScope.CITY.getName(langType)));
+                    return;
+                  }
+                  LocalChatStorage.setPlayerChatScope(player, ChatScope.CITY);
+                  TanChatUtils.message(player, Lang.CHAT_CHANGED.get(langType, channelName));
+                  return;
+                }
+                if (channelName.equalsIgnoreCase(ALLIANCE)) {
+                  if (scope == ChatScope.ALLIANCE) {
+                    TanChatUtils.message(
+                        player,
+                        Lang.TOWN_CHAT_ALREADY_IN_CHAT.get(langType, ChatScope.ALLIANCE.getName(langType)));
+                    return;
+                  }
+                  LocalChatStorage.setPlayerChatScope(player, ChatScope.ALLIANCE);
+                  TanChatUtils.message(player, Lang.CHAT_CHANGED.get(langType, channelName));
+                  return;
+                }
+                if (channelName.equalsIgnoreCase(REGION)) {
+                  if (scope == ChatScope.REGION) {
+                    TanChatUtils.message(
+                        player,
+                        Lang.TOWN_CHAT_ALREADY_IN_CHAT.get(langType, ChatScope.REGION.getName(langType)));
+                    return;
+                  }
+                  LocalChatStorage.setPlayerChatScope(player, ChatScope.REGION);
+                  TanChatUtils.message(player, Lang.CHAT_CHANGED.get(langType, channelName));
+                  return;
+                }
+                TanChatUtils.message(player, Lang.CHAT_SCOPE_NOT_FOUND.get(langType, channelName));
+              });
+        });
   }
   private void sendSingleMessage(
       Player player,
@@ -154,36 +161,57 @@ public class ChannelChatScopeCommand extends PlayerSubCommand {
           TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(langType));
           return;
         }
-        TownData playerTown = tanPlayer.getTownSync();
-        playerTown
-            .getRelations()
-            .getTerritoriesIDWithRelation(TownRelation.ALLIANCE)
-            .forEach(
-                territoryID ->
-                    Objects.requireNonNull(TerritoryUtil.getTerritory(territoryID))
-                        .broadCastMessage(
-                            Lang.CHAT_SCOPE_ALLIANCE_MESSAGE.get(
-                                playerTown.getName(), player.getName(), message)));
+        tanPlayer.getTown().thenAccept(
+            playerTown -> {
+              FoliaScheduler.runTask(
+                  TownsAndNations.getPlugin(),
+                  () -> {
+                    if (playerTown != null)
+                      playerTown
+                          .getRelations()
+                          .getTerritoriesIDWithRelation(TownRelation.ALLIANCE)
+                          .forEach(
+                              territoryID ->
+                                  Objects.requireNonNull(TerritoryUtil.getTerritory(territoryID))
+                                      .broadCastMessage(
+                                          Lang.CHAT_SCOPE_ALLIANCE_MESSAGE.get(
+                                              playerTown.getName(), player.getName(), message)));
+                  });
+            });
         return;
       case "region":
         if (!tanPlayer.hasRegion()) {
           TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(langType));
           return;
         }
-        RegionData regionData = tanPlayer.getRegionSync();
-        if (regionData != null)
-          regionData.broadCastMessage(
-              Lang.CHAT_SCOPE_REGION_MESSAGE.get(regionData.getName(), player.getName(), message));
+        tanPlayer.getRegion().thenAccept(
+            regionData -> {
+              FoliaScheduler.runTask(
+                  TownsAndNations.getPlugin(),
+                  () -> {
+                    if (regionData != null)
+                      regionData.broadCastMessage(
+                          Lang.CHAT_SCOPE_REGION_MESSAGE.get(
+                              regionData.getName(), player.getName(), message));
+                  });
+            });
         return;
       case "town":
         if (!tanPlayer.hasTown()) {
           TanChatUtils.message(player, Lang.PLAYER_NO_TOWN.get(langType));
           return;
         }
-        TownData townData = tanPlayer.getTownSync();
-        if (townData != null)
-          townData.broadCastMessage(
-              Lang.CHAT_SCOPE_TOWN_MESSAGE.get(townData.getName(), player.getName(), message));
+        tanPlayer.getTown().thenAccept(
+            townData -> {
+              FoliaScheduler.runTask(
+                  TownsAndNations.getPlugin(),
+                  () -> {
+                    if (townData != null)
+                      townData.broadCastMessage(
+                          Lang.CHAT_SCOPE_TOWN_MESSAGE.get(
+                              townData.getName(), player.getName(), message));
+                  });
+            });
         return;
       default:
         TanChatUtils.message(player, Lang.CORRECT_SYNTAX_INFO.get(langType, getSyntax()));

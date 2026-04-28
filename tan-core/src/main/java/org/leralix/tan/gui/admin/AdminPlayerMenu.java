@@ -24,41 +24,63 @@ public class AdminPlayerMenu extends IteratorGUI {
             tanPlayer -> {
               org.leralix.tan.utils.FoliaScheduler.runTask(
                   org.leralix.tan.TownsAndNations.getPlugin(),
-                  () -> new AdminPlayerMenu(player, tanPlayer).open()
+                  () -> {
+                    // Entity validity guard — admin player may have disconnected during async load
+                    if (!player.isOnline()) return;
+                    new AdminPlayerMenu(player, tanPlayer).open();
+                  }
               );
             });
   }
   @Override
   public void open() {
-    GuiUtil.createIterator(
-        gui,
-        getAllPlayers(),
-        page,
+    org.leralix.tan.utils.gui.AsyncGuiHelper.loadAsync(
         player,
-        p -> AdminMainMenu.open(player),
-        p -> nextPage(),
-        p -> previousPage());
-    gui.open(player);
+        this::loadAllPlayersGuiItems,
+        guiItems -> {
+          GuiUtil.createIterator(
+              gui,
+              guiItems,
+              page,
+              player,
+              p -> AdminMainMenu.open(player),
+              p -> nextPage(),
+              p -> previousPage());
+          gui.open(player);
+        });
   }
-  private List<GuiItem> getAllPlayers() {
+  private List<GuiItem> loadAllPlayersGuiItems() {
     List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
     List<GuiItem> guiItems = new ArrayList<>();
     MiniMessage mm = MiniMessage.miniMessage();
     for (Player targetPlayer : onlinePlayers) {
-      ITanPlayer tanPlayerData = PlayerDataStorage.getInstance().get(targetPlayer).join();
-      String townInfo =
-          tanPlayerData.hasTown() ? tanPlayerData.getTownSync().getColoredName() : "No Town";
-      String regionInfo =
-          tanPlayerData.hasRegion() ? tanPlayerData.getRegionSync().getColoredName() : "No Region";
-      guiItems.add(
-          ItemBuilder.from(Material.PLAYER_HEAD)
-              .name(mm.deserialize(targetPlayer.getName()))
-              .lore(mm.deserialize("Town: " + townInfo), mm.deserialize("Region: " + regionInfo))
-              .asGuiItem(
-                  event -> {
-                    event.setCancelled(true);
-                    PlayerMenu.open(targetPlayer);
-                  }));
+      try {
+        ITanPlayer tanPlayerData = PlayerDataStorage.getInstance().get(targetPlayer).join();
+        String townInfo = "No Town";
+        String regionInfo = "No Region";
+        try {
+          if (tanPlayerData.hasTown()) {
+            townInfo = tanPlayerData.getTown().get().getColoredName();
+          }
+        } catch (Exception e) {
+        }
+        try {
+          if (tanPlayerData.hasRegion()) {
+            regionInfo = tanPlayerData.getRegion().get().getColoredName();
+          }
+        } catch (Exception e) {
+        }
+        guiItems.add(
+            ItemBuilder.from(Material.PLAYER_HEAD)
+                .name(mm.deserialize(targetPlayer.getName()))
+                .lore(mm.deserialize("Town: " + townInfo), mm.deserialize("Region: " + regionInfo))
+                .asGuiItem(
+                    event -> {
+                      event.setCancelled(true);
+                      PlayerMenu.open(targetPlayer);
+                    }));
+      } catch (Exception e) {
+      }
     }
     return guiItems;
   }

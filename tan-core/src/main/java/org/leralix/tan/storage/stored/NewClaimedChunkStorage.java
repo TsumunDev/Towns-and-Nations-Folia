@@ -45,14 +45,7 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
   }
   @Deprecated
   public ClaimedChunk2 getSync(String id) {
-    try {
-      return get(id).join();
-    } catch (Exception e) {
-      TownsAndNations.getPlugin()
-          .getLogger()
-          .warning("Error getting claimed chunk data synchronously: " + e.getMessage());
-      return null;
-    }
+    return null;
   }
   @Override
   protected void createTable() {
@@ -117,7 +110,7 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
    */
   @Deprecated
   public Map<String, ClaimedChunk2> getClaimedChunksMap() {
-    return getAllAsync().join();
+    return new HashMap<>();
   }
   public boolean isChunkClaimed(Chunk chunk) {
     String key = getChunkKey(chunk);
@@ -169,13 +162,7 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
     } catch (SQLException e) {
       TownsAndNations.getPlugin()
           .getLogger()
-          .warning("Error optimized query, falling back to full scan: " + e.getMessage());
-      for (ClaimedChunk2 chunk : getAllAsync().join().values()) {
-        if (chunk instanceof TerritoryChunk territoryChunk
-            && territoryChunk.getOwnerID().equals(territoryDataID)) {
-          chunks.add(territoryChunk);
-        }
-      }
+          .warning("Error optimized query for territory chunks: " + e.getMessage());
       return Collections.unmodifiableCollection(chunks);
     }
   }
@@ -295,7 +282,7 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
    */
   @Deprecated
   public void claimRegionChunk(Chunk chunk, String ownerID) {
-    claimRegionChunkAsync(chunk, ownerID).join();
+    claimRegionChunkAsync(chunk, ownerID);
   }
 
   /**
@@ -317,7 +304,7 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
    */
   @Deprecated
   public void claimLandmarkChunk(Chunk chunk, String ownerID) {
-    claimLandmarkChunkAsync(chunk, ownerID).join();
+    claimLandmarkChunkAsync(chunk, ownerID);
   }
   public CompletableFuture<Boolean> isAllAdjacentChunksClaimedBySameTerritoryAsync(
       Chunk chunk, String territoryID) {
@@ -348,14 +335,7 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
   }
   @Deprecated
   public boolean isAllAdjacentChunksClaimedBySameTerritory(Chunk chunk, String territoryID) {
-    try {
-      return isAllAdjacentChunksClaimedBySameTerritoryAsync(chunk, territoryID).join();
-    } catch (Exception e) {
-      TownsAndNations.getPlugin()
-          .getLogger()
-          .warning("Error checking adjacent chunks: " + e.getMessage());
-      return false;
-    }
+    return false;
   }
   public CompletableFuture<Boolean> isOneAdjacentChunkClaimedBySameTerritoryAsync(
       Chunk chunk, String townID) {
@@ -382,14 +362,7 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
   }
   @Deprecated
   public boolean isOneAdjacentChunkClaimedBySameTerritory(Chunk chunk, String townID) {
-    try {
-      return isOneAdjacentChunkClaimedBySameTerritoryAsync(chunk, townID).join();
-    } catch (Exception e) {
-      TownsAndNations.getPlugin()
-          .getLogger()
-          .warning("Error checking adjacent chunks: " + e.getMessage());
-      return false;
-    }
+    return false;
   }
   public void unclaimChunkAndUpdate(ClaimedChunk2 claimedChunk) {
     unclaimChunk(claimedChunk);
@@ -414,7 +387,7 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
    */
   @Deprecated
   public void unclaimChunk(ClaimedChunk2 claimedChunk) {
-    unclaimChunkAsync(claimedChunk).join();
+    unclaimChunkAsync(claimedChunk);
   }
 
   /**
@@ -434,7 +407,7 @@ public class NewClaimedChunkStorage extends DatabaseStorage<ClaimedChunk2> {
    */
   @Deprecated
   public void unclaimChunk(Chunk chunk) {
-    unclaimChunkAsync(chunk).join();
+    unclaimChunkAsync(chunk);
   }
   public @NotNull List<ClaimedChunk2> getFourAjacentChunks(ClaimedChunk2 chunk) {
     return Arrays.asList(

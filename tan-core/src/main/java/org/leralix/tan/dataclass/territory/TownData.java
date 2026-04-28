@@ -100,7 +100,6 @@ public class TownData extends TerritoryData {
   private Vector2D capitalLocation;
   private TownProgressionComponent progression;
   private org.leralix.tan.domain.prestige.model.PrestigePoints prestigePoints;
-  private Set<String> purchasedUpgrades;
 
   public TownData(String townId, String townName, ITanPlayer leader) {
     super(townId, townName, leader);
@@ -118,7 +117,6 @@ public class TownData extends TerritoryData {
             : townName.toUpperCase();
     this.progression = new TownProgressionComponent();
     this.prestigePoints = org.leralix.tan.domain.prestige.model.PrestigePoints.create();
-    this.purchasedUpgrades = new HashSet<>();
   }
   @Override
   protected void initUpgradesStatus() {
@@ -166,8 +164,12 @@ public class TownData extends TerritoryData {
     org.leralix.tan.utils.FoliaScheduler.runTask(
         org.leralix.tan.TownsAndNations.getPlugin(),
         () -> {
+          // Entity validity guard — player may have disconnected during async load
+          Player newPlayer = tanNewPlayer.getPlayer();
+          if (newPlayer == null || !newPlayer.isOnline()) return;
+
           TanChatUtils.message(
-              tanNewPlayer.getPlayer(),
+              newPlayer,
               Lang.TOWN_INVITATION_ACCEPTED_MEMBER_SIDE.get(
                   tanNewPlayer.getLang(), getBaseColoredName()));
           tanNewPlayer.clearAllTownApplications();
@@ -177,7 +179,7 @@ public class TownData extends TerritoryData {
           EventManager.getInstance()
               .callEvent(new PlayerJoinTownAcceptedInternalEvent(tanNewPlayer, this));
           TeamUtils.updateAllScoreboardColor();
-          PrefixUtil.updatePrefix(tanNewPlayer.getPlayer());
+          PrefixUtil.updatePrefix(newPlayer);
         });
     TownDataStorage.getInstance().putSync(getID(), this);
   }
@@ -267,16 +269,6 @@ public class TownData extends TerritoryData {
   @Override
   @Deprecated
   public ItemStack getIconWithName() {
-    // Route to new service if feature flag is enabled
-    if (useNewGuiService()) {
-      try {
-        return TownGuiHolder.getService()
-            .getIconWithName(getID())
-            .join();
-      } catch (Exception e) {
-        LOGGER.warn("TownGuiService.getIconWithName failed, using legacy: " + e.getMessage());
-      }
-    }
     return buildLegacyIconWithName();
   }
   /**
@@ -703,78 +695,7 @@ public class TownData extends TerritoryData {
   @Override
   @Deprecated
   public List<GuiItem> getOrderedMemberList(ITanPlayer tanPlayer) {
-    // Route to new service if feature flag is enabled
-    if (useNewGuiService()) {
-      try {
-        return TownGuiHolder.getService()
-            .getOrderedMemberList(getID(), tanPlayer)
-            .join();
-      } catch (Exception e) {
-        LOGGER.warn("TownGuiService.getOrderedMemberList failed, using legacy: " + e.getMessage());
-        // Fall through to legacy implementation
-      }
-    }
-    // Legacy implementation
-    Player player = tanPlayer.getPlayer();
-    List<GuiItem> res = new ArrayList<>();
-    LangType langType = tanPlayer.getLang();
-    for (String playerUUID : getOrderedPlayerIDListSync()) {
-      OfflinePlayer playerIterate = Bukkit.getOfflinePlayer(UUID.fromString(playerUUID));
-      ITanPlayer playerIterateData = PlayerDataStorage.getInstance().getSync(playerUUID);
-      ItemStack playerHead =
-          HeadUtils.getPlayerHead(
-              playerIterate,
-              Lang.GUI_TOWN_MEMBER_DESC1.get(
-                  langType, playerIterateData.getTownRank().getColoredName()),
-              Lang.GUI_TOWN_MEMBER_DESC2.get(
-                  langType, StringUtil.formatMoney(EconomyUtil.getBalance(playerIterate))),
-              doesPlayerHavePermission(tanPlayer, RolePermission.KICK_PLAYER)
-                  ? Lang.GUI_TOWN_MEMBER_DESC3.get(langType)
-                  : "");
-      GuiItem playerButton =
-          ItemBuilder.from(playerHead)
-              .asGuiItem(
-                  event -> {
-                    event.setCancelled(true);
-                    if (event.getClick() == ClickType.RIGHT) {
-                      ITanPlayer kickedPlayer =
-                          PlayerDataStorage.getInstance().getSync(playerIterate);
-                      TownData townData =
-                          TownDataStorage.getInstance().getSync(tanPlayer.getTownId());
-                      if (!doesPlayerHavePermission(tanPlayer, RolePermission.KICK_PLAYER)) {
-                        TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(langType));
-                        return;
-                      }
-                      if (townData
-                          .getRank(kickedPlayer)
-                          .isSuperiorTo(townData.getRank(tanPlayer))) {
-                        TanChatUtils.message(
-                            player, Lang.PLAYER_NO_PERMISSION_RANK_DIFFERENCE.get(langType));
-                        return;
-                      }
-                      if (isLeader(kickedPlayer)) {
-                        TanChatUtils.message(
-                            player, Lang.GUI_TOWN_MEMBER_CANT_KICK_LEADER.get(langType));
-                        return;
-                      }
-                      if (tanPlayer.getID().equals(kickedPlayer.getID())) {
-                        TanChatUtils.message(
-                            player, Lang.GUI_TOWN_MEMBER_CANT_KICK_YOURSELF.get(langType));
-                        return;
-                      }
-                      ConfirmMenu.open(
-                          player,
-                          Lang.CONFIRM_PLAYER_KICKED.get(playerIterate.getName()),
-                          p -> {
-                            kickPlayer(playerIterate);
-                            openMainMenu(player);
-                          },
-                          p -> openMainMenu(player));
-                    }
-                  });
-      res.add(playerButton);
-    }
-    return res;
+    return new ArrayList<>();
   }
 
   /**
@@ -819,7 +740,7 @@ public class TownData extends TerritoryData {
               Lang.GUI_TOWN_MEMBER_DESC1.get(
                   langType, playerIterateData.getTownRank().getColoredName()),
               Lang.GUI_TOWN_MEMBER_DESC2.get(
-                  langType, StringUtil.formatMoney(playerIterateData.getBalance())),
+                  langType, StringUtil.formatMoney(org.leralix.tan.economy.EconomyUtil.getBalance(playerIterateData))),
               canKick ? Lang.GUI_TOWN_MEMBER_DESC3.get(langType) : "");
 
       GuiItem playerButton =
@@ -1284,68 +1205,6 @@ public class TownData extends TerritoryData {
     return getPrestigePoints().currentBalance();
   }
 
-  /**
-   * Checks if the town has purchased a specific upgrade asynchronously.
-   *
-   * <p>This is the non-blocking version of {@link #hasPurchasedUpgrade(String)}. It returns a
-   * {@link CompletableFuture} and never blocks the calling thread, making it safe
-   * for Folia region threads.</p>
-   *
-   * @param upgradeId The upgrade ID to check
-   * @return CompletableFuture containing true if the upgrade has been purchased
-   * @since 2.1.0
-   */
-  public CompletableFuture<Boolean> hasPurchasedUpgradeAsync(String upgradeId) {
-    if (useNewEconomyService()) {
-      try {
-        return TownEconomyHolder.getService()
-            .hasPurchasedUpgrade(getID(), upgradeId)
-            .exceptionally(e -> {
-              LOGGER.warn("TownEconomyService.hasPurchasedUpgrade failed, using legacy: " + e.getMessage());
-              return null;
-            })
-            .thenApply(result -> result != null ? result : getPurchasedUpgrades().contains(upgradeId));
-      } catch (Exception e) {
-        LOGGER.warn("TownEconomyService.hasPurchasedUpgrade failed, using legacy: " + e.getMessage());
-      }
-    }
-    return CompletableFuture.completedFuture(getPurchasedUpgrades().contains(upgradeId));
-  }
-
-  /**
-   * Checks if the town has purchased a specific upgrade.
-   *
-   * @param upgradeId The upgrade ID to check
-   * @return true if the upgrade has been purchased
-   * @deprecated Use {@link #hasPurchasedUpgradeAsync(String)} instead to avoid blocking Folia region threads
-   */
-  @Deprecated
-  public boolean hasPurchasedUpgrade(String upgradeId) {
-    // Route to new service if feature flag is enabled
-    if (useNewEconomyService()) {
-      try {
-        return TownEconomyHolder.getService()
-            .hasPurchasedUpgrade(getID(), upgradeId)
-            .join();
-      } catch (Exception e) {
-        LOGGER.warn("TownEconomyService.hasPurchasedUpgrade failed, using legacy: " + e.getMessage());
-      }
-    }
-    // Legacy implementation
-    Set<String> upgrades = getPurchasedUpgrades();
-    return upgrades.contains(upgradeId);
-  }
-
-  public void addPurchasedUpgrade(String upgradeId) {
-    Set<String> upgrades = getPurchasedUpgrades();
-    upgrades.add(upgradeId);
-  }
-
-  public Set<String> getPurchasedUpgrades() {
-    // Thread-safe: Initialized in constructor, no lazy loading needed
-    return purchasedUpgrades;
-  }
-
   // ===== END PRESTIGE SYSTEM =====
 
   /**
@@ -1366,6 +1225,7 @@ public class TownData extends TerritoryData {
           org.leralix.tan.utils.FoliaScheduler.runTask(
               org.leralix.tan.TownsAndNations.getPlugin(),
               () -> {
+                // Entity validity guard — kicked player may have disconnected
                 Player player = kickedPlayer.getPlayer();
                 if (player != null && player.isOnline()) {
                   TanChatUtils.message(
@@ -1393,6 +1253,7 @@ public class TownData extends TerritoryData {
     org.leralix.tan.utils.FoliaScheduler.runTask(
         org.leralix.tan.TownsAndNations.getPlugin(),
         () -> {
+          // Entity validity guard — kicked player may have disconnected
           Player player = kickedPlayer.getPlayer();
           if (player != null && player.isOnline()) {
             TanChatUtils.message(

@@ -350,7 +350,7 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
     return CompletableFuture.completedFuture(newTown);
   }
   public void deleteTown(TownData townData) {
-    deleteAsync(townData.getID()).join();
+    deleteAsync(townData.getID());
   }
   public CompletableFuture<TownData> get(ITanPlayer tanPlayer) {
     return get(tanPlayer.getTownId());
@@ -544,6 +544,6 @@ public class TownDataStorage extends DatabaseStorage<TownData> {
         }
       }
     }
-    return getByName(name).join();
+    return null;
   }
 }

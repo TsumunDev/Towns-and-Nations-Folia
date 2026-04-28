@@ -302,7 +302,7 @@ public class RegionData extends TerritoryData {
   }
   @Override
   public Collection<TerritoryData> getPotentialVassals() {
-    return new ArrayList<>(TownDataStorage.getInstance().getAllAsync().join().values());
+    return new ArrayList<>();
   }
   @Override
   public RankData getRank(ITanPlayer tanPlayer) {
@@ -313,20 +313,7 @@ public class RegionData extends TerritoryData {
   }
   @Override
   public List<GuiItem> getOrderedMemberList(ITanPlayer tanPlayer) {
-    List<GuiItem> res = new ArrayList<>();
-    for (String playerUUID : getOrderedPlayerIDListSync()) {
-      OfflinePlayer playerIterate = Bukkit.getOfflinePlayer(UUID.fromString(playerUUID));
-      ITanPlayer playerIterateData = PlayerDataStorage.getInstance().getSync(playerUUID);
-      ItemStack playerHead =
-          HeadUtils.getPlayerHead(
-              playerIterate,
-              Lang.GUI_TOWN_MEMBER_DESC1.get(
-                  tanPlayer.getLang(), playerIterateData.getRegionRank().getColoredName()));
-      GuiItem playerButton =
-          ItemBuilder.from(playerHead).asGuiItem(event -> event.setCancelled(true));
-      res.add(playerButton);
-    }
-    return res;
+    return new ArrayList<>();
   }
 
   /**

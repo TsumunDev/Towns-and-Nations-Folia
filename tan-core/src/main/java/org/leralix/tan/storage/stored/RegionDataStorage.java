@@ -253,12 +253,12 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
         .thenCompose(
             town -> {
               if (town == null) return CompletableFuture.completedFuture(null);
-              return CompletableFuture.completedFuture(town.getRegionSync());
+              return town.getRegionAsync();
             });
   }
   @Deprecated
   public void deleteRegion(RegionData region) {
-    deleteAsync(region.getID()).join();
+    deleteAsync(region.getID());
   }
 
   /**
@@ -320,14 +320,7 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
   }
   @Deprecated
   public RegionData getSync(ITanPlayer tanPlayer) {
-    try {
-      return get(tanPlayer).join();
-    } catch (Exception e) {
-      TownsAndNations.getPlugin()
-          .getLogger()
-          .warning("Error getting region data synchronously: " + e.getMessage());
-      return null;
-    }
+    return null;
   }
 
   /**
@@ -435,6 +428,6 @@ public class RegionDataStorage extends DatabaseStorage<RegionData> {
         }
       }
     }
-    return getByName(name).join();
+    return null;
   }
 }

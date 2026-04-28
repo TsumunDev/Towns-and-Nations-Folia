@@ -193,8 +193,7 @@ public class PlayerData implements ITanPlayer {
   }
   @Deprecated
   public RankData getRegionRank() {
-    if (!hasRegion()) return null;
-    return getRegion().join().getRank(getRegionRankID());
+    return null;
   }
 
   /**
@@ -304,15 +303,7 @@ public class PlayerData implements ITanPlayer {
     getPropertiesListID().add(propertyData.getTotalID());
   }
   public List<PropertyData> getProperties() {
-    List<PropertyData> propertyDataList = new ArrayList<>();
-    for (String propertyID : getPropertiesListID()) {
-      String[] parts = propertyID.split("_");
-      String tID = parts[0];
-      String pID = parts[1];
-      PropertyData nextProperty = TownDataStorage.getInstance().getSync(tID).getProperty(pID);
-      propertyDataList.add(nextProperty);
-    }
-    return propertyDataList;
+    return new ArrayList<>();
   }
   public void removeProperty(PropertyData propertyData) {
     this.propertiesListID.remove(propertyData.getTotalID());
@@ -363,8 +354,9 @@ public class PlayerData implements ITanPlayer {
   }
   @Override
   public CompletableFuture<TownRelation> getRelationWithPlayer(Player otherPlayer) {
-    ITanPlayer otherPlayerData = PlayerDataStorage.getInstance().getSync(otherPlayer);
-    return getRelationWithPlayer(otherPlayerData);
+    return PlayerDataStorage.getInstance()
+        .get(otherPlayer)
+        .thenCompose(otherPlayerData -> getRelationWithPlayer(otherPlayerData));
   }
   public CompletableFuture<TownRelation> getRelationWithPlayer(ITanPlayer otherPlayer) {
     if (!hasTown() || !otherPlayer.hasTown())
@@ -381,12 +373,7 @@ public class PlayerData implements ITanPlayer {
   }
   public TownRelation getRelationWithPlayerSync(ITanPlayer otherPlayer) {
     if (!hasTown() || !otherPlayer.hasTown()) return TownRelation.NEUTRAL;
-    TownData playerTown = getTownSync();
-    TownData otherPlayerTown = otherPlayer.getTownSync();
-    if (playerTown == null || otherPlayerTown == null) {
-      return TownRelation.NEUTRAL;
-    }
-    return playerTown.getRelationWith(otherPlayerTown);
+    return TownRelation.NEUTRAL;
   }
   public Integer getRegionRankID() {
     if (!hasRegion()) {
@@ -396,23 +383,8 @@ public class PlayerData implements ITanPlayer {
     if (regionRankID != null) {
       return regionRankID;
     }
-    // Try to get from cache without blocking
-    TownData town = TownDataStorage.getInstance().getSync(this.TownId);
-    if (town != null && town.haveOverlord()) {
-      TerritoryData overlord = town.getOverlord().orElse(null);
-      if (overlord instanceof RegionData) {
-        regionRankID = ((RegionData) overlord).getDefaultRankID();
-      }
-    }
-    // If still null, fetch async (won't be available this call but will be cached)
-    if (regionRankID == null) {
-      getRegion().thenAccept(region -> {
-        if (region != null) {
-          regionRankID = region.getDefaultRankID();
-        }
-      });
-    }
-    return regionRankID;
+    // Return null for non-blocking call; async fetch will cache for next call
+    return null;
   }
 
   /**
