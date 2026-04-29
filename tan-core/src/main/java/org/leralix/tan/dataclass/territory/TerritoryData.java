@@ -38,6 +38,10 @@ import org.leralix.tan.dataclass.territory.economy.SalaryPaymentLine;
 import org.leralix.tan.dataclass.territory.permission.ChunkPermission;
 import org.leralix.tan.dataclass.territory.tax.TaxComponent;
 import org.leralix.tan.dataclass.territory.treasury.TreasuryComponent;
+import org.leralix.tan.domain.territory.TerritoryClaimService;
+import org.leralix.tan.domain.territory.TerritoryDonationService;
+import org.leralix.tan.domain.territory.TerritoryRankService;
+import org.leralix.tan.domain.territory.TerritoryTaskService;
 import org.leralix.tan.economy.EconomyUtil;
 import org.leralix.tan.enums.RolePermission;
 import org.leralix.tan.enums.TownRelation;
@@ -126,12 +130,16 @@ public abstract class TerritoryData {
   private CosmeticComponent cosmetics;
   private DiplomacyComponent diplomacy;
   private TaxComponent taxes;
-  protected Integer defaultRankID;
   protected Map<Integer, RankData> ranks;
+  protected Integer defaultRankID;
+  private transient TerritoryRankService rankService;
   private WarComponent war;
   private HashMap<String, Integer> availableClaims;
   private ClaimedChunkSettings chunkSettings;
   protected TerritoryStats upgradesStatus;
+  private transient TerritoryTaskService taskService;
+  private transient TerritoryClaimService claimService;
+  private transient TerritoryDonationService donationService;
   protected TerritoryData(String id, String name, ITanPlayer owner) {
     this.id = id;
     this.name = name;
@@ -145,14 +153,42 @@ public abstract class TerritoryData {
         .build();
     this.diplomacy = new DiplomacyComponent();
     this.war = new WarComponent();
-    ranks = new HashMap<>();
-    RankData defaultRank = registerNewRank("default");
-    setDefaultRank(defaultRank);
+    this.ranks = new HashMap<>();
+    RankData defaultRank = getRankService().registerNewRank("default");
+    this.defaultRankID = defaultRank.getID();
     availableClaims = new HashMap<>();
     chunkSettings = new ClaimedChunkSettings();
     initUpgradesStatus();
   }
   protected abstract void initUpgradesStatus();
+
+  private TerritoryRankService getRankService() {
+    if (rankService == null) {
+      rankService = new TerritoryRankService(ranks);
+    }
+    return rankService;
+  }
+
+  private TerritoryTaskService getTaskService() {
+    if (taskService == null) {
+      taskService = new TerritoryTaskService();
+    }
+    return taskService;
+  }
+
+  private TerritoryClaimService getClaimService() {
+    if (claimService == null) {
+      claimService = new TerritoryClaimService();
+    }
+    return claimService;
+  }
+
+  private TerritoryDonationService getDonationService() {
+    if (donationService == null) {
+      donationService = new TerritoryDonationService();
+    }
+    return donationService;
+  }
 
   /**
    * Gets the unique identifier of this territory.
@@ -618,16 +654,13 @@ public abstract class TerritoryData {
     return getOverlord().isPresent();
   }
   public Map<String, Integer> getAvailableEnemyClaims() {
-    if (availableClaims == null) availableClaims = new HashMap<>();
-    return availableClaims;
+    return getClaimService().getAvailableEnemyClaims(availableClaims);
   }
   public void addAvailableClaims(String territoryID, int amount) {
-    getAvailableEnemyClaims().merge(territoryID, amount, Integer::sum);
+    getClaimService().addAvailableClaims(availableClaims, territoryID, amount);
   }
   public void consumeEnemyClaim(String territoryID) {
-    getAvailableEnemyClaims().merge(territoryID, -1, Integer::sum);
-    if (getAvailableEnemyClaims().get(territoryID) <= 0)
-      getAvailableEnemyClaims().remove(territoryID);
+    getClaimService().consumeEnemyClaim(availableClaims, territoryID);
   }
   public boolean claimChunk(Player player) {
     return claimChunk(player, player.getLocation().getChunk());
@@ -656,140 +689,15 @@ public abstract class TerritoryData {
   }
   protected abstract void abstractClaimChunk(Player player, Chunk chunk, boolean ignoreAdjacent);
   public boolean canClaimChunkSync(Player player, Chunk chunk, boolean ignoreAdjacent) {
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    if (ClaimBlacklistStorage.cannotBeClaimed(chunk)) {
-      TanChatUtils.message(player, Lang.CHUNK_IS_BLACKLISTED.get(player));
-      return false;
-    }
-    if (!doesPlayerHavePermission(tanPlayer, RolePermission.CLAIM_CHUNK)) {
-      TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(player));
-      return false;
-    }
-    TerritoryStats territoryStats = getNewLevel();
-    int nbOfClaimedChunks = getNumberOfClaimedChunk();
-    if (!territoryStats.getStat(BiomeStat.class).canClaimBiome(chunk)) {
-      TanChatUtils.message(player, Lang.CHUNK_BIOME_NOT_ALLOWED.get(player));
-      return false;
-    }
-    if (!territoryStats.getStat(ChunkCap.class).canDoAction(nbOfClaimedChunks)) {
-      TanChatUtils.message(player, Lang.MAX_CHUNK_LIMIT_REACHED.get(player));
-      return false;
-    }
-    int cost = getClaimCost();
-    if (getBalance() < cost) {
-      TanChatUtils.message(
-          player,
-          Lang.TERRITORY_NOT_ENOUGH_MONEY.get(
-              player, getColoredName(), Double.toString(cost - getBalance())));
-      return false;
-    }
-    ClaimedChunk2 chunkData = NewClaimedChunkStorage.getInstance().get(chunk);
-    if (!chunkData.canTerritoryClaim(player, this)) {
-      return false;
-    }
-    if (ignoreAdjacent) {
-      return true;
-    }
-    if (getNumberOfClaimedChunk() == 0) {
-      if (ChunkUtil.isInBufferZone(chunkData, this)) {
-        TanChatUtils.message(
-            player,
-            Lang.CHUNK_IN_BUFFER_ZONE.get(
-                player, Integer.toString(Constants.territoryClaimBufferZone())));
-        return false;
-      }
-      return true;
-    }
-    if (!NewClaimedChunkStorage.getInstance()
-        .isOneAdjacentChunkClaimedBySameTerritoryAsync(chunk, getID())
-        .join()) {
-      TanChatUtils.message(player, Lang.CHUNK_NOT_ADJACENT.get(player));
-      return false;
-    }
-    return true;
+    return getClaimService().canClaimChunkSync(this, player, chunk, ignoreAdjacent);
   }
 
-  /**
-   * Async version of canClaimChunk that does not block Folia region threads.
-   * All database and external service calls are performed asynchronously.
-   *
-   * @param player the player attempting to claim
-   * @param chunk the chunk to claim
-   * @param ignoreAdjacent whether to skip adjacent chunk check
-   * @return CompletableFuture with true if the player can claim the chunk
-   */
   public CompletableFuture<Boolean> canClaimChunkAsync(Player player, Chunk chunk, boolean ignoreAdjacent) {
-    return PlayerDataStorage.getInstance().get(player).thenCompose(tanPlayer -> {
-      // Blacklist check (synchronous, in-memory)
-      if (ClaimBlacklistStorage.cannotBeClaimed(chunk)) {
-        TanChatUtils.message(player, Lang.CHUNK_IS_BLACKLISTED.get(player));
-        return CompletableFuture.completedFuture(false);
-      }
-      // Permission check (in-memory)
-      if (!doesPlayerHavePermission(tanPlayer, RolePermission.CLAIM_CHUNK)) {
-        TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(player));
-        return CompletableFuture.completedFuture(false);
-      }
-      TerritoryStats territoryStats = getNewLevel();
-      int nbOfClaimedChunks = getNumberOfClaimedChunk();
-
-      // Biome check (in-memory)
-      if (!territoryStats.getStat(BiomeStat.class).canClaimBiome(chunk)) {
-        TanChatUtils.message(player, Lang.CHUNK_BIOME_NOT_ALLOWED.get(player));
-        return CompletableFuture.completedFuture(false);
-      }
-      // Chunk cap check (in-memory)
-      if (!territoryStats.getStat(ChunkCap.class).canDoAction(nbOfClaimedChunks)) {
-        TanChatUtils.message(player, Lang.MAX_CHUNK_LIMIT_REACHED.get(player));
-        return CompletableFuture.completedFuture(false);
-      }
-      int cost = getClaimCost();
-      if (getBalance() < cost) {
-        TanChatUtils.message(
-            player,
-            Lang.TERRITORY_NOT_ENOUGH_MONEY.get(
-                player, getColoredName(), Double.toString(cost - getBalance())));
-        return CompletableFuture.completedFuture(false);
-      }
-
-      // Get chunk data asynchronously
-      String chunkKey = chunk.getX() + "," + chunk.getZ() + "," + chunk.getWorld().getUID().toString();
-      return NewClaimedChunkStorage.getInstance().get(chunkKey)
-          .thenCompose(chunkData -> {
-            if (chunkData == null) {
-              chunkData = new org.leralix.tan.dataclass.chunk.WildernessChunk(chunk);
-            }
-            if (!chunkData.canTerritoryClaim(player, this)) {
-              return CompletableFuture.completedFuture(false);
-            }
-            if (ignoreAdjacent) {
-              return CompletableFuture.completedFuture(true);
-            }
-            if (getNumberOfClaimedChunk() == 0) {
-              if (ChunkUtil.isInBufferZone(chunkData, this)) {
-                TanChatUtils.message(
-                    player,
-                    Lang.CHUNK_IN_BUFFER_ZONE.get(
-                        player, Integer.toString(Constants.territoryClaimBufferZone())));
-                return CompletableFuture.completedFuture(false);
-              }
-              return CompletableFuture.completedFuture(true);
-            }
-            // Adjacent chunk check (async)
-            return NewClaimedChunkStorage.getInstance()
-                .isOneAdjacentChunkClaimedBySameTerritoryAsync(chunk, getID())
-                .thenApply(isAdjacent -> {
-                  if (!isAdjacent) {
-                    TanChatUtils.message(player, Lang.CHUNK_NOT_ADJACENT.get(player));
-                  }
-                  return isAdjacent;
-                });
-          });
-    });
+    return getClaimService().canClaimChunkAsync(this, player, chunk, ignoreAdjacent);
   }
 
   public int getClaimCost() {
-    return getNewLevel().getStat(ChunkCost.class).getCost();
+    return getClaimService().getClaimCost(this);
   }
   /**
    * Delete this territory and clean up all associated data.
@@ -826,107 +734,15 @@ public abstract class TerritoryData {
     return PlannedAttackStorage.getInstance().territoryDeleted(this);
   }
   public boolean canConquerChunk(ClaimedChunk2 chunk) {
-    if (getAvailableEnemyClaims().containsKey(chunk.getOwnerID())) {
-      consumeEnemyClaim(chunk.getOwnerID());
-      return true;
-    }
-    return false;
+    return getClaimService().canConquerChunk(availableClaims, chunk);
   }
-  /**
-   * Adds a player donation to the territory asynchronously.
-   *
-   * <p>This method is now async to avoid blocking I/O calls. It checks the player's balance,
-   * withdraws the donation amount, adds it to the territory balance, and records the transaction.</p>
-   *
-   * @param player The player making the donation
-   * @param amount The amount to donate
-   * @return CompletableFuture that completes when the donation is processed
-   */
   public CompletableFuture<Void> addDonationAsync(Player player, double amount) {
-    if (amount <= 0) {
-      // Synchronous validation - fast operation
-      return PlayerDataStorage.getInstance().get(player)
-          .thenAccept(tanPlayer -> {
-            TanChatUtils.message(
-                player,
-                Lang.PAY_MINIMUM_REQUIRED.get(tanPlayer.getLang()));
-          });
-    }
-
-    // Load player data and check balance asynchronously
-    return PlayerDataStorage.getInstance()
-        .get(player)
-        .thenCompose(tanPlayer -> {
-          LangType langType = tanPlayer.getLang();
-
-          // Check player's balance asynchronously
-          return org.leralix.tan.service.AsyncEconomyService.getBalance(player)
-              .thenCompose(balance -> {
-                if (balance < amount) {
-                  // Insufficient funds
-                  TanChatUtils.message(
-                      player,
-                      Lang.PLAYER_NOT_ENOUGH_MONEY.get(langType));
-                  return CompletableFuture.completedFuture(null);
-                }
-
-                // Sufficient funds - withdraw and add to territory balance
-                return org.leralix.tan.service.AsyncEconomyService.withdraw(player, amount)
-                    .thenRun(() -> {
-                      addToBalance(amount);
-                      TownsAndNations.getPlugin()
-                          .getDatabaseHandler()
-                          .addTransactionHistory(new PlayerDonationHistory(this, player, amount));
-                      TanChatUtils.message(
-                          player,
-                          Lang.PLAYER_SEND_MONEY_SUCCESS.get(
-                              langType, Double.toString(amount), getBaseColoredName()),
-                          SoundEnum.MINOR_GOOD);
-                    });
-              });
-        })
-        .exceptionally(throwable -> {
-          TownsAndNations.getPlugin()
-              .getLogger()
-              .warning("Failed to process donation from " + player.getName() + ": " + throwable.getMessage());
-          TanChatUtils.message(
-              player,
-              Lang.SYNTAX_ERROR.get(player));
-          return null;
-        });
+    return getDonationService().addDonationAsync(this, player, amount);
   }
 
-  /**
-   * Synchronous version of addDonation for backwards compatibility.
-   *
-   * <p><b>Deprecated:</b> Use {@link #addDonationAsync(Player, double)} instead to avoid blocking I/O.</p>
-   *
-   * @param player The player making the donation
-   * @param amount The amount to donate
-   * @deprecated Use addDonationAsync instead
-   */
   @Deprecated
   public void addDonation(Player player, double amount) {
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    LangType langType = tanPlayer.getLang();
-    double playerBalance = EconomyUtil.getBalance(player);
-    if (playerBalance < amount) {
-      TanChatUtils.message(player, Lang.PLAYER_NOT_ENOUGH_MONEY.get(langType));
-      return;
-    }
-    if (amount <= 0) {
-      TanChatUtils.message(player, Lang.PAY_MINIMUM_REQUIRED.get(langType));
-      return;
-    }
-    EconomyUtil.removeFromBalance(player, amount);
-    addToBalance(amount);
-    TownsAndNations.getPlugin()
-        .getDatabaseHandler()
-        .addTransactionHistory(new PlayerDonationHistory(this, player, amount));
-    TanChatUtils.message(
-        player,
-        Lang.PLAYER_SEND_MONEY_SUCCESS.get(langType, Double.toString(amount), getBaseColoredName()),
-        SoundEnum.MINOR_GOOD);
+    getDonationService().addDonation(this, player, amount);
   }
   public abstract void openMainMenu(Player player);
   public abstract boolean canHaveVassals();
@@ -1061,21 +877,16 @@ public abstract class TerritoryData {
         });
   }
   protected Map<Integer, RankData> getRanks() {
-    if (ranks == null) {
-      ranks = new HashMap<>();
-    }
-    return ranks;
+    return getRankService().getRanks();
   }
   public Collection<RankData> getAllRanks() {
-    return getRanks().values();
+    return getRankService().getAllRanks();
   }
   public Collection<RankData> getAllRanksSorted() {
-    return getRanks().values().stream()
-        .sorted(Comparator.comparingInt(p -> -p.getLevel()))
-        .toList();
+    return getRankService().getAllRanksSorted();
   }
   public RankData getRank(int rankID) {
-    return getRanks().get(rankID);
+    return getRankService().getRank(rankID);
   }
   public abstract RankData getRank(ITanPlayer tanPlayer);
   public RankData getRank(Player player) {
@@ -1097,40 +908,25 @@ public abstract class TerritoryData {
         .thenApply(this::getRank);
   }
   public int getNumberOfRank() {
-    return getRanks().size();
+    return getRankService().getNumberOfRank();
   }
   public boolean isRankNameUsed(String message) {
-    for (RankData rank : getAllRanks()) {
-      if (rank.getName().equals(message)) {
-        return true;
-      }
-    }
-    return false;
+    return getRankService().isRankNameUsed(message);
   }
   public RankData registerNewRank(String rankName) {
-    int nextRankId = 0;
-    for (RankData rank : getAllRanks()) {
-      if (rank.getID() >= nextRankId) nextRankId = rank.getID() + 1;
-    }
-    RankData newRank = new RankData(nextRankId, rankName);
-    getRanks().put(nextRankId, newRank);
-    return newRank;
+    return getRankService().registerNewRank(rankName);
   }
   public void removeRank(int key) {
-    getRanks().remove(key);
+    getRankService().removeRank(key);
   }
   public int getDefaultRankID() {
     if (defaultRankID == null) {
-      defaultRankID =
-          getAllRanks()
-              .iterator()
-              .next()
-              .getID();
+      defaultRankID = getAllRanks().iterator().next().getID();
     }
     return defaultRankID;
   }
   public void setDefaultRank(RankData rank) {
-    setDefaultRank(rank.getID());
+    this.defaultRankID = rank.getID();
   }
   public void setDefaultRank(int rankID) {
     this.defaultRankID = rankID;
@@ -1186,8 +982,7 @@ public abstract class TerritoryData {
     return budget;
   }
   private void addCommonTaxes(Budget budget) {
-    budget.addProfitLine(new SalaryPaymentLine(this));
-    budget.addProfitLine(new ChunkUpkeepLine(this));
+    getTaskService().addCommonTaxes(this, budget);
   }
   protected abstract void addSpecificTaxes(Budget budget);
   public int getNumberOfClaimedChunk() {
@@ -1208,8 +1003,7 @@ public abstract class TerritoryData {
     payChunkUpkeep();
   }
   private void paySalaries() {
-    // Use async version for non-blocking execution
-    paySalariesAsync().exceptionally(throwable -> {
+    getTaskService().paySalariesAsync(this).exceptionally(throwable -> {
       TownsAndNations.getPlugin()
           .getLogger()
           .severe("Failed to pay salaries for territory '" + getName() + "': " + throwable.getMessage());
@@ -1217,87 +1011,8 @@ public abstract class TerritoryData {
     });
   }
 
-  /**
-   * Pays salaries to all players asynchronously.
-   *
-   * <p>This method loads player data in parallel and pays salaries using the non-blocking
-   * AsyncEconomyService. This prevents blocking the territory thread during periodic salary payments.</p>
-   *
-   * @return CompletableFuture that completes when all salaries are paid
-   */
-  private CompletableFuture<Void> paySalariesAsync() {
-    List<CompletableFuture<Void>> rankFutures = new ArrayList<>();
-
-    for (RankData rank : getAllRanks()) {
-      int rankSalary = rank.getSalary();
-      List<String> playerIdList = rank.getPlayersID();
-      double costOfSalary = (double) playerIdList.size() * rankSalary;
-
-      if (rankSalary == 0 || costOfSalary > getBalance()) {
-        continue;
-      }
-
-      // Withdraw total cost from territory balance (synchronous - fast operation)
-      removeFromBalance(costOfSalary);
-
-      // Create async payment tasks for all players in this rank
-      for (String playerId : playerIdList) {
-        CompletableFuture<Void> paymentFuture = PlayerDataStorage.getInstance()
-            .get(playerId)
-            .thenCompose(tanPlayer -> {
-              // Use AsyncEconomyService for non-blocking balance update
-              return org.leralix.tan.service.AsyncEconomyService.deposit(
-                      tanPlayer.getOfflinePlayer(),
-                      rankSalary)
-                  .thenRun(() -> {
-                    // Record transaction history
-                    TownsAndNations.getPlugin()
-                        .getDatabaseHandler()
-                        .addTransactionHistory(
-                            new SalaryPaymentHistory(this, String.valueOf(rank.getID()), costOfSalary));
-                  });
-            });
-        rankFutures.add(paymentFuture);
-      }
-    }
-
-    // Wait for all salary payments to complete
-    return CompletableFuture.allOf(rankFutures.toArray(new CompletableFuture[0]));
-  }
   private void payChunkUpkeep() {
-    double upkeepCost = Constants.getUpkeepCost(this);
-    int numberClaimedChunk = getNumberOfClaimedChunk();
-    double totalUpkeep = numberClaimedChunk * upkeepCost;
-    if (totalUpkeep > getBalance()) {
-      deletePortionOfChunk();
-      TownsAndNations.getPlugin()
-          .getDatabaseHandler()
-          .addTransactionHistory(new ChunkPaymentHistory(this, -1));
-    } else {
-      removeFromBalance(totalUpkeep);
-      TownsAndNations.getPlugin()
-          .getDatabaseHandler()
-          .addTransactionHistory(new ChunkPaymentHistory(this, totalUpkeep));
-    }
-  }
-  private void deletePortionOfChunk() {
-    int minNbOfUnclaimedChunk = Constants.getMinimumNumberOfChunksUnclaimed();
-    int nbOfUnclaimedChunk = 0;
-    double percentageOfChunkToKeep = Constants.getPercentageOfChunksUnclaimed();
-    List<ClaimedChunk2> borderChunks = ChunkUtil.getBorderChunks(this);
-    for (ClaimedChunk2 claimedChunk2 : borderChunks) {
-      if (RandomUtil.getRandom().nextDouble() < percentageOfChunkToKeep) {
-        NewClaimedChunkStorage.getInstance().unclaimChunkAndUpdate(claimedChunk2);
-        nbOfUnclaimedChunk++;
-      }
-    }
-    if (nbOfUnclaimedChunk < minNbOfUnclaimedChunk) {
-      for (ClaimedChunk2 claimedChunk2 : borderChunks) {
-        NewClaimedChunkStorage.getInstance().unclaimChunkAndUpdate(claimedChunk2);
-        nbOfUnclaimedChunk++;
-        if (nbOfUnclaimedChunk >= minNbOfUnclaimedChunk) break;
-      }
-    }
+    getTaskService().payChunkUpkeep(this);
   }
   protected abstract void collectTaxes();
   public double getTaxOnRentingProperty() {

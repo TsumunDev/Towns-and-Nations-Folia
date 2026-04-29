@@ -1,48 +1,40 @@
 package org.leralix.tan.dataclass.territory;
-import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.leralix.lib.data.SoundEnum;
 import org.leralix.lib.position.Vector2D;
 import org.leralix.lib.position.Vector3D;
 import org.leralix.tan.TownsAndNations;
 import org.leralix.tan.dataclass.*;
-import org.leralix.tan.dataclass.chunk.ClaimedChunk2;
 import org.leralix.tan.dataclass.newhistory.PlayerTaxHistory;
 import org.leralix.tan.dataclass.territory.economy.*;
 import org.leralix.tan.dataclass.territory.progression.TownProgressionComponent;
 import org.leralix.tan.dataclass.territory.progression.TownTier;
 import org.leralix.tan.economy.EconomyUtil;
-import org.leralix.tan.enums.RolePermission;
 import org.leralix.tan.events.EventManager;
 import org.leralix.tan.events.events.PlayerJoinTownAcceptedInternalEvent;
 import org.leralix.tan.events.events.PlayerJoinTownRequestInternalEvent;
 import org.leralix.tan.gui.user.territory.TownMenu;
-import org.leralix.tan.gui.utils.ConfirmMenu;
 import org.leralix.tan.lang.FilledLang;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.storage.stored.*;
 import org.leralix.tan.upgrade.rewards.numeric.TownPlayerCap;
 import org.leralix.tan.utils.constants.Constants;
-import org.leralix.tan.utils.item.HeadUtils;
 import org.leralix.tan.utils.graphic.PrefixUtil;
 import org.leralix.tan.utils.graphic.TeamUtils;
-import org.leralix.tan.utils.text.StringUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
 import org.leralix.tan.domain.claim.ClaimHolder;
-import org.leralix.tan.domain.diplomacy.DiplomacyHolder;
 import org.leralix.tan.domain.gui.TownGuiHolder;
 import org.leralix.tan.domain.economy.TownEconomyHolder;
 import org.leralix.tan.domain.member.MemberHolder;
-import org.leralix.tan.domain.member.MemberService;
+import org.leralix.tan.dataclass.territory.components.TownPropertyComponent;
+import org.leralix.tan.dataclass.territory.components.TownRecruitmentComponent;
 import org.leralix.tan.domain.property.PropertyHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,20 +84,20 @@ public class TownData extends TerritoryData {
   private static final Logger LOGGER = LoggerFactory.getLogger(TownData.class);
   private String uuidLeader;
   private String townTag;
-  private boolean isRecruiting;
-  private HashSet<String> playerJoinRequestSet;
-  private final Map<String, PropertyData> propertyDataMap = new ConcurrentHashMap<>();
+  private final TownRecruitmentComponent recruitmentComponent;
+  private final TownPropertyComponent propertyComponent;
   private TeleportationPosition teleportationPosition;
   private final HashSet<String> townPlayerListId;
   private Vector2D capitalLocation;
   private TownProgressionComponent progression;
   private org.leralix.tan.domain.prestige.model.PrestigePoints prestigePoints;
+  private final Set<String> purchasedUpgrades = ConcurrentHashMap.newKeySet();
 
   public TownData(String townId, String townName, ITanPlayer leader) {
     super(townId, townName, leader);
-    this.playerJoinRequestSet = new HashSet<>();
+    this.recruitmentComponent = new TownRecruitmentComponent(this);
     this.townPlayerListId = new HashSet<>();
-    this.isRecruiting = false;
+    this.propertyComponent = new TownPropertyComponent(townId);
     if (leader != null) {
       this.uuidLeader = leader.getID();
       addPlayer(leader);
@@ -125,13 +117,18 @@ public class TownData extends TerritoryData {
   }
   @Override
   public RankData getRank(ITanPlayer tanPlayer) {
-    // Strangler Fig Pattern: Use new service when feature flag is enabled
-    if (useNewMemberService()) {
-      RankData rank = getRankWithService(tanPlayer);
-      return rank != null ? rank : getRankLegacy(tanPlayer);
+    try {
+      return MemberHolder.getService()
+          .getRank(this.getID(), tanPlayer)
+          .exceptionally(throwable -> {
+            LOGGER.warn("MemberService.getRank failed", throwable);
+            return null;
+          })
+          .join();
+    } catch (Exception e) {
+      LOGGER.warn("MemberService.getRank failed", e);
+      return getRank(tanPlayer.getTownRankID());
     }
-    // Legacy code path
-    return getRankLegacy(tanPlayer);
   }
 
   /**
@@ -146,16 +143,13 @@ public class TownData extends TerritoryData {
    * @since 2.1.0
    */
   public CompletableFuture<RankData> getRankAsync(ITanPlayer tanPlayer) {
-    if (useNewMemberService()) {
-      return MemberHolder.getService()
-          .getRank(this.getID(), tanPlayer)
-          .exceptionally(throwable -> {
-            LOGGER.warn("MemberService.getRank failed, falling back to legacy", throwable);
-            return null;
-          })
-          .thenApply(rank -> rank != null ? rank : getRankLegacy(tanPlayer));
-    }
-    return CompletableFuture.completedFuture(getRankLegacy(tanPlayer));
+    return MemberHolder.getService()
+        .getRank(this.getID(), tanPlayer)
+        .exceptionally(throwable -> {
+          LOGGER.warn("MemberService.getRank failed", throwable);
+          return null;
+        })
+        .thenApply(rank -> rank != null ? rank : getRank(tanPlayer.getTownRankID()));
   }
   public void addPlayer(ITanPlayer tanNewPlayer) {
     townPlayerListId.add(tanNewPlayer.getID());
@@ -240,36 +234,18 @@ public class TownData extends TerritoryData {
    * @since 2.1.0
    */
   public CompletableFuture<ItemStack> getIconWithNameAsync() {
-    if (useNewGuiService()) {
-      try {
-        return TownGuiHolder.getService()
-            .getIconWithName(getID())
-            .exceptionally(e -> {
-              LOGGER.warn("TownGuiService.getIconWithName failed, using legacy: " + e.getMessage());
-              return null;
-            })
-            .thenApply(result -> result != null ? result : buildLegacyIconWithName());
-      } catch (Exception e) {
-        LOGGER.warn("TownGuiService.getIconWithName failed, using legacy: " + e.getMessage());
-      }
-    }
-    return CompletableFuture.completedFuture(buildLegacyIconWithName());
-  }
-
-  private ItemStack buildLegacyIconWithName() {
-    ItemStack itemStack = getIcon();
-    ItemMeta meta = itemStack.getItemMeta();
-    if (meta != null) {
-      org.leralix.tan.utils.text.ComponentUtil.setDisplayName(meta, "§a" + getName());
-      itemStack.setItemMeta(meta);
-    }
-    return itemStack;
+    return TownGuiHolder.getService()
+        .getIconWithName(getID())
+        .exceptionally(e -> {
+          LOGGER.warn("TownGuiService.getIconWithName failed: " + e.getMessage());
+          return null;
+        });
   }
 
   @Override
   @Deprecated
   public ItemStack getIconWithName() {
-    return buildLegacyIconWithName();
+    return getIconWithNameAsync().join();
   }
   /**
    * Gets the town icon with information asynchronously.
@@ -283,55 +259,24 @@ public class TownData extends TerritoryData {
    * @since 2.1.0
    */
   public CompletableFuture<ItemStack> getIconWithInformationsAsync(LangType langType) {
-    if (useNewGuiService()) {
-      try {
-        return TownGuiHolder.getService()
-            .getIconWithInformations(getID(), langType)
-            .exceptionally(e -> {
-              LOGGER.warn("TownGuiService.getIconWithInformations failed, using legacy: " + e.getMessage());
-              return null;
-            })
-            .thenApply(result -> result != null ? result : buildLegacyIconWithInformations(langType));
-      } catch (Exception e) {
-        LOGGER.warn("TownGuiService.getIconWithInformations failed, using legacy: " + e.getMessage());
-      }
-    }
-    return CompletableFuture.completedFuture(buildLegacyIconWithInformations(langType));
-  }
-
-  private ItemStack buildLegacyIconWithInformations(LangType langType) {
-    ItemStack icon = getIcon();
-    ItemMeta meta = icon.getItemMeta();
-    if (meta != null) {
-      org.leralix.tan.utils.text.ComponentUtil.setDisplayName(meta, "§a" + getName());
-      List<String> lore = new ArrayList<>();
-      lore.add(Lang.GUI_TOWN_INFO_DESC0.get(langType, getDescription()));
-      lore.add(Lang.GUI_TOWN_INFO_DESC1.get(langType, getLeaderNameSync()));
-      lore.add(Lang.GUI_TOWN_INFO_DESC2.get(langType, Integer.toString(getPlayerIDList().size())));
-      lore.add(Lang.GUI_TOWN_INFO_DESC3.get(langType, Integer.toString(getNumberOfClaimedChunk())));
-      lore.add(
-          getOverlord()
-              .map(overlord -> Lang.GUI_TOWN_INFO_DESC5_REGION.get(langType, overlord.getName()))
-              .orElseGet(() -> Lang.GUI_TOWN_INFO_DESC5_NO_REGION.get(langType)));
-      org.leralix.tan.utils.text.ComponentUtil.setLore(meta, lore);
-      icon.setItemMeta(meta);
-    }
-    return icon;
+    return TownGuiHolder.getService()
+        .getIconWithInformations(getID(), langType)
+        .exceptionally(e -> {
+          LOGGER.warn("TownGuiService.getIconWithInformations failed: " + e.getMessage());
+          return null;
+        });
   }
 
   @Override
   @Deprecated
   public ItemStack getIconWithInformations(LangType langType) {
-    if (useNewGuiService()) {
-      try {
-        return TownGuiHolder.getService()
-            .getIconWithInformations(getID(), langType)
-            .join();
-      } catch (Exception e) {
-        LOGGER.warn("TownGuiService.getIconWithInformations failed, using legacy: " + e.getMessage());
-      }
-    }
-    return buildLegacyIconWithInformations(langType);
+    return TownGuiHolder.getService()
+        .getIconWithInformations(getID(), langType)
+        .exceptionally(e -> {
+          LOGGER.warn("TownGuiService.getIconWithInformations failed: " + e.getMessage());
+          return null;
+        })
+        .join();
   }
   @Override
   public int getHierarchyRank() {
@@ -455,7 +400,7 @@ public class TownData extends TerritoryData {
   public void addPlayerJoinRequest(Player player) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
     EventManager.getInstance().callEvent(new PlayerJoinTownRequestInternalEvent(tanPlayer, this));
-    addPlayerJoinRequest(tanPlayer.getID());
+    recruitmentComponent.addPlayerJoinRequest(tanPlayer.getID());
   }
 
   /**
@@ -472,32 +417,32 @@ public class TownData extends TerritoryData {
         .get(player)
         .thenAccept(tanPlayer -> {
           EventManager.getInstance().callEvent(new PlayerJoinTownRequestInternalEvent(tanPlayer, this));
-          addPlayerJoinRequest(tanPlayer.getID());
+          recruitmentComponent.addPlayerJoinRequest(tanPlayer.getID());
         });
   }
   public void addPlayerJoinRequest(String playerUUID) {
-    this.playerJoinRequestSet.add(playerUUID);
+    recruitmentComponent.addPlayerJoinRequest(playerUUID);
   }
   public void removePlayerJoinRequest(String playerUUID) {
-    playerJoinRequestSet.remove(playerUUID);
+    recruitmentComponent.removePlayerJoinRequest(playerUUID);
   }
   public void removePlayerJoinRequest(Player player) {
-    removePlayerJoinRequest(player.getUniqueId().toString());
+    recruitmentComponent.removePlayerJoinRequest(player);
   }
   public boolean isPlayerAlreadyRequested(String playerUUID) {
-    return playerJoinRequestSet.contains(playerUUID);
+    return recruitmentComponent.isPlayerAlreadyRequested(playerUUID);
   }
   public boolean isPlayerAlreadyRequested(Player player) {
-    return isPlayerAlreadyRequested(player.getUniqueId().toString());
+    return recruitmentComponent.isPlayerAlreadyRequested(player);
   }
   public Set<String> getPlayerJoinRequestSet() {
-    return this.playerJoinRequestSet;
+    return recruitmentComponent.getPlayerJoinRequestSet();
   }
   public boolean isRecruiting() {
-    return isRecruiting;
+    return recruitmentComponent.isRecruiting();
   }
   public void swapRecruiting() {
-    this.isRecruiting = !this.isRecruiting;
+    recruitmentComponent.swapRecruiting();
   }
   protected CompletableFuture<Void> collectTaxesAsync() {
     Collection<ITanPlayer> tanPlayers = getITanPlayerList();
@@ -602,50 +547,25 @@ public class TownData extends TerritoryData {
    * @since 2.1.0
    */
   public CompletableFuture<Void> abstractClaimChunkAsync(Player player, Chunk chunk, boolean ignoreAdjacent) {
-    if (useNewClaimService()) {
-      try {
-        return ClaimHolder.getService()
-            .claimChunk(getID(), chunk)
-            .exceptionally(e -> {
-              LOGGER.warn("ClaimService.claimChunk failed, using legacy: " + e.getMessage());
-              return null;
-            })
-            .thenRun(() -> {}); // Ensure return type is CompletableFuture<Void>
-      } catch (Exception e) {
-        LOGGER.warn("ClaimService.claimChunk failed, using legacy: " + e.getMessage());
-      }
-    }
-    return CompletableFuture.runAsync(() -> claimChunkLegacy(chunk), Runnable::run);
-  }
-
-  private void claimChunkLegacy(Chunk chunk) {
-    removeFromBalance(getClaimCost());
-    NewClaimedChunkStorage.getInstance()
-        .unclaimChunkAndUpdate(NewClaimedChunkStorage.getInstance().get(chunk));
-    ClaimedChunk2 chunkClaimed =
-        NewClaimedChunkStorage.getInstance().claimTownChunk(chunk, getID());
-    if (getNumberOfClaimedChunk() == 1) {
-      setCapitalLocation(chunkClaimed.getVector2D());
-    }
+    return ClaimHolder.getService()
+        .claimChunk(getID(), chunk)
+        .exceptionally(e -> {
+          LOGGER.warn("ClaimService.claimChunk failed: " + e.getMessage());
+          return null;
+        })
+        .thenRun(() -> {});
   }
 
   @Override
   @Deprecated
   public void abstractClaimChunk(Player player, Chunk chunk, boolean ignoreAdjacent) {
-    // Route to new service if feature flag is enabled
-    if (useNewClaimService()) {
-      try {
-        ClaimHolder.getService()
-            .claimChunk(getID(), chunk)
-            .join();
-        return;
-      } catch (Exception e) {
-        LOGGER.warn("ClaimService.claimChunk failed, using legacy: " + e.getMessage());
-        // Fall through to legacy implementation
-      }
-    }
-    // Legacy implementation
-    claimChunkLegacy(chunk);
+    ClaimHolder.getService()
+        .claimChunk(getID(), chunk)
+        .exceptionally(e -> {
+          LOGGER.warn("ClaimService.claimChunk failed: " + e.getMessage());
+          return null;
+        })
+        .join();
   }
   public void setCapitalLocation(Vector2D vector2D) {
     capitalLocation = vector2D;
@@ -708,84 +628,11 @@ public class TownData extends TerritoryData {
    * @return CompletableFuture containing the list of GUI items for each member
    */
   public CompletableFuture<List<GuiItem>> getOrderedMemberListAsync(ITanPlayer tanPlayer) {
-    // Route to new service if feature flag is enabled
-    if (useNewGuiService()) {
-      try {
-        return TownGuiHolder.getService().getOrderedMemberList(getID(), tanPlayer);
-      } catch (Exception e) {
-        LOGGER.warn("TownGuiService.getOrderedMemberListAsync failed, using legacy: " + e.getMessage());
-        // Fall through to legacy implementation
-      }
-    }
-    // Legacy implementation
-    Player player = tanPlayer.getPlayer();
-    LangType langType = tanPlayer.getLang();
-    Collection<String> playerUUIDs = getOrderedPlayerIDListSync();
-
-    // Batch load all player data at once (more efficient than individual loads)
-    Map<String, ITanPlayer> playerMap = PlayerDataStorage.getInstance().getBatchSync(playerUUIDs);
-
-    // Build GUI items with cached player data
-    List<GuiItem> res = new ArrayList<>();
-    boolean canKick = doesPlayerHavePermission(tanPlayer, RolePermission.KICK_PLAYER);
-
-    for (String playerUUID : playerUUIDs) {
-      ITanPlayer playerIterateData = playerMap.get(playerUUID);
-      if (playerIterateData == null) continue;
-
-      OfflinePlayer playerIterate = Bukkit.getOfflinePlayer(UUID.fromString(playerUUID));
-      ItemStack playerHead =
-          HeadUtils.getPlayerHead(
-              playerIterate,
-              Lang.GUI_TOWN_MEMBER_DESC1.get(
-                  langType, playerIterateData.getTownRank().getColoredName()),
-              Lang.GUI_TOWN_MEMBER_DESC2.get(
-                  langType, StringUtil.formatMoney(org.leralix.tan.economy.EconomyUtil.getBalance(playerIterateData))),
-              canKick ? Lang.GUI_TOWN_MEMBER_DESC3.get(langType) : "");
-
-      GuiItem playerButton =
-          ItemBuilder.from(playerHead)
-              .asGuiItem(
-                  event -> {
-                    event.setCancelled(true);
-                    if (event.getClick() == ClickType.RIGHT) {
-                      // Kick action - synchronous (user interaction, acceptable blocking)
-                      TownData townData =
-                          TownDataStorage.getInstance().getSync(tanPlayer.getTownId());
-                      if (!doesPlayerHavePermission(tanPlayer, RolePermission.KICK_PLAYER)) {
-                        TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(langType));
-                        return;
-                      }
-                      if (townData
-                          .getRank(playerIterateData)
-                          .isSuperiorTo(townData.getRank(tanPlayer))) {
-                        TanChatUtils.message(
-                            player, Lang.PLAYER_NO_PERMISSION_RANK_DIFFERENCE.get(langType));
-                        return;
-                      }
-                      if (isLeader(playerIterateData)) {
-                        TanChatUtils.message(
-                            player, Lang.GUI_TOWN_MEMBER_CANT_KICK_LEADER.get(langType));
-                        return;
-                      }
-                      if (tanPlayer.getID().equals(playerIterateData.getID())) {
-                        TanChatUtils.message(
-                            player, Lang.GUI_TOWN_MEMBER_CANT_KICK_YOURSELF.get(langType));
-                        return;
-                      }
-                      ConfirmMenu.open(
-                          player,
-                          Lang.CONFIRM_PLAYER_KICKED.get(playerIterate.getName()),
-                          p -> {
-                            kickPlayer(playerIterate);
-                            openMainMenu(player);
-                          },
-                          p -> openMainMenu(player));
-                    }
-                  });
-      res.add(playerButton);
-    }
-    return CompletableFuture.completedFuture(res);
+    return TownGuiHolder.getService().getOrderedMemberList(getID(), tanPlayer)
+        .exceptionally(e -> {
+          LOGGER.warn("TownGuiService.getOrderedMemberList failed: " + e.getMessage());
+          return new ArrayList<>();
+        });
   }
   @Override
   protected void specificSetPlayerRank(ITanPlayer tanPlayer, int rankID) {
@@ -800,52 +647,19 @@ public class TownData extends TerritoryData {
     budget.addProfitLine(new PropertyCreationTaxLine(this));
   }
   public Map<String, PropertyData> getPropertyDataMap() {
-    // Thread-safe: ConcurrentHashMap initialized in field declaration
-    return this.propertyDataMap;
+    return propertyComponent.getPropertyDataMap();
   }
   public Collection<PropertyData> getProperties() {
-    return getPropertyDataMap().values();
+    return propertyComponent.getProperties();
   }
   public String nextPropertyID() {
-    if (getPropertyDataMap().isEmpty()) return "P0";
-    int maxID = -1;
-    for (PropertyData propertyData : getPropertyDataMap().values()) {
-      try {
-        String totalID = propertyData.getTotalID();
-        String[] parts = totalID.split("P");
-        if (parts.length > 1) {
-          int currentID = Integer.parseInt(parts[1]);
-          if (currentID > maxID) {
-            maxID = currentID;
-          }
-        }
-      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-        LOGGER.warn("Malformed property ID encountered: {}", propertyData.getTotalID());
-      }
-    }
-    return "P" + (maxID + 1);
-  }
-  private PropertyData createAndStoreProperty(Vector3D p1, Vector3D p2, Object owner) {
-    String propertyID = nextPropertyID();
-    String id = this.getID() + "_" + propertyID;
-    PropertyData newProperty;
-    if (owner instanceof TerritoryData) {
-      newProperty = new PropertyData(id, p1, p2, (TerritoryData) owner);
-    } else if (owner instanceof ITanPlayer) {
-      newProperty = new PropertyData(id, p1, p2, (ITanPlayer) owner);
-    } else {
-      throw new IllegalArgumentException("Unsupported owner type");
-    }
-    this.propertyDataMap.put(propertyID, newProperty);
-    return newProperty;
+    return propertyComponent.nextPropertyID();
   }
   public PropertyData registerNewProperty(Vector3D p1, Vector3D p2, TerritoryData owner) {
-    return createAndStoreProperty(p1, p2, owner);
+    return propertyComponent.registerNewProperty(p1, p2, owner);
   }
   public PropertyData registerNewProperty(Vector3D p1, Vector3D p2, ITanPlayer owner) {
-    PropertyData newProperty = createAndStoreProperty(p1, p2, owner);
-    owner.addProperty(newProperty);
-    return newProperty;
+    return propertyComponent.registerNewProperty(p1, p2, owner);
   }
   /**
    * Gets a property by its ID asynchronously.
@@ -859,29 +673,13 @@ public class TownData extends TerritoryData {
    * @since 2.1.0
    */
   public CompletableFuture<PropertyData> getPropertyAsync(String id) {
-    if (useNewPropertyService()) {
-      try {
-        return PropertyHolder.getService()
-            .getProperty(getID(), id)
-            .exceptionally(e -> {
-              LOGGER.warn("PropertyService.getProperty failed, using legacy: {}", e.getMessage());
-              return null;
-            })
-            .thenApply(result -> result != null ? result : getPropertyDataMap().get(id));
-      } catch (Exception e) {
-        LOGGER.warn("PropertyService.getProperty failed, using legacy: {}", e.getMessage());
-      }
-    }
-    return CompletableFuture.completedFuture(getPropertyDataMap().get(id));
+    return PropertyHolder.getService()
+        .getProperty(getID(), id)
+        .exceptionally(e -> { LOGGER.warn("PropertyService.getProperty failed: {}", e.getMessage()); return null; });
   }
 
   /**
    * Gets a property by its ID.
-   * <p>
-   * Uses {@link org.leralix.tan.domain.property.PropertyService} when the feature flag
-   * {@code development.use-new-property-service} is enabled. Falls back to legacy
-   * implementation on error or if disabled.
-   * </p>
    *
    * @param id The property ID (e.g., "P0", "P1")
    * @return The property, or null if not found
@@ -890,62 +688,30 @@ public class TownData extends TerritoryData {
    */
   @Deprecated
   public PropertyData getProperty(String id) {
-    if (useNewPropertyService()) {
-      try {
-        return PropertyHolder.getService()
-            .getProperty(getID(), id)
-            .join();
-      } catch (Exception e) {
-        LOGGER.warn("PropertyService.getProperty failed, using legacy: {}", e.getMessage());
-      }
-    }
-    return getPropertyDataMap().get(id);
+    return PropertyHolder.getService()
+        .getProperty(getID(), id)
+        .exceptionally(e -> { LOGGER.warn("PropertyService.getProperty failed: {}", e.getMessage()); return null; })
+        .join();
   }
 
   /**
    * Gets a property at a specific location asynchronously.
-   *
-   * <p>This is the non-blocking version of {@link #getProperty(Location)}. It returns a
-   * {@link CompletableFuture} and never blocks the calling thread, making it safe
-   * for Folia region threads.</p>
    *
    * @param location The location to search
    * @return CompletableFuture containing the property at the location, or null if not found
    * @since 2.1.0
    */
   public CompletableFuture<PropertyData> getPropertyAsync(Location location) {
-    if (useNewPropertyService()) {
-      try {
-        return PropertyHolder.getService()
-            .getPropertyAtLocation(getID(), location)
-            .exceptionally(e -> {
-              LOGGER.warn("PropertyService.getPropertyAtLocation failed, using legacy: {}", e.getMessage());
-              return null;
-            })
-            .thenApply(result -> result != null ? result : findPropertyAtLocationLegacy(location));
-      } catch (Exception e) {
-        LOGGER.warn("PropertyService.getPropertyAtLocation failed, using legacy: {}", e.getMessage());
-      }
-    }
-    return CompletableFuture.completedFuture(findPropertyAtLocationLegacy(location));
-  }
-
-  private PropertyData findPropertyAtLocationLegacy(Location location) {
-    for (PropertyData propertyData : getProperties()) {
-      if (propertyData.containsLocation(location)) {
-        return propertyData;
-      }
-    }
-    return null;
+    return PropertyHolder.getService()
+        .getPropertyAtLocation(getID(), location)
+        .exceptionally(e -> {
+          LOGGER.warn("PropertyService.getPropertyAtLocation failed: {}", e.getMessage());
+          return null;
+        });
   }
 
   /**
    * Gets a property at a specific location.
-   * <p>
-   * Uses {@link org.leralix.tan.domain.property.PropertyService} when the feature flag
-   * {@code development.use-new-property-service} is enabled. Falls back to legacy
-   * implementation on error or if disabled.
-   * </p>
    *
    * @param location The location to search
    * @return The property at the location, or null if not found
@@ -954,53 +720,30 @@ public class TownData extends TerritoryData {
    */
   @Deprecated
   public PropertyData getProperty(Location location) {
-    if (useNewPropertyService()) {
-      try {
-        return PropertyHolder.getService()
-            .getPropertyAtLocation(getID(), location)
-            .join();
-      } catch (Exception e) {
-        LOGGER.warn("PropertyService.getPropertyAtLocation failed, using legacy: {}", e.getMessage());
-      }
-    }
-    return findPropertyAtLocationLegacy(location);
+    return PropertyHolder.getService()
+        .getPropertyAtLocation(getID(), location)
+        .exceptionally(e -> {
+          LOGGER.warn("PropertyService.getPropertyAtLocation failed: {}", e.getMessage());
+          return null;
+        })
+        .join();
   }
   /**
    * Removes a property from the town asynchronously.
-   *
-   * <p>This is the non-blocking version of {@link #removeProperty(PropertyData)}.
-   * It returns a {@link CompletableFuture} and never blocks the calling thread,
-   * making it safe for Folia region threads.</p>
    *
    * @param propertyData The property to remove
    * @return CompletableFuture that completes when the property is removed
    * @since 2.1.0
    */
   public CompletableFuture<Void> removePropertyAsync(PropertyData propertyData) {
-    if (useNewPropertyService()) {
-      try {
-        return PropertyHolder.getService()
-            .removeProperty(getID(), propertyData)
-            .exceptionally(e -> {
-              LOGGER.warn("PropertyService.removeProperty failed, using legacy: {}", e.getMessage());
-              return null;
-            })
-            .thenRun(() -> this.propertyDataMap.remove(propertyData.getPropertyID()));
-      } catch (Exception e) {
-        LOGGER.warn("PropertyService.removeProperty failed, using legacy: {}", e.getMessage());
-      }
-    }
-    this.propertyDataMap.remove(propertyData.getPropertyID());
-    return CompletableFuture.completedFuture(null);
+    return PropertyHolder.getService()
+        .removeProperty(getID(), propertyData)
+        .exceptionally(e -> { LOGGER.warn("PropertyService.removeProperty failed: {}", e.getMessage()); return null; })
+        .thenRun(() -> propertyComponent.removeProperty(propertyData));
   }
 
   /**
    * Removes a property from the town.
-   * <p>
-   * Uses {@link org.leralix.tan.domain.property.PropertyService} when the feature flag
-   * {@code development.use-new-property-service} is enabled. Falls back to legacy
-   * implementation on error or if disabled.
-   * </p>
    *
    * @param propertyData The property to remove
    * @deprecated Use {@link #removePropertyAsync(PropertyData)} instead to avoid blocking Folia region threads
@@ -1008,17 +751,14 @@ public class TownData extends TerritoryData {
    */
   @Deprecated
   public void removeProperty(PropertyData propertyData) {
-    if (useNewPropertyService()) {
-      try {
-        PropertyHolder.getService()
-            .removeProperty(getID(), propertyData)
-            .join();
-        return;
-      } catch (Exception e) {
-        LOGGER.warn("PropertyService.removeProperty failed, using legacy: {}", e.getMessage());
-      }
-    }
-    this.propertyDataMap.remove(propertyData.getPropertyID());
+    PropertyHolder.getService()
+        .removeProperty(getID(), propertyData)
+        .exceptionally(e -> {
+          LOGGER.warn("PropertyService.removeProperty failed: {}", e.getMessage());
+          return null;
+        })
+        .thenRun(() -> propertyComponent.removeProperty(propertyData))
+        .join();
   }
   public String getTownTag() {
     if (this.townTag == null)
@@ -1074,20 +814,9 @@ public class TownData extends TerritoryData {
    * @since 2.1.0
    */
   public CompletableFuture<TownTier> getTownTierAsync() {
-    if (useNewEconomyService()) {
-      try {
-        return TownEconomyHolder.getService()
-            .getTownTier(getID())
-            .exceptionally(e -> {
-              LOGGER.warn("TownEconomyService.getTownTier failed, using legacy: " + e.getMessage());
-              return null;
-            })
-            .thenApply(result -> result != null ? result : getProgression().getCurrentTier());
-      } catch (Exception e) {
-        LOGGER.warn("TownEconomyService.getTownTier failed, using legacy: " + e.getMessage());
-      }
-    }
-    return CompletableFuture.completedFuture(getProgression().getCurrentTier());
+    return TownEconomyHolder.getService()
+        .getTownTier(getID())
+        .exceptionally(e -> { LOGGER.warn("TownEconomyService.getTownTier failed: " + e.getMessage()); return null; });
   }
 
   /**
@@ -1098,18 +827,10 @@ public class TownData extends TerritoryData {
    */
   @Deprecated
   public TownTier getTownTier() {
-    // Route to new service if feature flag is enabled
-    if (useNewEconomyService()) {
-      try {
-        return TownEconomyHolder.getService()
-            .getTownTier(getID())
-            .join();
-      } catch (Exception e) {
-        LOGGER.warn("TownEconomyService.getTownTier failed, using legacy: " + e.getMessage());
-      }
-    }
-    // Legacy implementation
-    return getProgression().getCurrentTier();
+    return TownEconomyHolder.getService()
+        .getTownTier(getID())
+        .exceptionally(e -> { LOGGER.warn("TownEconomyService.getTownTier failed: " + e.getMessage()); return null; })
+        .join();
   }
 
   /**
@@ -1167,20 +888,9 @@ public class TownData extends TerritoryData {
    * @since 2.1.0
    */
   public CompletableFuture<Long> getPrestigeBalanceAsync() {
-    if (useNewEconomyService()) {
-      try {
-        return TownEconomyHolder.getService()
-            .getPrestigeBalance(getID())
-            .exceptionally(e -> {
-              LOGGER.warn("TownEconomyService.getPrestigeBalance failed, using legacy: " + e.getMessage());
-              return null;
-            })
-            .thenApply(result -> result != null ? result : getPrestigePoints().currentBalance());
-      } catch (Exception e) {
-        LOGGER.warn("TownEconomyService.getPrestigeBalance failed, using legacy: " + e.getMessage());
-      }
-    }
-    return CompletableFuture.completedFuture(getPrestigePoints().currentBalance());
+    return TownEconomyHolder.getService()
+        .getPrestigeBalance(getID())
+        .exceptionally(e -> { LOGGER.warn("TownEconomyService.getPrestigeBalance failed: " + e.getMessage()); return null; });
   }
 
   /**
@@ -1191,18 +901,10 @@ public class TownData extends TerritoryData {
    */
   @Deprecated
   public long getPrestigeBalance() {
-    // Route to new service if feature flag is enabled
-    if (useNewEconomyService()) {
-      try {
-        return TownEconomyHolder.getService()
-            .getPrestigeBalance(getID())
-            .join();
-      } catch (Exception e) {
-        LOGGER.warn("TownEconomyService.getPrestigeBalance failed, using legacy: " + e.getMessage());
-      }
-    }
-    // Legacy implementation
-    return getPrestigePoints().currentBalance();
+    return TownEconomyHolder.getService()
+        .getPrestigeBalance(getID())
+        .exceptionally(e -> { LOGGER.warn("TownEconomyService.getPrestigeBalance failed: " + e.getMessage()); return null; })
+        .join();
   }
 
   // ===== END PRESTIGE SYSTEM =====
@@ -1301,17 +1003,25 @@ public class TownData extends TerritoryData {
     });
   }
   private void removeAllProperty() {
-    Iterator<PropertyData> iterator = getProperties().iterator();
-    while (iterator.hasNext()) {
-      PropertyData propertyData = iterator.next();
-      propertyData.delete();
-      iterator.remove();
-    }
+    propertyComponent.removeAllProperties();
   }
   @Override
   public void openMainMenu(Player player) {
     TownMenu.open(player, this);
   }
+
+  public boolean hasPurchasedUpgrade(String upgradeId) {
+    return purchasedUpgrades.contains(upgradeId);
+  }
+
+  public Set<String> getPurchasedUpgrades() {
+    return Collections.unmodifiableSet(purchasedUpgrades);
+  }
+
+  public void addPurchasedUpgrade(String upgradeId) {
+    purchasedUpgrades.add(upgradeId);
+  }
+
   @Override
   public boolean canHaveVassals() {
     return false;
@@ -1329,163 +1039,4 @@ public class TownData extends TerritoryData {
     return false;
   }
 
-  // ===== FEATURE FLAGS (Strangler Fig Pattern) =====
-
-  /**
-   * Checks if the new MemberService should be used for rank lookups.
-   * <p>
-   * This is a feature flag for the Strangler Fig pattern refactoring.
-   * When enabled, rank lookups use the new {@link MemberService} instead
-   * of the legacy {@link #getRankLegacy(ITanPlayer)} method.
-   * </p>
-   * <p>
-   * <b>Configuration:</b><br>
-   * Enable via config.yml: {@code development.use-new-member-service: true}
-   * </p>
-   * <p>
-   * <b>Default:</b> false (uses legacy implementation for safety)
-   * </p>
-   *
-   * @return true if the new service should be used, false for legacy code
-   * @see #getRank(ITanPlayer)
-   * @see #getRankLegacy(ITanPlayer)
-   * @see org.leralix.tan.domain.town.MemberService
-   * @since 0.16.0
-   */
-  private boolean useNewMemberService() {
-    return TownsAndNations.getPlugin()
-        .getConfig()
-        .getBoolean("development.use-new-member-service", false);
-  }
-
-  /**
-   * Checks if the new GUI service should be used.
-   * <p>
-   * <b>Feature Flag:</b> {@code development.use-new-gui-service}
-   * </p>
-   *
-   * @return true if the new GUI service is enabled
-   * @since 2.0.0
-   */
-  private boolean useNewGuiService() {
-    return TownsAndNations.getPlugin()
-        .getConfig()
-        .getBoolean("development.use-new-gui-service", false);
-  }
-
-  /**
-   * Checks if the new economy service should be used.
-   * <p>
-   * <b>Feature Flag:</b> {@code development.use-new-economy-service}
-   * </p>
-   *
-   * @return true if the new economy service is enabled
-   * @since 2.0.0
-   */
-  private boolean useNewEconomyService() {
-    return TownsAndNations.getPlugin()
-        .getConfig()
-        .getBoolean("development.use-new-economy-service", false);
-  }
-
-  /**
-   * Checks if the new property service should be used.
-   * <p>
-   * <b>Feature Flag:</b> {@code development.use-new-property-service}
-   * </p>
-   *
-   * @return true if the new property service is enabled
-   * @since 2.0.0
-   */
-  private boolean useNewPropertyService() {
-    return TownsAndNations.getPlugin()
-        .getConfig()
-        .getBoolean("development.use-new-property-service", false);
-  }
-
-  /**
-   * Checks if the new claim service should be used.
-   * <p>
-   * <b>Feature Flag:</b> {@code development.use-new-claim-service}
-   * </p>
-   *
-   * @return true if the new claim service is enabled
-   * @since 2.0.0
-   */
-  private boolean useNewClaimService() {
-    TownsAndNations plugin = TownsAndNations.getPlugin();
-    if (plugin == null) {
-      return false;
-    }
-    return plugin.getConfig()
-        .getBoolean("development.use-new-claim-service", false);
-  }
-
-  /**
-   * Checks if the new diplomacy service should be used.
-   * <p>
-   * <b>Feature Flag:</b> {@code development.use-new-diplomacy-service}
-   * </p>
-   *
-   * @return true if the new diplomacy service is enabled
-   * @since 2.0.0
-   */
-  private boolean useNewDiplomacyService() {
-    TownsAndNations plugin = TownsAndNations.getPlugin();
-    if (plugin == null) {
-      return false;
-    }
-    return plugin.getConfig()
-        .getBoolean("development.use-new-diplomacy-service", false);
-  }
-
-  /**
-   * Gets a player's rank using the new service-based architecture.
-   * <p>
-   * This method delegates to {@link MemberService} when the feature flag
-   * is enabled. Falls back to legacy implementation on error or if disabled.
-   * </p>
-   * <p>
-   * <b>Feature Flag:</b> {@code development.use-new-member-service}
-   * </p>
-   *
-   * @param tanPlayer The player to query
-   * @return the player's rank, or null if not found
-   * @since 0.16.0
-   */
-  private RankData getRankWithService(ITanPlayer tanPlayer) {
-    try {
-      return MemberHolder.getService()
-          .getRank(this.getID(), tanPlayer)
-          .exceptionally(throwable -> {
-            LOGGER.warn("MemberService.getRank failed, falling back to legacy", throwable);
-            return getRankLegacy(tanPlayer);
-          })
-          .join();
-    } catch (Exception e) {
-      LOGGER.warn("MemberService.getRank failed with exception, falling back to legacy", e);
-      return getRankLegacy(tanPlayer);
-    }
-  }
-
-  /**
-   * Legacy implementation of rank lookup.
-   * <p>
-   * This is the original implementation preserved for rollback safety.
-   * It uses the TerritoryData.getRank(int) method.
-   * </p>
-   * <p>
-   * <b>Deprecated:</b> This method will be removed once the new service
-   * is proven stable. Use {@link #getRankWithService(ITanPlayer)} instead.
-   * </p>
-   *
-   * @param tanPlayer The player to query
-   * @return the player's rank, or null if not found
-   * @deprecated Use getRankWithService instead (to be fully async)
-   * @since 0.16.0
-   */
-  @Deprecated
-  private RankData getRankLegacy(ITanPlayer tanPlayer) {
-    return getRank(tanPlayer.getTownRankID());
-  }
 }

@@ -1,6 +1,5 @@
 package org.leralix.tan.dataclass;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -9,13 +8,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.leralix.tan.dataclass.player.PlayerWarComponent;
 import org.leralix.tan.dataclass.territory.RegionData;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.dataclass.territory.TownData;
 import org.leralix.tan.enums.TownRelation;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
-import org.leralix.tan.storage.CurrentAttacksStorage;
 import org.leralix.tan.storage.invitation.TownInviteDataStorage;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
@@ -32,8 +31,16 @@ public class PlayerData implements ITanPlayer {
   private Integer regionRankID;
   private List<String> propertiesListID;
   private List<String> attackInvolvedIn;
+  private transient PlayerWarComponent warComponent;
   private LangType lang;
   private TimeZoneEnum timeZone;
+
+  private PlayerWarComponent warComponent() {
+    if (warComponent == null) {
+      warComponent = new PlayerWarComponent(this, getAttackInvolvedIn());
+    }
+    return warComponent;
+  }
 
   // Database tracking fields (v2.0)
   private String ipAddress;
@@ -316,41 +323,16 @@ public class PlayerData implements ITanPlayer {
     return attackInvolvedIn;
   }
   public void addWar(CurrentAttack currentAttacks) {
-    if (getAttackInvolvedIn().contains(currentAttacks.getAttackData().getID())) {
-      return;
-    }
-    getAttackInvolvedIn().add(currentAttacks.getAttackData().getID());
+    warComponent().addWar(currentAttacks);
   }
   public void updateCurrentAttack() {
-    Iterator<String> iterator = getAttackInvolvedIn().iterator();
-    while (iterator.hasNext()) {
-      String attackID = iterator.next();
-      CurrentAttack currentAttack = CurrentAttacksStorage.get(attackID);
-      if (currentAttack == null || !currentAttack.containsPlayer(this)) {
-        iterator.remove();
-      } else {
-        currentAttack.addPlayer(this);
-      }
-    }
+    warComponent().updateCurrentAttack();
   }
   public boolean isAtWarWith(TerritoryData territoryData) {
-    if (territoryData == null) {
-      return false;
-    }
-    for (String attackID : getAttackInvolvedIn()) {
-      CurrentAttack currentAttack = CurrentAttacksStorage.get(attackID);
-      if (currentAttack == null) {
-        getAttackInvolvedIn().remove(attackID);
-        continue;
-      }
-      if (currentAttack.getAttackData().getDefendingTerritories().contains(territoryData)) {
-        return true;
-      }
-    }
-    return false;
+    return warComponent().isAtWarWith(territoryData);
   }
   public void removeWar(@NotNull CurrentAttack currentAttacks) {
-    getAttackInvolvedIn().remove(currentAttacks.getAttackData().getID());
+    warComponent().removeWar(currentAttacks);
   }
   @Override
   public CompletableFuture<TownRelation> getRelationWithPlayer(Player otherPlayer) {
