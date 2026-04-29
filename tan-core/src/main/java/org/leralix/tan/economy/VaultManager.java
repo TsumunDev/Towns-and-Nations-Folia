@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import org.leralix.tan.TownsAndNations;
+import org.leralix.tan.utils.FoliaScheduler;
 import org.leralix.tan.utils.constants.Constants;
 public class VaultManager {
   private static final Logger LOGGER = Logger.getLogger(VaultManager.class.getName());
@@ -25,7 +26,7 @@ public class VaultManager {
 
     // Priority 2: Try to hook Vault economy (ZEssentials, Essentials, etc.)
     // Deferred with retries — ZEssentials may register after CocoNation onEnable
-    Bukkit.getScheduler().runTaskLater(TownsAndNations.getPlugin(), () -> setupVaultWithRetry(5), 1L);
+    FoliaScheduler.runTaskLater(TownsAndNations.getPlugin(), () -> setupVaultWithRetry(5), 1L);
   }
 
   private static void setupVaultWithRetry(int attemptsLeft) {
@@ -45,7 +46,7 @@ public class VaultManager {
 
     if (attemptsLeft > 0) {
       LOGGER.warning("[CocoNation] Economy provider not found, retrying in 1 tick... (" + attemptsLeft + " attempts left)");
-      Bukkit.getScheduler().runTaskLater(TownsAndNations.getPlugin(), () -> setupVaultWithRetry(attemptsLeft - 1), 1L);
+      FoliaScheduler.runTaskLater(TownsAndNations.getPlugin(), () -> setupVaultWithRetry(attemptsLeft - 1), 1L);
     } else {
       LOGGER.severe("[CocoNation] No Vault economy provider found after all retries! Is ZEssentials running?");
       LOGGER.severe("[CocoNation] Falling back to standalone economy. Town purchases may not work with external money.");
