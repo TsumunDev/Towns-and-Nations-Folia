@@ -25,7 +25,7 @@ dependencies:
       join-classpath: true
     Vault:
       load: BEFORE
-      required: false
+      required: true
       join-classpath: true
     zEssentials:
       load: BEFORE
