@@ -84,8 +84,15 @@ public class TownData extends TerritoryData {
   private static final Logger LOGGER = LoggerFactory.getLogger(TownData.class);
   private String uuidLeader;
   private String townTag;
-  private final TownRecruitmentComponent recruitmentComponent;
-  private final TownPropertyComponent propertyComponent;
+  // Gson-serialized data fields (must stay on TownData for deserialization compatibility)
+  private Map<String, PropertyData> propertyDataMap = new ConcurrentHashMap<>();
+  private boolean isRecruiting;
+  private HashSet<String> playerJoinRequestSet = new HashSet<>();
+
+  // Transient components — lazy-initialized, operate on TownData fields by reference
+  private transient TownRecruitmentComponent recruitmentComponent;
+  private transient TownPropertyComponent propertyComponent;
+
   private TeleportationPosition teleportationPosition;
   private final HashSet<String> townPlayerListId;
   private Vector2D capitalLocation;
@@ -93,11 +100,26 @@ public class TownData extends TerritoryData {
   private org.leralix.tan.domain.prestige.model.PrestigePoints prestigePoints;
   private final Set<String> purchasedUpgrades = ConcurrentHashMap.newKeySet();
 
+  private TownRecruitmentComponent getRecruitmentComponent() {
+    if (recruitmentComponent == null) {
+      recruitmentComponent = new TownRecruitmentComponent(this, isRecruiting, playerJoinRequestSet);
+    }
+    return recruitmentComponent;
+  }
+
+  private TownPropertyComponent getPropertyComponent() {
+    if (propertyComponent == null) {
+      propertyComponent = new TownPropertyComponent(getID(), propertyDataMap);
+    }
+    return propertyComponent;
+  }
+
   public TownData(String townId, String townName, ITanPlayer leader) {
     super(townId, townName, leader);
-    this.recruitmentComponent = new TownRecruitmentComponent(this);
+    this.isRecruiting = false;
+    this.playerJoinRequestSet = new HashSet<>();
     this.townPlayerListId = new HashSet<>();
-    this.propertyComponent = new TownPropertyComponent(townId);
+    this.propertyDataMap = new ConcurrentHashMap<>();
     if (leader != null) {
       this.uuidLeader = leader.getID();
       addPlayer(leader);
@@ -400,7 +422,7 @@ public class TownData extends TerritoryData {
   public void addPlayerJoinRequest(Player player) {
     ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
     EventManager.getInstance().callEvent(new PlayerJoinTownRequestInternalEvent(tanPlayer, this));
-    recruitmentComponent.addPlayerJoinRequest(tanPlayer.getID());
+    getRecruitmentComponent().addPlayerJoinRequest(tanPlayer.getID());
   }
 
   /**
@@ -417,32 +439,32 @@ public class TownData extends TerritoryData {
         .get(player)
         .thenAccept(tanPlayer -> {
           EventManager.getInstance().callEvent(new PlayerJoinTownRequestInternalEvent(tanPlayer, this));
-          recruitmentComponent.addPlayerJoinRequest(tanPlayer.getID());
+          getRecruitmentComponent().addPlayerJoinRequest(tanPlayer.getID());
         });
   }
   public void addPlayerJoinRequest(String playerUUID) {
-    recruitmentComponent.addPlayerJoinRequest(playerUUID);
+    getRecruitmentComponent().addPlayerJoinRequest(playerUUID);
   }
   public void removePlayerJoinRequest(String playerUUID) {
-    recruitmentComponent.removePlayerJoinRequest(playerUUID);
+    getRecruitmentComponent().removePlayerJoinRequest(playerUUID);
   }
   public void removePlayerJoinRequest(Player player) {
-    recruitmentComponent.removePlayerJoinRequest(player);
+    getRecruitmentComponent().removePlayerJoinRequest(player);
   }
   public boolean isPlayerAlreadyRequested(String playerUUID) {
-    return recruitmentComponent.isPlayerAlreadyRequested(playerUUID);
+    return getRecruitmentComponent().isPlayerAlreadyRequested(playerUUID);
   }
   public boolean isPlayerAlreadyRequested(Player player) {
-    return recruitmentComponent.isPlayerAlreadyRequested(player);
+    return getRecruitmentComponent().isPlayerAlreadyRequested(player);
   }
   public Set<String> getPlayerJoinRequestSet() {
-    return recruitmentComponent.getPlayerJoinRequestSet();
+    return this.playerJoinRequestSet;
   }
   public boolean isRecruiting() {
-    return recruitmentComponent.isRecruiting();
+    return this.isRecruiting;
   }
   public void swapRecruiting() {
-    recruitmentComponent.swapRecruiting();
+    this.isRecruiting = !this.isRecruiting;
   }
   protected CompletableFuture<Void> collectTaxesAsync() {
     Collection<ITanPlayer> tanPlayers = getITanPlayerList();
@@ -647,19 +669,19 @@ public class TownData extends TerritoryData {
     budget.addProfitLine(new PropertyCreationTaxLine(this));
   }
   public Map<String, PropertyData> getPropertyDataMap() {
-    return propertyComponent.getPropertyDataMap();
+    return getPropertyComponent().getPropertyDataMap();
   }
   public Collection<PropertyData> getProperties() {
-    return propertyComponent.getProperties();
+    return getPropertyComponent().getProperties();
   }
   public String nextPropertyID() {
-    return propertyComponent.nextPropertyID();
+    return getPropertyComponent().nextPropertyID();
   }
   public PropertyData registerNewProperty(Vector3D p1, Vector3D p2, TerritoryData owner) {
-    return propertyComponent.registerNewProperty(p1, p2, owner);
+    return getPropertyComponent().registerNewProperty(p1, p2, owner);
   }
   public PropertyData registerNewProperty(Vector3D p1, Vector3D p2, ITanPlayer owner) {
-    return propertyComponent.registerNewProperty(p1, p2, owner);
+    return getPropertyComponent().registerNewProperty(p1, p2, owner);
   }
   /**
    * Gets a property by its ID asynchronously.
@@ -739,7 +761,7 @@ public class TownData extends TerritoryData {
     return PropertyHolder.getService()
         .removeProperty(getID(), propertyData)
         .exceptionally(e -> { LOGGER.warn("PropertyService.removeProperty failed: {}", e.getMessage()); return null; })
-        .thenRun(() -> propertyComponent.removeProperty(propertyData));
+        .thenRun(() -> getPropertyComponent().removeProperty(propertyData));
   }
 
   /**
@@ -757,7 +779,7 @@ public class TownData extends TerritoryData {
           LOGGER.warn("PropertyService.removeProperty failed: {}", e.getMessage());
           return null;
         })
-        .thenRun(() -> propertyComponent.removeProperty(propertyData))
+        .thenRun(() -> getPropertyComponent().removeProperty(propertyData))
         .join();
   }
   public String getTownTag() {
@@ -1003,7 +1025,7 @@ public class TownData extends TerritoryData {
     });
   }
   private void removeAllProperty() {
-    propertyComponent.removeAllProperties();
+    getPropertyComponent().removeAllProperties();
   }
   @Override
   public void openMainMenu(Player player) {
