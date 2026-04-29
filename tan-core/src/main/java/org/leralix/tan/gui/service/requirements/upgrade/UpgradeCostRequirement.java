@@ -13,6 +13,6 @@ public class UpgradeCostRequirement extends UpgradeRequirement {
   @Override
   public IndividualRequirement toIndividualRequirement(
       Upgrade upgrade, TerritoryData territoryData, Player player) {
-    return new AmountForUpgradeRequirement(territoryData, player, upgrade, costs);
+    return new AmountForUpgradeRequirement(territoryData, upgrade, costs);
   }
 }
