@@ -488,38 +488,26 @@ public abstract class TerritoryData {
   public Collection<DiplomacyProposal> getAllDiplomacyProposal() {
     return getDiplomacyProposals().values();
   }
-  public CompletableFuture<TownRelation> getWorstRelationWith(ITanPlayer player) {
-    return player
-        .getAllTerritoriesPlayerIsIn()
-        .thenApply(
-            territoryDataList -> {
-              TownRelation worstRelation = null;
-              for (TerritoryData territoryData : territoryDataList) {
-                TownRelation actualRelation = getRelationWith(territoryData);
-                if (worstRelation == null || worstRelation.isSuperiorTo(actualRelation)) {
-                  worstRelation = actualRelation;
-                }
-              }
-              if (worstRelation == null) {
-                return TownRelation.NEUTRAL;
-              }
-              return worstRelation;
-            });
-  }
-  public TownRelation getWorstRelationWithSync(ITanPlayer player) {
-    TownRelation worstRelation = null;
-    List<TerritoryData> territoryDataList = player.getAllTerritoriesPlayerIsInSync();
-    if (territoryDataList == null) return TownRelation.NEUTRAL;
-    for (TerritoryData territoryData : territoryDataList) {
-      TownRelation actualRelation = getRelationWith(territoryData);
-      if (worstRelation == null || worstRelation.isSuperiorTo(actualRelation)) {
-        worstRelation = actualRelation;
+  private TownRelation computeWorstRelation(Collection<TerritoryData> territories) {
+    TownRelation worst = null;
+    for (TerritoryData td : territories) {
+      TownRelation actual = getRelationWith(td);
+      if (worst == null || worst.isSuperiorTo(actual)) {
+        worst = actual;
       }
     }
-    if (worstRelation == null) {
-      return TownRelation.NEUTRAL;
-    }
-    return worstRelation;
+    return worst != null ? worst : TownRelation.NEUTRAL;
+  }
+
+  public CompletableFuture<TownRelation> getWorstRelationWith(ITanPlayer player) {
+    return player.getAllTerritoriesPlayerIsIn()
+        .thenApply(this::computeWorstRelation);
+  }
+
+  public TownRelation getWorstRelationWithSync(ITanPlayer player) {
+    List<TerritoryData> list = player.getAllTerritoriesPlayerIsInSync();
+    if (list == null) return TownRelation.NEUTRAL;
+    return computeWorstRelation(list);
   }
   public TownRelation getRelationWith(TerritoryData territoryData) {
     return getRelationWith(territoryData.getID());
@@ -784,10 +772,8 @@ public abstract class TerritoryData {
   public int getNumberOfVassalisationProposals() {
     return getOverlordsProposals().size();
   }
-  public List<GuiItem> getAllSubjugationProposals(Player player, int page) {
+  private List<GuiItem> buildSubjugationProposalItems(Player player, LangType langType) {
     ArrayList<GuiItem> proposals = new ArrayList<>();
-    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
-    LangType langType = tanPlayer.getLang();
     for (String proposalID : getOverlordsProposals()) {
       TerritoryData proposalOverlord = TerritoryUtil.getTerritory(proposalID);
       if (proposalOverlord == null) continue;
@@ -824,57 +810,15 @@ public abstract class TerritoryData {
     return proposals;
   }
 
-  /**
-   * Gets vassalization proposals asynchronously for GUI display.
-   *
-   * <p>This method loads player data asynchronously to avoid blocking the GUI rendering thread.
-   * Use this version when building proposal GUIs in async contexts.</p>
-   *
-   * @param player The player viewing the proposals
-   * @param page The page number (for pagination)
-   * @return CompletableFuture containing the list of GUI items for each proposal
-   */
+  public List<GuiItem> getAllSubjugationProposals(Player player, int page) {
+    ITanPlayer tanPlayer = PlayerDataStorage.getInstance().getSync(player);
+    return buildSubjugationProposalItems(player, tanPlayer.getLang());
+  }
+
   public CompletableFuture<List<GuiItem>> getAllSubjugationProposalsAsync(Player player, int page) {
     return PlayerDataStorage.getInstance()
         .get(player)
-        .thenApply(tanPlayer -> {
-          ArrayList<GuiItem> proposals = new ArrayList<>();
-          LangType langType = tanPlayer.getLang();
-          for (String proposalID : getOverlordsProposals()) {
-            TerritoryData proposalOverlord = TerritoryUtil.getTerritory(proposalID);
-            if (proposalOverlord == null) continue;
-            ItemStack territoryItem = proposalOverlord.getIconWithInformations(langType);
-            HeadUtils.addLore(
-                territoryItem,
-                Lang.GUI_GENERIC_LEFT_CLICK_TO_ACCEPT.get(langType),
-                Lang.RIGHT_CLICK_TO_REFUSE.get(langType));
-            GuiItem acceptInvitation =
-                ItemBuilder.from(territoryItem)
-                    .asGuiItem(
-                        event -> {
-                          event.setCancelled(true);
-                          if (event.isLeftClick()) {
-                            if (haveOverlord()) {
-                              TanChatUtils.message(
-                                  player,
-                                  Lang.TOWN_ALREADY_HAVE_OVERLORD.get(langType),
-                                  SoundEnum.NOT_ALLOWED);
-                              return;
-                            }
-                            setOverlord(proposalOverlord);
-                            broadcastMessageWithSound(
-                                Lang.ACCEPTED_VASSALISATION_PROPOSAL_ALL.get(
-                                    this.getBaseColoredName(), proposalOverlord.getName()),
-                                SoundEnum.GOOD);
-                          }
-                          if (event.isRightClick()) {
-                            getOverlordsProposals().remove(proposalID);
-                          }
-                        });
-            proposals.add(acceptInvitation);
-          }
-          return proposals;
-        });
+        .thenApply(tanPlayer -> buildSubjugationProposalItems(player, tanPlayer.getLang()));
   }
   protected Map<Integer, RankData> getRanks() {
     return getRankService().getRanks();
