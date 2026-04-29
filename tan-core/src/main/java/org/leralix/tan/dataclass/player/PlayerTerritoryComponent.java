@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.leralix.tan.dataclass.ITanPlayer;
 import org.leralix.tan.dataclass.RankData;
+import org.leralix.tan.dataclass.territory.NationData;
 import org.leralix.tan.dataclass.territory.RegionData;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.dataclass.territory.TownData;
@@ -230,16 +231,24 @@ public class PlayerTerritoryComponent {
     public CompletableFuture<List<TerritoryData>> getAllTerritoriesPlayerIsIn() {
         CompletableFuture<TownData> townFuture = getTown();
         CompletableFuture<RegionData> regionFuture = getRegion();
-        return CompletableFuture.allOf(townFuture, regionFuture)
+        CompletableFuture<NationData> nationFuture = getRegion().thenCompose(region -> {
+            if (region == null) return CompletableFuture.completedFuture(null);
+            return region.getNationAsync();
+        });
+        return CompletableFuture.allOf(townFuture, regionFuture, nationFuture)
                 .thenApply(v -> {
                     List<TerritoryData> territories = new ArrayList<>();
                     TownData town = townFuture.join();
                     RegionData region = regionFuture.join();
+                    NationData nation = nationFuture.join();
                     if (town != null) {
                         territories.add(town);
                     }
                     if (region != null) {
                         territories.add(region);
+                    }
+                    if (nation != null) {
+                        territories.add(nation);
                     }
                     return territories;
                 });

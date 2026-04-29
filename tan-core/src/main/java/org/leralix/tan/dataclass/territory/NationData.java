@@ -50,22 +50,10 @@ public class NationData extends TerritoryData {
   private String capitalID;
   private final List<String> regionsInNation;
 
-  public NationData(String id, String name, ITanPlayer owner) {
+  public NationData(String id, String name, ITanPlayer owner, String capitalID) {
     super(id, name, owner);
-    RegionData ownerRegion = getOwnerRegion(owner);
-    this.capitalID = ownerRegion != null ? ownerRegion.getID() : null;
+    this.capitalID = capitalID;
     this.regionsInNation = new ArrayList<>();
-  }
-
-  private static RegionData getOwnerRegion(ITanPlayer owner) {
-    if (owner == null) return null;
-    try {
-      var town = owner.getTownSync();
-      if (town != null && town.haveOverlord()) {
-        return town.getRegionSync();
-      }
-    } catch (Exception ignored) {}
-    return null;
   }
 
   @Override
@@ -142,12 +130,12 @@ public class NationData extends TerritoryData {
     if (meta != null) {
       org.leralix.tan.utils.text.ComponentUtil.setDisplayName(meta, "§6" + getName());
       List<String> lore = new ArrayList<>();
-      lore.add(Lang.GUI_REGION_INFO_DESC0.get(langType, getDescription()));
-      lore.add(Lang.GUI_REGION_INFO_DESC1.get(langType, getCapital().getName()));
-      lore.add(Lang.GUI_REGION_INFO_DESC2.get(langType, Integer.toString(getNumberOfRegionsIn())));
-      lore.add(Lang.GUI_REGION_INFO_DESC3.get(langType, Integer.toString(getTotalPlayerCount())));
+      lore.add(Lang.GUI_NATION_INFO_DESC0.get(langType, getDescription()));
+      lore.add(Lang.GUI_NATION_INFO_DESC1.get(langType, getCapital().getName()));
+      lore.add(Lang.GUI_NATION_INFO_DESC2.get(langType, Integer.toString(getNumberOfRegionsIn())));
+      lore.add(Lang.GUI_NATION_INFO_DESC3.get(langType, Integer.toString(getTotalPlayerCount())));
       lore.add(
-          Lang.GUI_REGION_INFO_DESC5.get(langType, Integer.toString(getNumberOfClaimedChunk())));
+          Lang.GUI_NATION_INFO_DESC5.get(langType, Integer.toString(getNumberOfClaimedChunk())));
       org.leralix.tan.utils.text.ComponentUtil.setLore(meta, lore);
       icon.setItemMeta(meta);
     }
@@ -187,6 +175,10 @@ public class NationData extends TerritoryData {
   }
 
   // ── Capital ──
+
+  public String getCapitalID() {
+    return capitalID;
+  }
 
   public void setCapital(String regionID) {
     this.capitalID = regionID;
@@ -277,7 +269,6 @@ public class NationData extends TerritoryData {
 
   @Override
   public RankData getRank(ITanPlayer tanPlayer) {
-    if (!tanPlayer.hasRegion()) return null;
     Integer rankID = tanPlayer.getNationRankID();
     return rankID != null ? getRank(rankID) : null;
   }
@@ -306,7 +297,7 @@ public class NationData extends TerritoryData {
       ItemStack playerHead =
           HeadUtils.getPlayerHead(
               playerIterate,
-              Lang.GUI_TOWN_MEMBER_DESC1.get(langType, "Nation Member"));
+              Lang.GUI_NATION_MEMBER_DESC1.get(langType, playerIterateData.getNationRankID() != null ? getRank(playerIterateData.getNationRankID()).getColoredName() : ""));
       GuiItem playerButton =
           ItemBuilder.from(playerHead).asGuiItem(event -> event.setCancelled(true));
       res.add(playerButton);
@@ -365,7 +356,6 @@ public class NationData extends TerritoryData {
 
   @Override
   public void openMainMenu(Player player) {
-    // NationMenu will be implemented in Phase 4
-    player.sendMessage("§cNation menu not yet implemented");
+    org.leralix.tan.gui.user.territory.NationMenu.open(player, this);
   }
 }

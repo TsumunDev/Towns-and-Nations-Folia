@@ -291,6 +291,38 @@ RegionAllowNonAdjacentChunks: false
 notifyEnemyEnterRegion: true
 
 ########################
+##       Nations      ##
+########################
+
+#Enable Nation creation
+EnableNation: true
+
+#The cost of creating a Nation
+nationCost: 25000
+
+#The max size of names
+NationNameSize: 45
+NationDescSize: 55
+
+#Cost of renaming a nation:
+ChangeNationNameCost: 500
+
+#Cost of a nation claim
+CostOfNationChunk: 10
+
+#The upkeep cost of a nation claim
+NationChunkUpkeepCost: 0.5
+
+#Allow non-adjacent chunks to be claimed
+NationAllowNonAdjacentChunks: false
+
+#Notify if a player from an enemy nation enters
+notifyEnemyEnterNation: true
+
+#Nation max level
+NationMaxLevel: 8
+
+########################
 ##       Towns        ##
 ########################
 
@@ -318,7 +350,6 @@ notifyEnemyEnterTown: true
 
 #Town max level
 TownMaxLevel: 10
-NationMaxLevel: 8
 
 ########################
 ##      Relations     ##
@@ -399,6 +430,12 @@ events:
     BROADCAST: "ALL"
     NEWSLETTER: "ALL"
   REGION_DELETED:
+    BROADCAST: "ALL"
+    NEWSLETTER: "ALL"
+  NATION_CREATED:
+    BROADCAST: "ALL"
+    NEWSLETTER: "ALL"
+  NATION_DELETED:
     BROADCAST: "ALL"
     NEWSLETTER: "ALL"
   TERRITORY_VASSAL_PROPOSAL:
