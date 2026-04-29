@@ -176,10 +176,11 @@ public class TownsAndNations extends JavaPlugin {
         new DailyTasks(Constants.getDailyTaskHour(), Constants.getDailyTaskMinute());
     dailyTasks.scheduleMidnightTask();
     enableEventList();
-    getCommand("coconation").setExecutor(new PlayerCommandManager());
-    getCommand("coconationadmin").setExecutor(new AdminCommandManager());
-    getCommand("coconationdebug").setExecutor(new DebugCommandManager());
-    getCommand("coconationserver").setExecutor(new ServerCommandManager());
+    org.bukkit.command.CommandMap commandMap = Bukkit.getCommandMap();
+    registerPluginCommand(commandMap, "coconation", new PlayerCommandManager());
+    registerPluginCommand(commandMap, "coconationadmin", new AdminCommandManager());
+    registerPluginCommand(commandMap, "coconationdebug", new DebugCommandManager());
+    registerPluginCommand(commandMap, "coconationserver", new ServerCommandManager());
     LOGGER.info("[TaN] -Registering Dependencies");
     if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
       LOGGER.info("[TaN] -Registering PlaceholderAPI");
@@ -263,6 +264,25 @@ public class TownsAndNations extends JavaPlugin {
     }
     LOGGER.info("[TaN] Plugin disabled");
   }
+  @SuppressWarnings("deprecation")
+  private void registerPluginCommand(org.bukkit.command.CommandMap commandMap, String name, org.bukkit.command.CommandExecutor executor) {
+    org.bukkit.command.Command cmd = new org.bukkit.command.Command(name) {
+      @Override
+      public boolean execute(@org.jetbrains.annotations.NotNull org.bukkit.command.CommandSender sender, @org.jetbrains.annotations.NotNull String label, @org.jetbrains.annotations.NotNull String[] args) {
+        return executor.onCommand(sender, this, label, args);
+      }
+      @Override
+      public @org.jetbrains.annotations.NotNull java.util.List<String> tabComplete(@org.jetbrains.annotations.NotNull org.bukkit.command.CommandSender sender, @org.jetbrains.annotations.NotNull String alias, @org.jetbrains.annotations.NotNull String[] args) {
+        if (executor instanceof org.bukkit.command.TabCompleter tab) {
+          var result = tab.onTabComplete(sender, this, alias, args);
+          return result != null ? result : super.tabComplete(sender, alias, args);
+        }
+        return super.tabComplete(sender, alias, args);
+      }
+    };
+    commandMap.register(name, this.getName().toLowerCase(), cmd);
+  }
+
   private void enableEventList() {
     PluginManager pluginManager = getServer().getPluginManager();
     pluginManager.registerEvents(new ChatListener(), this);
