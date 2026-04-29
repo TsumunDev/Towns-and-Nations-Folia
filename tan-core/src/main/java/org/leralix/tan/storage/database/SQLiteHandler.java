@@ -118,6 +118,34 @@ public class SQLiteHandler extends DatabaseHandler {
     }
   }
   @Override
+  public int getNextNationId() {
+    String selectSQL = "SELECT meta_value FROM tan_metadata WHERE meta_key = 'next_nation_id'";
+    try (Connection conn = dataSource.getConnection();
+        PreparedStatement ps = conn.prepareStatement(selectSQL)) {
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return Integer.parseInt(rs.getString("meta_value"));
+        }
+      }
+    } catch (SQLException | NumberFormatException e) {
+    }
+    return 1;
+  }
+  @Override
+  public void updateNextNationId(int newId) {
+    String upsertSQL =
+        "INSERT OR REPLACE INTO tan_metadata (meta_key, meta_value) VALUES ('next_nation_id', ?)";
+    try (Connection conn = dataSource.getConnection();
+        PreparedStatement ps = conn.prepareStatement(upsertSQL)) {
+      ps.setString(1, String.valueOf(newId));
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      TownsAndNations.getPlugin()
+          .getLogger()
+          .severe("Error updating next_nation_id: " + e.getMessage());
+    }
+  }
+  @Override
   public void close() {
     if (hikariDataSource != null && !hikariDataSource.isClosed()) {
       TownsAndNations.getPlugin().getLogger().info("[TaN] Closing SQLite connection pool...");

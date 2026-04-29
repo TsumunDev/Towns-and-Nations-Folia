@@ -144,6 +144,8 @@ public abstract class DatabaseHandler {
   public abstract void updateNextTownId(int newId);
   public abstract int getNextRegionId();
   public abstract void updateNextRegionId(int newId);
+  public abstract int getNextNationId();
+  public abstract void updateNextNationId(int newId);
   public DataSource getDataSource() {
     return dataSource;
   }

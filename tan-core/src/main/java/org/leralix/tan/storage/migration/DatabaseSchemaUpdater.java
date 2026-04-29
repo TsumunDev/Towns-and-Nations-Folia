@@ -144,6 +144,9 @@ public class DatabaseSchemaUpdater {
       migrateColumn(stmt, "tan_regions", "members_count", "INT DEFAULT 0", isMySQL);
       migrateColumn(stmt, "tan_regions", "creation_date", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", isMySQL);
 
+      // ===== ccn_nations (new table for Nation data) =====
+      createNationsTable(stmt, isMySQL);
+
       // Create indexes
       createIndexes(stmt, isMySQL);
 
@@ -152,6 +155,32 @@ public class DatabaseSchemaUpdater {
     } catch (SQLException e) {
       throw new RuntimeException("Failed to add new columns", e);
     }
+  }
+
+  /**
+   * Create the ccn_nations table if it doesn't exist.
+   */
+  private static void createNationsTable(Statement stmt, boolean isMySQL) throws SQLException {
+    String createTableSQL =
+        """
+        CREATE TABLE IF NOT EXISTS ccn_nations (
+            id VARCHAR(255) PRIMARY KEY,
+            nation_name VARCHAR(255),
+            leader_uuid VARCHAR(255),
+            leader_name VARCHAR(255),
+            capital_id VARCHAR(255),
+            members_count INT DEFAULT 0,
+            data TEXT NOT NULL
+        )
+        """;
+    stmt.execute(createTableSQL);
+    logger.info("[DB Migration] Created ccn_nations table");
+
+    // Create indexes
+    stmt.execute("CREATE INDEX IF NOT EXISTS idx_nation_name ON ccn_nations (nation_name)");
+    stmt.execute("CREATE INDEX IF NOT EXISTS idx_nation_leader_uuid ON ccn_nations (leader_uuid)");
+    stmt.execute("CREATE INDEX IF NOT EXISTS idx_nation_capital_id ON ccn_nations (capital_id)");
+    logger.info("[DB Migration] Created indexes on ccn_nations");
   }
 
   /**

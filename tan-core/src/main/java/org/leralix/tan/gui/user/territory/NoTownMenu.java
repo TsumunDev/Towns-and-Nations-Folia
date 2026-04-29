@@ -13,6 +13,7 @@ import org.leralix.tan.listeners.chat.PlayerChatListenerStorage;
 import org.leralix.tan.listeners.chat.events.CreateTown;
 import org.leralix.tan.storage.stored.PlayerDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
+import org.leralix.tan.economy.EconomyUtil;
 import org.leralix.tan.utils.constants.Constants;
 import org.leralix.tan.utils.gui.GuiUtil;
 import org.leralix.tan.utils.text.TanChatUtils;
@@ -51,7 +52,7 @@ public class NoTownMenu extends BasicGui {
                 TanChatUtils.message(player, Lang.PLAYER_NO_PERMISSION.get(tanPlayer), NOT_ALLOWED);
                 return;
               }
-              double playerMoney = tanPlayer.getBalance();
+              double playerMoney = EconomyUtil.getBalance(tanPlayer);
               if (playerMoney < townPrice) {
                 TanChatUtils.message(
                     player,

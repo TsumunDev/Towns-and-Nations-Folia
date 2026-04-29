@@ -24,6 +24,9 @@ public class PlayerCommandManager extends CommandManager {
     addSubCommand(new PrestigeCommand());
     addSubCommand(new UpgradeCommand());
 
+    // Nation commands
+    addSubCommand(new NationCommand());
+
     addSubCommand(new MainHelpCommand(this));
   }
   @Override

@@ -1,5 +1,6 @@
 package org.leralix.tan.utils.gameplay;
 import org.leralix.tan.dataclass.territory.TerritoryData;
+import org.leralix.tan.storage.stored.NationDataStorage;
 import org.leralix.tan.storage.stored.RegionDataStorage;
 import org.leralix.tan.storage.stored.TownDataStorage;
 public class TerritoryUtil {
@@ -12,6 +13,9 @@ public class TerritoryUtil {
     }
     if (id.startsWith("R")) {
       return RegionDataStorage.getInstance().getSync(id);
+    }
+    if (id.startsWith("N")) {
+      return NationDataStorage.getInstance().getSync(id);
     }
     return null;
   }

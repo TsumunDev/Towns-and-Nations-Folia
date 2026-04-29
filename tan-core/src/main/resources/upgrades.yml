@@ -48,6 +48,12 @@ regionLevelExpression:
   flatMultiplier: 20.0
   base: 200.0
 
+nationLevelExpression:
+  LevelExpression: '(squareMultiplier * level ^ 2 + flatMultiplier * level + base) * 10'
+  squareMultiplier: 12.0
+  flatMultiplier: 30.0
+  base: 400.0
+
 upgrades:
 
   CITY_HALL: #"City hall" tag is already unlocked when creating a town. Use it to store default values of yur towns
@@ -199,3 +205,64 @@ region_upgrades:
       CHUNK_CAP: infinity
       CHUNK_COST: 5
       AUTHORIZED_BIOMES: [ 'ALL' ]
+
+
+nation_upgrades:
+
+  CITY_HALL:
+    col: -1
+    row: -1
+    itemCode: 'BELL'
+    maxLevel: 1
+    cost: [ '0' ]
+    prerequisites:
+      TOWN_LEVEL: 0
+    benefits:
+      CHUNK_CAP: infinity
+      CHUNK_COST: 0
+      AUTHORIZED_BIOMES: [ 'ALL' ]
+
+  DIPLOMACY_HALL:
+    col: 0
+    row: 0
+    itemCode: 'GOLDEN_APPLE'
+    maxLevel: 5
+    cost: [ '1000', '1500', '2000', '2800', '3500' ]
+    prerequisites:
+      TOWN_LEVEL: 1
+    benefits:
+      CHUNK_CAP: +200
+
+  WAR_COUNCIL:
+    col: 1
+    row: 0
+    itemCode: 'IRON_SWORD'
+    maxLevel: 5
+    cost: [ '1200', '1800', '2400', '3200', '4000' ]
+    prerequisites:
+      TOWN_LEVEL: 1
+    benefits:
+      PLAYER_CAP: +50
+
+  TREASURY_FORTRESS:
+    col: 2
+    row: 0
+    itemCode: 'GOLD_BLOCK'
+    maxLevel: 5
+    cost: [ '800', '1200', '1600', '2200', '3000' ]
+    prerequisites:
+      TOWN_LEVEL: 1
+    benefits:
+      CHUNK_CAP: +150
+      PLAYER_CAP: +25
+
+  ADMINISTRATION:
+    col: 0
+    row: 1
+    itemCode: 'WRITABLE_BOOK'
+    maxLevel: 8
+    cost: [ '500', '750', '1000', '1300', '1700', '2200', '2800', '3500' ]
+    prerequisites:
+      TOWN_LEVEL: 2
+    benefits:
+      CHUNK_CAP: +100

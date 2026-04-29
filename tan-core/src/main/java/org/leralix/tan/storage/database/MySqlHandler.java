@@ -140,6 +140,29 @@ public class MySqlHandler extends DatabaseHandler {
           .severe("Error updating next_region_id: " + e.getMessage());
     }
   }
+  @Override
+  public int getNextNationId() {
+    if (shouldRefreshMetadataCache()) {
+      refreshMetadataCache();
+    }
+    String value = metadataCache.get("next_nation_id");
+    return value != null ? Integer.parseInt(value) : 1;
+  }
+  @Override
+  public void updateNextNationId(int newId) {
+    String upsertSQL =
+        "INSERT INTO tan_metadata (meta_key, meta_value) VALUES ('next_nation_id', ?) ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value)";
+    try (Connection conn = dataSource.getConnection();
+        PreparedStatement ps = conn.prepareStatement(upsertSQL)) {
+      ps.setString(1, String.valueOf(newId));
+      ps.executeUpdate();
+      metadataCache.put("next_nation_id", String.valueOf(newId));
+    } catch (SQLException e) {
+      TownsAndNations.getPlugin()
+          .getLogger()
+          .severe("Error updating next_nation_id: " + e.getMessage());
+    }
+  }
   private static boolean shouldRefreshMetadataCache() {
     return System.currentTimeMillis() - metadataCacheTime > METADATA_CACHE_TTL;
   }

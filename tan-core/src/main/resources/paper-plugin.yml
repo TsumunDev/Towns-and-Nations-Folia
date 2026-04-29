@@ -44,6 +44,7 @@ permissions:
       tan.base.commands.*: true
       tan.base.town.*: true
       tan.base.region.*: true
+      tan.base.nation.*: true
 
   tan.base.commands.*:
     description: All town-related permissions
@@ -102,6 +103,21 @@ permissions:
 
   tan.base.region.disband:
     description: Permission to disband a region
+    default: true
+
+  tan.base.nation.*:
+    description: All nation-related permissions
+    default: true
+    children:
+      tan.base.nation.create: true
+      tan.base.nation.disband: true
+
+  tan.base.nation.create:
+    description: Permission to create a nation
+    default: true
+
+  tan.base.nation.disband:
+    description: Permission to disband a nation
     default: true
 
   tan.admin.*:
