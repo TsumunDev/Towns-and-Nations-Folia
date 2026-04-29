@@ -53,10 +53,13 @@ import org.leralix.tan.utils.FoliaAsyncHelper;
 public class AsyncEconomyService {
 
   private static final Plugin PLUGIN = TownsAndNations.getPlugin();
-  private static final AbstractTanEcon ECON = EconomyUtil.getEconInstance();
 
   private AsyncEconomyService() {
     throw new IllegalStateException("Utility class");
+  }
+
+  private static AbstractTanEcon econ() {
+    return EconomyUtil.getEconInstance();
   }
 
   // ========== Query Operations ==========
@@ -79,7 +82,7 @@ public class AsyncEconomyService {
     UUID uuid = offlinePlayer.getUniqueId();
 
     return PlayerDataStorage.getInstance().get(uuid)
-        .thenApply(ECON::getBalance);
+        .thenApply(econ()::getBalance);
   }
 
   /**
@@ -100,7 +103,7 @@ public class AsyncEconomyService {
     UUID uuid = player.getUniqueId();
 
     return PlayerDataStorage.getInstance().get(uuid)
-        .thenApply(ECON::getBalance);
+        .thenApply(econ()::getBalance);
   }
 
   /**
@@ -113,7 +116,7 @@ public class AsyncEconomyService {
    * @return The balance
    */
   public static double getBalance(ITanPlayer tanPlayer) {
-    return ECON.getBalance(tanPlayer);
+    return econ().getBalance(tanPlayer);
   }
 
   // ========== Modification Operations ==========
@@ -138,7 +141,7 @@ public class AsyncEconomyService {
 
     return PlayerDataStorage.getInstance().get(uuid)
         .thenAccept(tanPlayer -> {
-          ECON.withdrawPlayer(tanPlayer, amount);
+          econ().withdrawPlayer(tanPlayer, amount);
         });
   }
 
@@ -162,8 +165,8 @@ public class AsyncEconomyService {
 
     return PlayerDataStorage.getInstance().get(uuid)
         .thenApply(tanPlayer -> {
-          ECON.withdrawPlayer(tanPlayer, amount);
-          return ECON.getBalance(tanPlayer);
+          econ().withdrawPlayer(tanPlayer, amount);
+          return econ().getBalance(tanPlayer);
         });
   }
 
@@ -174,7 +177,7 @@ public class AsyncEconomyService {
    * @param amount The amount to withdraw
    */
   public static void withdraw(ITanPlayer tanPlayer, double amount) {
-    ECON.withdrawPlayer(tanPlayer, amount);
+    econ().withdrawPlayer(tanPlayer, amount);
   }
 
   /**
@@ -197,7 +200,7 @@ public class AsyncEconomyService {
 
     return PlayerDataStorage.getInstance().get(uuid)
         .thenAccept(tanPlayer -> {
-          ECON.depositPlayer(tanPlayer, amount);
+          econ().depositPlayer(tanPlayer, amount);
         });
   }
 
@@ -221,8 +224,8 @@ public class AsyncEconomyService {
 
     return PlayerDataStorage.getInstance().get(uuid)
         .thenApply(tanPlayer -> {
-          ECON.depositPlayer(tanPlayer, amount);
-          return ECON.getBalance(tanPlayer);
+          econ().depositPlayer(tanPlayer, amount);
+          return econ().getBalance(tanPlayer);
         });
   }
 
@@ -233,7 +236,7 @@ public class AsyncEconomyService {
    * @param amount The amount to deposit
    */
   public static void deposit(ITanPlayer tanPlayer, double amount) {
-    ECON.depositPlayer(tanPlayer, amount);
+    econ().depositPlayer(tanPlayer, amount);
   }
 
   /**
@@ -253,11 +256,11 @@ public class AsyncEconomyService {
    */
   public static CompletableFuture<Void> setBalance(ITanPlayer tanPlayer, double amount) {
     return CompletableFuture.runAsync(() -> {
-      double currentBalance = ECON.getBalance(tanPlayer);
+      double currentBalance = econ().getBalance(tanPlayer);
       if (currentBalance > amount) {
-        ECON.withdrawPlayer(tanPlayer, currentBalance - amount);
+        econ().withdrawPlayer(tanPlayer, currentBalance - amount);
       } else if (currentBalance < amount) {
-        ECON.depositPlayer(tanPlayer, amount - currentBalance);
+        econ().depositPlayer(tanPlayer, amount - currentBalance);
       }
     });
   }
@@ -271,7 +274,7 @@ public class AsyncEconomyService {
    * @return Formatted string (e.g., "$100.00")
    */
   public static String formatMoney(double amount) {
-    return ECON.formatMoney(amount);
+    return econ().formatMoney(amount);
   }
 
   /**
@@ -280,7 +283,7 @@ public class AsyncEconomyService {
    * @return The currency icon (e.g., "$")
    */
   public static String getMoneyIcon() {
-    return ECON.getMoneyIcon();
+    return econ().getMoneyIcon();
   }
 
   /**
@@ -289,6 +292,6 @@ public class AsyncEconomyService {
    * @return true if standalone, false if using Vault
    */
   public static boolean isStandalone() {
-    return ECON instanceof org.leralix.tan.economy.TanEconomyStandalone;
+    return EconomyUtil.isStandalone();
   }
 }

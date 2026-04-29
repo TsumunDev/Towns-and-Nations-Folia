@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.leralix.tan.dataclass.ITanPlayer;
@@ -61,14 +62,14 @@ public class TanEconomyExternal extends AbstractTanEcon {
     private String getCurrencyName(String currencyId) {
         if (currencyId == null) {
             CurrencyConfig defaultCurrency = CurrencyConfig.getDefaultCurrency();
-            return defaultCurrency != null ? defaultCurrency.getZessentialsCurrency() : "default";
+            return defaultCurrency != null ? defaultCurrency.getZessentialsCurrency() : null;
         }
 
         CurrencyConfig currency = CurrencyConfig.getCurrency(currencyId);
         if (currency == null) {
             LOGGER.warning("[TAN-ECON] Currency not found: " + currencyId + ", using default");
             CurrencyConfig defaultCurrency = CurrencyConfig.getDefaultCurrency();
-            return defaultCurrency != null ? defaultCurrency.getZessentialsCurrency() : "default";
+            return defaultCurrency != null ? defaultCurrency.getZessentialsCurrency() : null;
         }
 
         return currency.getZessentialsCurrency();
@@ -84,19 +85,23 @@ public class TanEconomyExternal extends AbstractTanEcon {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
 
         if (useMultiCurrency && currencyId != null) {
-            try {
-                String currencyName = getCurrencyName(currencyId);
-                Double balance = (Double) getBalanceWithWorldMethod.invoke(
-                    externalEconomy,
-                    offlinePlayer,
-                    currencyName
-                );
-                LOGGER.fine("[TAN-ECON] getBalance(" + tanPlayer.getNameStored() +
-                           ", currency=" + currencyId + " -> " + currencyName + ") = " + balance);
-                return balance;
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                LOGGER.log(Level.WARNING,
-                    "[TAN-ECON] Failed to get balance with currency, falling back to default", e);
+            String currencyName = getCurrencyName(currencyId);
+            if (currencyName != null) {
+                try {
+                    Double balance = (Double) getBalanceWithWorldMethod.invoke(
+                        externalEconomy,
+                        offlinePlayer,
+                        currencyName
+                    );
+                    if (balance != null && balance >= 0) {
+                        LOGGER.fine("[TAN-ECON] getBalance(" + tanPlayer.getNameStored() +
+                                   ", currency=" + currencyId + " -> " + currencyName + ") = " + balance);
+                        return balance;
+                    }
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    LOGGER.log(Level.WARNING,
+                        "[TAN-ECON] Failed to get balance with currency, falling back to default", e);
+                }
             }
         }
 
@@ -122,24 +127,37 @@ public class TanEconomyExternal extends AbstractTanEcon {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
 
         if (useMultiCurrency && currencyId != null) {
-            try {
-                String currencyName = getCurrencyName(currencyId);
-                withdrawWithWorldMethod.invoke(
-                    externalEconomy,
-                    offlinePlayer,
-                    amount,
-                    currencyName
-                );
-                LOGGER.fine("[TAN-ECON] withdraw(" + tanPlayer.getNameStored() +
-                           ", amount=" + amount + ", currency=" + currencyId + " -> " + currencyName + ")");
-                return;
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                LOGGER.log(Level.WARNING,
-                    "[TAN-ECON] Failed to withdraw with currency, falling back to default", e);
+            String currencyName = getCurrencyName(currencyId);
+            if (currencyName != null) {
+                try {
+                    Object result = withdrawWithWorldMethod.invoke(
+                        externalEconomy,
+                        offlinePlayer,
+                        amount,
+                        currencyName
+                    );
+                    if (result instanceof EconomyResponse response && response.transactionSuccess()) {
+                        LOGGER.fine("[TAN-ECON] withdraw(" + tanPlayer.getNameStored() +
+                                   ", amount=" + amount + ", currency=" + currencyId + " -> " + currencyName + ")");
+                        return;
+                    } else if (result instanceof EconomyResponse response) {
+                        LOGGER.warning("[TAN-ECON] Multi-currency withdraw failed: " + response.errorMessage +
+                                  ". Falling back to standard Vault call.");
+                    }
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    LOGGER.log(Level.WARNING,
+                        "[TAN-ECON] Multi-currency withdraw exception, falling back to default", e);
+                }
             }
         }
 
-        externalEconomy.withdrawPlayer(offlinePlayer, amount);
+        EconomyResponse response = externalEconomy.withdrawPlayer(offlinePlayer, amount);
+        if (!response.transactionSuccess()) {
+            LOGGER.severe("[TAN-ECON] Withdraw FAILED for " + tanPlayer.getNameStored() +
+                         " amount=" + amount + " error=" + response.errorMessage);
+        } else {
+            LOGGER.fine("[TAN-ECON] withdraw(" + tanPlayer.getNameStored() + ", amount=" + amount + ") OK");
+        }
     }
 
     @Override
@@ -152,24 +170,37 @@ public class TanEconomyExternal extends AbstractTanEcon {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
 
         if (useMultiCurrency && currencyId != null) {
-            try {
-                String currencyName = getCurrencyName(currencyId);
-                depositWithWorldMethod.invoke(
-                    externalEconomy,
-                    offlinePlayer,
-                    amount,
-                    currencyName
-                );
-                LOGGER.fine("[TAN-ECON] deposit(" + tanPlayer.getNameStored() +
-                           ", amount=" + amount + ", currency=" + currencyId + " -> " + currencyName + ")");
-                return;
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                LOGGER.log(Level.WARNING,
-                    "[TAN-ECON] Failed to deposit with currency, falling back to default", e);
+            String currencyName = getCurrencyName(currencyId);
+            if (currencyName != null) {
+                try {
+                    Object result = depositWithWorldMethod.invoke(
+                        externalEconomy,
+                        offlinePlayer,
+                        amount,
+                        currencyName
+                    );
+                    if (result instanceof EconomyResponse response && response.transactionSuccess()) {
+                        LOGGER.fine("[TAN-ECON] deposit(" + tanPlayer.getNameStored() +
+                                   ", amount=" + amount + ", currency=" + currencyId + " -> " + currencyName + ")");
+                        return;
+                    } else if (result instanceof EconomyResponse response) {
+                        LOGGER.warning("[TAN-ECON] Multi-currency deposit failed: " + response.errorMessage +
+                                  ". Falling back to standard Vault call.");
+                    }
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    LOGGER.log(Level.WARNING,
+                        "[TAN-ECON] Multi-currency deposit exception, falling back to default", e);
+                }
             }
         }
 
-        externalEconomy.depositPlayer(offlinePlayer, amount);
+        EconomyResponse response = externalEconomy.depositPlayer(offlinePlayer, amount);
+        if (!response.transactionSuccess()) {
+            LOGGER.severe("[TAN-ECON] Deposit FAILED for " + tanPlayer.getNameStored() +
+                         " amount=" + amount + " error=" + response.errorMessage);
+        } else {
+            LOGGER.fine("[TAN-ECON] deposit(" + tanPlayer.getNameStored() + ", amount=" + amount + ") OK");
+        }
     }
 
     @Override
