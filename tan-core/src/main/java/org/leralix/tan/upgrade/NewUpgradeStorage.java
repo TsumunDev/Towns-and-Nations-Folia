@@ -5,6 +5,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.leralix.lib.utils.config.ConfigTag;
 import org.leralix.lib.utils.config.ConfigUtil;
+import org.leralix.tan.dataclass.territory.NationData;
 import org.leralix.tan.dataclass.territory.RegionData;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.gui.service.requirements.model.*;
@@ -20,12 +21,15 @@ import org.leralix.tan.upgrade.rewards.percentage.LandmarkBonus;
 public class NewUpgradeStorage {
   private final Map<String, Upgrade> townUpgrades;
   private final Map<String, Upgrade> regionUpgrades;
+  private final Map<String, Upgrade> nationUpgrades;
   public NewUpgradeStorage() {
     this.townUpgrades = new HashMap<>();
     this.regionUpgrades = new HashMap<>();
+    this.nationUpgrades = new HashMap<>();
     FileConfiguration upgradeConfig = ConfigUtil.getCustomConfig(ConfigTag.UPGRADE);
     setUpUpgrades(townUpgrades, upgradeConfig.getConfigurationSection("upgrades"));
     setUpUpgrades(regionUpgrades, upgradeConfig.getConfigurationSection("region_upgrades"));
+    setUpUpgrades(nationUpgrades, upgradeConfig.getConfigurationSection("nation_upgrades"));
   }
   private void setUpUpgrades(
       Map<String, Upgrade> upgradeMap, ConfigurationSection upgradesSection) {
@@ -131,11 +135,15 @@ public class NewUpgradeStorage {
     if (territoryData instanceof RegionData) {
       return regionUpgrades.get(name);
     }
+    if (territoryData instanceof NationData) {
+      return nationUpgrades.get(name);
+    }
     return townUpgrades.get(name);
   }
   public Collection<Upgrade> getUpgrades(StatsType statsType) {
     return switch (statsType) {
       case REGION -> regionUpgrades.values();
+      case NATION -> nationUpgrades.values();
       case TOWN -> townUpgrades.values();
       case null -> townUpgrades.values();
     };
@@ -143,6 +151,9 @@ public class NewUpgradeStorage {
   public Collection<Upgrade> getUpgrades(TerritoryData territoryData) {
     if (territoryData instanceof RegionData) {
       return getUpgrades(StatsType.REGION);
+    }
+    if (territoryData instanceof NationData) {
+      return getUpgrades(StatsType.NATION);
     }
     return getUpgrades(StatsType.TOWN);
   }

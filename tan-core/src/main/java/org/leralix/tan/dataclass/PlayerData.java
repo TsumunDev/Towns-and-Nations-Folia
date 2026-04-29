@@ -28,6 +28,7 @@ public class PlayerData implements ITanPlayer {
   private String TownId;
   private Integer townRankID;
   private Integer regionRankID;
+  private Integer nationRankID;
   private List<String> propertiesListID;
   private List<String> attackInvolvedIn;
   private LangType lang;
@@ -74,6 +75,7 @@ public class PlayerData implements ITanPlayer {
     this.TownId = null;
     this.townRankID = null;
     this.regionRankID = null;
+    this.nationRankID = null;
     this.propertiesListID = new ArrayList<>();
     this.attackInvolvedIn = new ArrayList<>();
     this.ipAddress = player.getAddress() != null ? player.getAddress().getAddress().getHostAddress() : null;
@@ -215,6 +217,14 @@ public class PlayerData implements ITanPlayer {
 
   public void setRegionRankID(Integer rankID) {
     this.regionRankID = rankID;
+  }
+
+  public Integer getNationRankID() {
+    return this.nationRankID;
+  }
+
+  public void setNationRankID(Integer rankID) {
+    this.nationRankID = rankID;
   }
 
   // ── Territory delegation ──

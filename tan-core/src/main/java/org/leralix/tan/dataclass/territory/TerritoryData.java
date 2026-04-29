@@ -1099,6 +1099,8 @@ public abstract class TerritoryData {
     if (this.upgradesStatus == null) {
       if (this instanceof TownData) {
         this.upgradesStatus = new TerritoryStats(StatsType.TOWN);
+      } else if (this instanceof NationData) {
+        this.upgradesStatus = new TerritoryStats(StatsType.NATION);
       } else {
         this.upgradesStatus = new TerritoryStats(StatsType.REGION);
       }

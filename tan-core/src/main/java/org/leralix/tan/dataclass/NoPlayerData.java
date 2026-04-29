@@ -156,6 +156,13 @@ public class NoPlayerData implements ITanPlayer {
   public void setRegionRankID(Integer rankID) {
   }
   @Override
+  public Integer getNationRankID() {
+    return 0;
+  }
+  @Override
+  public void setNationRankID(Integer rankID) {
+  }
+  @Override
   public Integer getRankID(TerritoryData territoryData) {
     return 0;
   }

@@ -141,6 +141,8 @@ public interface ITanPlayer {
   TownRelation getRelationWithPlayerSync(ITanPlayer otherPlayer);
   Integer getRegionRankID();
   void setRegionRankID(Integer rankID);
+  Integer getNationRankID();
+  void setNationRankID(Integer rankID);
   Integer getRankID(TerritoryData territoryData);
   RankData getRank(TerritoryData territoryData);
   CompletableFuture<List<TerritoryData>> getAllTerritoriesPlayerIsIn();

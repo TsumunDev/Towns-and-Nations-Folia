@@ -203,6 +203,8 @@ public class PlayerTerritoryComponent {
             return player.getTownRankID();
         } else if (territoryData instanceof RegionData) {
             return getRegionRankID();
+        } else if (territoryData instanceof org.leralix.tan.dataclass.territory.NationData) {
+            return player.getNationRankID();
         }
         return null;
     }
@@ -217,6 +219,9 @@ public class PlayerTerritoryComponent {
         }
         if (territoryData instanceof RegionData) {
             player.setRegionRankID(defaultRankID);
+        }
+        if (territoryData instanceof org.leralix.tan.dataclass.territory.NationData) {
+            player.setNationRankID(defaultRankID);
         }
     }
 

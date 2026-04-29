@@ -184,6 +184,24 @@ public class RegionData extends TerritoryData {
   public boolean haveOverlord() {
     return nationID != null;
   }
+
+  public String getNationID() {
+    return nationID;
+  }
+
+  public void setNationID(String nationID) {
+    this.nationID = nationID;
+  }
+
+  public CompletableFuture<NationData> getNationAsync() {
+    if (nationID == null) return CompletableFuture.completedFuture(null);
+    return org.leralix.tan.storage.stored.NationDataStorage.getInstance().get(nationID);
+  }
+
+  public NationData getNationSync() {
+    if (nationID == null) return null;
+    return org.leralix.tan.storage.stored.NationDataStorage.getInstance().getSync(nationID);
+  }
   @Override
   public void abstractClaimChunk(Player player, Chunk chunk, boolean ignoreAdjacent) {
     removeFromBalance(getClaimCost());

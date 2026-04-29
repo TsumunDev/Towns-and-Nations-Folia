@@ -7,7 +7,6 @@ import org.bukkit.inventory.ItemStack;
 import org.leralix.lib.data.SoundEnum;
 import org.leralix.lib.utils.SoundUtil;
 import org.leralix.tan.dataclass.newhistory.TransactionHistoryEnum;
-import org.leralix.tan.dataclass.territory.RegionData;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.enums.RolePermission;
 import org.leralix.tan.gui.user.territory.EconomicHistoryMenu;
@@ -23,11 +22,11 @@ import org.leralix.tan.utils.text.TanChatUtils;
 public class SubjectTaxLine extends ProfitLine {
   double actualTaxes = 0;
   double missingTaxes = 0;
-  public SubjectTaxLine(RegionData regionData) {
-    super(regionData);
-    double tax = regionData.getTax();
-    for (TerritoryData townData : regionData.getVassals()) {
-      if (townData.getBalance() > tax) actualTaxes += tax;
+  public SubjectTaxLine(TerritoryData territoryData) {
+    super(territoryData);
+    double tax = territoryData.getTax();
+    for (TerritoryData subjectData : territoryData.getVassals()) {
+      if (subjectData.getBalance() > tax) actualTaxes += tax;
       else missingTaxes += tax;
     }
   }
