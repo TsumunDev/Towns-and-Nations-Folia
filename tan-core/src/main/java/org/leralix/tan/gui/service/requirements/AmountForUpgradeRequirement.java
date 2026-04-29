@@ -1,17 +1,21 @@
 package org.leralix.tan.gui.service.requirements;
 import java.util.List;
+import org.bukkit.entity.Player;
 import org.leralix.tan.dataclass.territory.TerritoryData;
+import org.leralix.tan.economy.EconomyUtil;
 import org.leralix.tan.lang.Lang;
 import org.leralix.tan.lang.LangType;
 import org.leralix.tan.upgrade.Upgrade;
 import org.leralix.tan.utils.NumberUtils;
 public class AmountForUpgradeRequirement extends IndividualRequirementWithCost {
   private final TerritoryData territoryData;
+  private final Player player;
   private final Upgrade upgrade;
   private final List<Integer> costs;
   public AmountForUpgradeRequirement(
-      TerritoryData territoryData, Upgrade upgrade, List<Integer> costs) {
+      TerritoryData territoryData, Player player, Upgrade upgrade, List<Integer> costs) {
     this.territoryData = territoryData;
+    this.player = player;
     this.upgrade = upgrade;
     this.costs = costs;
   }
@@ -26,7 +30,7 @@ public class AmountForUpgradeRequirement extends IndividualRequirementWithCost {
   }
   @Override
   public boolean isInvalid() {
-    return territoryData.getBalance() < getCost();
+    return EconomyUtil.getBalance(player) < getCost();
   }
   public double getCost() {
     int level = territoryData.getNewLevel().getLevel(upgrade);
@@ -35,6 +39,6 @@ public class AmountForUpgradeRequirement extends IndividualRequirementWithCost {
   }
   @Override
   public void actionDone() {
-    territoryData.removeFromBalance(getCost());
+    EconomyUtil.removeFromBalance(player, getCost());
   }
 }
