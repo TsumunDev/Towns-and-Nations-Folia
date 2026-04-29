@@ -11,6 +11,7 @@ import org.leralix.lib.data.SoundEnum;
 import org.leralix.lib.utils.config.ConfigTag;
 import org.leralix.lib.utils.config.ConfigUtil;
 import org.leralix.tan.dataclass.ITanPlayer;
+import org.leralix.tan.dataclass.territory.NationData;
 import org.leralix.tan.dataclass.territory.TerritoryData;
 import org.leralix.tan.gui.BasicGui;
 import org.leralix.tan.gui.cosmetic.IconKey;
@@ -31,8 +32,15 @@ public class UpgradeMenu extends BasicGui {
     super(player, tanPlayer, Lang.HEADER_TOWN_UPGRADE.get(player), 6);
     this.territoryData = territoryData;
     this.scrollIndex = 0;
-    this.maxLevel = ConfigUtil.getCustomConfig(ConfigTag.MAIN).getInt("TownMaxLevel", 10);
+    this.maxLevel = getMaxLevelForTerritory(territoryData);
     open();
+  }
+  private static int getMaxLevelForTerritory(TerritoryData territoryData) {
+    var config = ConfigUtil.getCustomConfig(ConfigTag.MAIN);
+    if (territoryData instanceof NationData) {
+      return config.getInt("NationMaxLevel", 8);
+    }
+    return config.getInt("TownMaxLevel", 10);
   }
   public static void open(Player player, TerritoryData territoryData) {
     PlayerDataStorage.getInstance()

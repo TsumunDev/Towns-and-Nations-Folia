@@ -318,6 +318,7 @@ notifyEnemyEnterTown: true
 
 #Town max level
 TownMaxLevel: 10
+NationMaxLevel: 8
 
 ########################
 ##      Relations     ##
