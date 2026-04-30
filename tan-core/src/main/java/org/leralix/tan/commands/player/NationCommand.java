@@ -84,50 +84,53 @@ public class NationCommand extends PlayerSubCommand {
       TanChatUtils.message(player, Lang.NATION_CREATE_MUST_BE_REGION_LEADER.get(lang));
       return;
     }
-    RegionData region = tanPlayer.getRegionSync();
-    if (region == null) {
-      TanChatUtils.message(player, Lang.NATION_CREATE_MUST_BE_REGION_LEADER.get(lang));
-      return;
-    }
-    if (!region.isLeader(tanPlayer)) {
-      TanChatUtils.message(player, Lang.NATION_CREATE_MUST_BE_REGION_LEADER.get(lang));
-      return;
-    }
-    if (region.haveOverlord()) {
-      TanChatUtils.message(player, Lang.NATION_CREATE_REGION_ALREADY_HAS_NATION.get(lang));
-      return;
-    }
-    double nationCost = TownsAndNations.getPlugin().getConfig().getDouble("nationCost", 25000);
-    if (region.getBalance() < nationCost) {
-      TanChatUtils.message(
-          player,
-          Lang.TERRITORY_NOT_ENOUGH_MONEY.get(
-              lang, region.getColoredName(), Double.toString(nationCost - region.getBalance())));
-      return;
-    }
-    if (NationDataStorage.getInstance().isNameUsed(nationName)) {
-      TanChatUtils.message(player, Lang.NAME_ALREADY_USED.get(lang));
-      return;
-    }
-    int maxNameSize = TownsAndNations.getPlugin().getConfig().getInt("NationNameSize", 45);
-    if (nationName.length() > maxNameSize) {
-      TanChatUtils.message(player, Lang.NAME_ALREADY_USED.get(lang));
-      return;
-    }
-    region.removeFromBalance(nationCost);
-    NationDataStorage.getInstance()
-        .createNewNation(nationName, region, tanPlayer)
-        .thenAccept(
-            nation -> {
-              FoliaScheduler.runTask(
-                  TownsAndNations.getPlugin(),
-                  () -> {
-                    TanChatUtils.message(
-                        player,
-                        Lang.NATION_CREATED_SUCCESS.get(lang, nation.getName()),
-                        org.leralix.lib.data.SoundEnum.GOOD);
-                  });
-            });
+    tanPlayer.getRegion().thenAccept(region -> {
+      FoliaScheduler.runTask(TownsAndNations.getPlugin(), () -> {
+        if (region == null) {
+          TanChatUtils.message(player, Lang.NATION_CREATE_MUST_BE_REGION_LEADER.get(lang));
+          return;
+        }
+        if (!region.isLeader(tanPlayer)) {
+          TanChatUtils.message(player, Lang.NATION_CREATE_MUST_BE_REGION_LEADER.get(lang));
+          return;
+        }
+        if (region.haveOverlord()) {
+          TanChatUtils.message(player, Lang.NATION_CREATE_REGION_ALREADY_HAS_NATION.get(lang));
+          return;
+        }
+        double nationCost = TownsAndNations.getPlugin().getConfig().getDouble("nationCost", 25000);
+        if (region.getBalance() < nationCost) {
+          TanChatUtils.message(
+              player,
+              Lang.TERRITORY_NOT_ENOUGH_MONEY.get(
+                  lang, region.getColoredName(), Double.toString(nationCost - region.getBalance())));
+          return;
+        }
+        if (NationDataStorage.getInstance().isNameUsed(nationName)) {
+          TanChatUtils.message(player, Lang.NAME_ALREADY_USED.get(lang));
+          return;
+        }
+        int maxNameSize = TownsAndNations.getPlugin().getConfig().getInt("NationNameSize", 45);
+        if (nationName.length() > maxNameSize) {
+          TanChatUtils.message(player, Lang.MESSAGE_TOO_LONG.get(lang, Integer.toString(maxNameSize)));
+          return;
+        }
+        region.removeFromBalance(nationCost);
+        NationDataStorage.getInstance()
+            .createNewNation(nationName, region, tanPlayer)
+            .thenAccept(
+                nation -> {
+                  FoliaScheduler.runTask(
+                      TownsAndNations.getPlugin(),
+                      () -> {
+                        TanChatUtils.message(
+                            player,
+                            Lang.NATION_CREATED_SUCCESS.get(lang, nation.getName()),
+                            org.leralix.lib.data.SoundEnum.GOOD);
+                      });
+                });
+      });
+    });
   }
   private void handleDisband(Player player, ITanPlayer tanPlayer, LangType lang) {
     if (!player.hasPermission("tan.base.nation.disband")) {
@@ -138,31 +141,34 @@ public class NationCommand extends PlayerSubCommand {
       TanChatUtils.message(player, Lang.NATION_DISBAND_MUST_BE_NATION_LEADER.get(lang));
       return;
     }
-    RegionData region = tanPlayer.getRegionSync();
-    if (region == null || !region.haveOverlord()) {
-      TanChatUtils.message(player, Lang.NATION_DISBAND_MUST_BE_NATION_LEADER.get(lang));
-      return;
-    }
-    var nationOpt = region.getOverlord();
-    if (nationOpt.isEmpty() || !(nationOpt.get() instanceof org.leralix.tan.dataclass.territory.NationData nation)) {
-      TanChatUtils.message(player, Lang.NATION_DISBAND_MUST_BE_NATION_LEADER.get(lang));
-      return;
-    }
-    if (!nation.isLeader(tanPlayer)) {
-      TanChatUtils.message(player, Lang.NATION_DISBAND_MUST_BE_NATION_LEADER.get(lang));
-      return;
-    }
-    nation.delete()
-        .thenRun(
-            () -> {
-              FoliaScheduler.runTask(
-                  TownsAndNations.getPlugin(),
-                  () -> {
-                    TanChatUtils.message(
-                        player,
-                        Lang.NATION_DISBANDED_SUCCESS.get(lang),
-                        org.leralix.lib.data.SoundEnum.GOOD);
-                  });
-            });
+    tanPlayer.getRegion().thenAccept(region -> {
+      FoliaScheduler.runTask(TownsAndNations.getPlugin(), () -> {
+        if (region == null || !region.haveOverlord()) {
+          TanChatUtils.message(player, Lang.NATION_DISBAND_MUST_BE_NATION_LEADER.get(lang));
+          return;
+        }
+        var nationOpt = region.getOverlord();
+        if (nationOpt.isEmpty() || !(nationOpt.get() instanceof org.leralix.tan.dataclass.territory.NationData nation)) {
+          TanChatUtils.message(player, Lang.NATION_DISBAND_MUST_BE_NATION_LEADER.get(lang));
+          return;
+        }
+        if (!nation.isLeader(tanPlayer)) {
+          TanChatUtils.message(player, Lang.NATION_DISBAND_MUST_BE_NATION_LEADER.get(lang));
+          return;
+        }
+        nation.delete()
+            .thenRun(
+                () -> {
+                  FoliaScheduler.runTask(
+                      TownsAndNations.getPlugin(),
+                      () -> {
+                        TanChatUtils.message(
+                            player,
+                            Lang.NATION_DISBANDED_SUCCESS.get(lang),
+                            org.leralix.lib.data.SoundEnum.GOOD);
+                      });
+                });
+      });
+    });
   }
 }
