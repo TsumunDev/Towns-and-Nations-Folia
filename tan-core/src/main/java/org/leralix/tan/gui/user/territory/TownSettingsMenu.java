@@ -168,10 +168,12 @@ public class TownSettingsMenu extends SettingsMenus {
             event -> {
               event.setCancelled(true);
               if (townData.isCapital()) {
+                var overlordOpt = townData.getOverlord();
+                String overlordName = overlordOpt.isPresent() ? overlordOpt.get().getBaseColoredName() : "Unknown";
                 TanChatUtils.message(
                     player,
                     Lang.CANNOT_DELETE_TERRITORY_IF_CAPITAL.get(
-                        tanPlayer, townData.getOverlord().get().getBaseColoredName()));
+                        tanPlayer, overlordName));
                 return;
               }
               if (!player.hasPermission("tan.base.town.disband")) {

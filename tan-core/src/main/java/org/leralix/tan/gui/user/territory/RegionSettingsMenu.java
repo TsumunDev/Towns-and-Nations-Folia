@@ -86,10 +86,12 @@ public class RegionSettingsMenu extends SettingsMenus {
                 return;
               }
               if (regionData.isCapital()) {
+                var overlordOpt = regionData.getOverlord();
+                String overlordName = overlordOpt.isPresent() ? overlordOpt.get().getBaseColoredName() : "Unknown";
                 TanChatUtils.message(
                     player,
                     Lang.CANNOT_DELETE_TERRITORY_IF_CAPITAL.get(
-                        tanPlayer, regionData.getOverlord().get().getBaseColoredName()));
+                        tanPlayer, overlordName));
                 return;
               }
               if (!player.hasPermission("tan.base.region.disband")) {
